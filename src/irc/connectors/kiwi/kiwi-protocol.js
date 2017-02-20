@@ -20,7 +20,6 @@
 *    @@      @@   
 *    @@      @@   
 *
-* All rights reserved.
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
 *
@@ -203,11 +202,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * Registers a listening object to the protocol.
          * @method vga.irc.connector.kiwi.protocolwrapper.register
          * @param {object} listeningObject A listening object to register.  This can be an array of listening objects.
-         */        
+         */
         register(listeningObject) {
             this._listener.register(listeningObject);
             return this;
-        }        
+        }
         /**
          * Returns the current state.
          * @method vga.irc.connector.kiwi.protocolwrapper.getState
@@ -243,7 +242,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @method vga.irc.connector.kiwi.protocolwrapper.open
          * @param {object} authenticationParams authentication parameters to set to the server.
          */
-        open(authenticationParams) {          
+        open(authenticationParams) {
             //Normalize.
             authenticationParams = authenticationParams || {};
 
@@ -275,7 +274,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @method vga.irc.connector.kiwi.protocolwrapper.connect
          * @param {string} message a temporary message to send when closing the socket.
          */       
-        close(message) {           
+        close(message) {
 
             //Clean up all the ancillary processes.
             this.cleanUp();
@@ -307,7 +306,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * This event is triggered when the proxy connection has been opened and the irc server is pending a connection.
          * @method vga.irc.connector.kiwi.protocolwrapper.onProxyConnected
          * @param {object} proxyInfo proxy info such as sid and timeout information.
-         */           
+         */
         onProxyOpened(proxyInfo) {
             proxyInfo = proxyInfo || {};
             vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onProxyOpened]: Proxy Connection Opened.', proxyInfo);
@@ -317,14 +316,14 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 sid: proxyInfo.sid,
                 pingInterval: proxyInfo.pingInterval,
                 pingTimeout: proxyInfo.pingTimeout
-            };           
+            };
         }
         /**
          * This event is triggered when the proxy connection has connected to the irc server.
          * @method vga.irc.connector.kiwi.protocolwrapper.onProxyConnected
          * @param {object} proxyInfo proxy info such as sid and timeout information.
-         */           
-        onProxyConnected(proxyInfo) {          
+         */
+        onProxyConnected(proxyInfo) {
             proxyInfo = proxyInfo || {};
             this._state = vga.irc.connector.kiwi.STATES.PROXY_CONNECTED;
             vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onProxyConnected]: Proxy Connected.', proxyInfo);
@@ -358,7 +357,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         /**
          * This event is triggered when the kiwi connection to IRC has been connected.
          * @method vga.irc.connector.kiwi.protocolwrapper.onConnect
-         */        
+         */
         onConnect() {
             if (this._state === vga.irc.connector.kiwi.PROXY_CONNECTED) {
                 this._state = vga.irc.connector.kiwi.STATES.OPENED;
@@ -374,7 +373,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @method vga.irc.connector.kiwi.protocolwrapper.onOpen
          * @param {object} event socket event data. 
          * @param {object} authenticationParams emphemeral authentication parameters passed for authentication, not to be stored in memory.
-         */                
+         */
         onOpen(event, authenticationParams) {
             this._state = vga.irc.connector.kiwi.STATES.SOCKET_OPENED;
             vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onOpen]:', event);
@@ -419,7 +418,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * An event that is triggered whenever the socket sends a message.
          * @method vga.irc.connector.kiwi.protocolwrapper.onMessage
          * @param {object} event socket event data. 
-         */         
+         */
         onMessage(event) {
             let parsedMessage = parseMessage(event.data); 
 
@@ -454,12 +453,12 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     }
                     break;
                 case vga.irc.connector.kiwi.PACKET_STATUS.PONG:
-                    vga.util.debuglog.info("[vga.irc.connector.kiwi.protocolwrapper.onMessage]: Server Pong");                
-                    break;          
+                    vga.util.debuglog.info("[vga.irc.connector.kiwi.protocolwrapper.onMessage]: Server Pong");
+                    break;
                 case vga.irc.connector.kiwi.PACKET_STATUS.PING:
                     vga.util.debuglog.info("[vga.irc.connector.kiwi.protocolwrapper.onMessage]: Server Ping responding with Pong");
                     this.sendRawData(vga.irc.connector.kiwi.PACKET_STATUS.PONG);
-                    break;                    
+                    break;
                 default:
                     vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onMessage]: Unhandled status: ${parsedMessage.status}.`);
                     break;

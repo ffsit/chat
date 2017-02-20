@@ -20,7 +20,6 @@
 *    @@      @@   
 *    @@      @@   
 *
-* All rights reserved.
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
 *
@@ -60,7 +59,7 @@ vga.util = vga.util || {};
          * Constructor for the listener class.
          * @method vga.util.listener
          * @param {object} methodMap An object (dictionary) that contains a collection of white-listed methods.
-         */        
+         */
         constructor(methodMap, listeners) {
             this._methodMap = methodMap;
             this._listeners = listeners || [];
@@ -69,7 +68,7 @@ vga.util = vga.util || {};
          * Registers a listening object.
          * @method vga.util.listener.register
          * @param {object} listeningObject A listening object to register.  This can be an array of listening objects.
-         */        
+         */
         register(listeningObject) {
             //NOTE: According to the MDN: Do not use this method if the second array is very large, because the maximum number of parameters that one function can take is limited in practice. See apply() for more details.
             if (Array.isArray(listeningObject)) {

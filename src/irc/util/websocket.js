@@ -20,7 +20,6 @@
 *    @@      @@   
 *    @@      @@   
 *
-* All rights reserved.
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
 *
@@ -79,7 +78,7 @@ vga.util = vga.util || {};
          * @param {string} url The URL to attempt to open a websocket connection with.
          * @param {object} options Additional options for the websocket wrapper.
          * @param {object} protocols Additional websocket protocols to pass to the server.
-         */        
+         */ 
         constructor(url, options, protocols) {
             //Normalize the options.
             options = options || {};
@@ -95,7 +94,7 @@ vga.util = vga.util || {};
          * Registers a listening object to the socket.
          * @method vga.util.websocket.register
          * @param {object} listeningObject A listening object to register.  This can be an array of listening objects.
-         */        
+         */
         register(listeningObject) {
             this._listener.register(listeningObject);
         }
@@ -103,7 +102,7 @@ vga.util = vga.util || {};
          * Attempts to open a websocket connection at the URL.
          * @method vga.util.websocket.open
          * @param {object} authenticationParams A collection of additional authentication parameters depending on the server. This information is sent immediately after the socket is opened.
-         */        
+         */
         open(authenticationParams) {
             if (!this._webSocket) {
                 this._webSocket = new WebSocket(this._url, this._protocols);
@@ -117,7 +116,7 @@ vga.util = vga.util || {};
          * Attempts to send data through the open websocket connection.
          * @method vga.util.websocket.send
          * @param {object} data Data to send through the websocket.
-         */           
+         */
         send(data) {
             if (this._webSocket) {
                 if (this._webSocket.readyState === vga.util.websocket_states.OPEN || this._webSocket.readyState === vga.util.websocket_states.OPENING) {
@@ -132,12 +131,12 @@ vga.util = vga.util || {};
         /**
          * Attempts to close any open websocket connections.
          * @method vga.util.websocket.close
-         */         
+         */
         close(status, message) {
             if (this._webSocket) {
                 if (this._webSocket.readyState === vga.util.websocket_states.OPEN || this._webSocket.readyState === vga.util.websocket_states.OPENING) {
                     vga.util.debuglog.info('[vga.util.websocket.close]: Closing the socket.');
-                    this._webSocket.close(status, message);                   
+                    this._webSocket.close(status, message);
                 }
             }
 
@@ -146,7 +145,7 @@ vga.util = vga.util || {};
         /**
          * Disposes of the wrapper, cleaning up any additional resources.
          * @method vga.util.websocket.dispose
-         */         
+         */
         dispose() {
             vga.util.debuglog.info('[vga.util.websocket.dispose]: Invoked.');
             this.close();

@@ -21,7 +21,6 @@
 *    @@      @@   
 *    @@      @@   
 *
-* All rights reserved.
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
 *
@@ -61,7 +60,7 @@ vga.irc = vga.irc || {};
         'a': 'admin',
         'o': 'op',
         'h': 'guest',
-        'v': 'turbo',        
+        'v': 'turbo',
     };
 
     function writeToDisplay(message, name, type) {
@@ -88,7 +87,7 @@ vga.irc = vga.irc || {};
         $userList.append(`<div id="user_list_${user.name}">`
             + `<span class="role ${(vga.irc.MODES[user.modes[0]] || 'regular')}"></span>`
             + `<span class="user" data-nickname="${user.nick}">${user.nick}</span>`
-			+ '</div>');
+            + '</div>');
     };
 
     function updateUserInList(user) {
@@ -142,6 +141,11 @@ vga.irc = vga.irc || {};
                 throw new vga.util.exception('irc.chat', 'The port must be set.');
             }
 
+            //-----------------------------------------------------------------
+            // Versioning
+            //-----------------------------------------------------------------
+            vga.irc.chat.CLIENT_VERSION = new vga.util.version(0, 1, 0);
+
             //Chat settings.
             this._theaterMode = options.theaterMode;
             this._hostname = options.hostname;
@@ -164,7 +168,7 @@ vga.irc = vga.irc || {};
          * @param {string} nickname the user's nickname to authenticate with.
          * @param {string} password the user's password to authenticate with.
          * @param {string} channel the channel the user is attempting to autojoin.
-         */        
+         */
         connect(nickname, password, channel) {
             setStatus();
             this.connector.connect({ 
@@ -180,7 +184,7 @@ vga.irc = vga.irc || {};
          * Attempts to close the connection.
          * @method vga.irc.chat.close
          * @param {string} message the message to send to the server when closing (disconnecting) the chat.
-         */           
+         */
         close(message) {
             this.connector && this.connector.disconnect(message);
         }
@@ -196,7 +200,7 @@ vga.irc = vga.irc || {};
         /**
          * Attempts to join a channel.
          * @method vga.irc.chat.join
-         */           
+         */
         join() {
             let channel = document.getElementById('channel').value;
             this.connector && this.connector.join(channel);
@@ -221,11 +225,11 @@ vga.irc = vga.irc || {};
         //-----------------------------------------------------------------
         // Chat events
         // These are IRC chat events.
-        //-----------------------------------------------------------------        
+        //-----------------------------------------------------------------
         /**
          * An event that is triggered on a successful connection to the chat server.
          * @method vga.irc.chat.onConnect
-         */        
+         */
         onConnect() {
             toggleLoginWindow(false);
         }
@@ -245,7 +249,7 @@ vga.irc = vga.irc || {};
          * An event that is triggered when a topic event occurs.
          * @method vga.irc.chat.onTopic
          * @param {string} topic information.
-         */        
+         */
         onTopic(topic) {
             writeToDisplay(topic.topic);
         }
@@ -253,7 +257,7 @@ vga.irc = vga.irc || {};
          * An event that is triggered when a user list is provided.
          * @method vga.irc.chat.onUserlist
          * @param {object} userListByChannel An object that contains the channel and the users associated with that channel.
-         */        
+         */
         onUserlist (userListByChannel) {
             this._userChannels[userListByChannel.channel] = userListByChannel.users;
             writeUserList(userListByChannel.users);
@@ -268,7 +272,7 @@ vga.irc = vga.irc || {};
         /**
          * An event that is triggered when the authentication information is incorrect.
          * @method vga.irc.chat.onAccessDenied
-         */        
+         */
         onAccessDenied() {
             setStatus('Invalid login, please try again');
         }
@@ -276,7 +280,7 @@ vga.irc = vga.irc || {};
          * An event that is triggered when the user was kicked from the channel.
          * @method vga.irc.chat.onKicked
          * @param {object} kickedInfo additional kick information.
-         */          
+         */
         onKicked(kickedInfo) {
             //TODO: Close channel window.
             //For now, disconnect the user if he or she is kicked from the channel.
@@ -287,7 +291,7 @@ vga.irc = vga.irc || {};
          * An event that is triggered when the user is banned from the channel.
          * @method vga.irc.chat.onBanned
          * @param {object} bannedInfo additional banned information.
-         */          
+         */
         onBanned(bannedInfo) {
             //TODO: Close channel window.
             //For now, disconnect the user if he or she is kicked from the channel.
@@ -298,13 +302,13 @@ vga.irc = vga.irc || {};
          * An event that is triggered when the user is banned from the channel.
          * @method vga.irc.chat.errorInfo
          * @param {object} errorInfo additional error information.
-         */          
+         */
         onError(errorInfo) {
             //TODO: Close channel window.
             //For now, disconnect the user if he or she is kicked from the channel.
             this.close();
             setStatus('Sorry, an unknown error has occured.');
             vga.util.debuglog.error(errorInfo.reason);
-        }        
+        }
     }
 }());
