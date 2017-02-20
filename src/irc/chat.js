@@ -63,6 +63,8 @@ vga.irc = vga.irc || {};
         'v': 'turbo',
     };
 
+    //TODO: Consider just ripping this logic out and putting it in the onTopic & onMessage events since they're so distinctly different.
+    //TODO: We'll also need the role information and that will be stored in our channel collection in the instance of chat object.
     function writeToDisplay(message, name, type) {
         let $chatHistory = $('#chathistory');
         let messageBody = '';
@@ -152,8 +154,9 @@ vga.irc = vga.irc || {};
             this._port = options.port;
             this._ssl = (options.ssl === undefined ? false : options.ssl);
             this._debug = (options.debug == undefined ? false : options.debug);
-            this._defaultChannel = (options.defaultChannel) || '#ffstv';
-            this._wallRegEx = ''
+            this._defaultChannel = options.defaultChannel || '#ffstv';
+            this._wallRegEx = options.wallRegEx || /^%! [^\r\n]*/;
+            this._theaterMode = (options.theaterMode !== undefined ? options.theaterMode : false);
 
             //User's channel information.
             this._userChannels = {};
@@ -243,7 +246,9 @@ vga.irc = vga.irc || {};
          * @param {string} message broadcasted to the channel.
          */
         onMessage(message) {
-            writeToDisplay(message.message, message.ident, message.type);
+            if (!this._wallRegEx.test(message.message) || !this._theaterMode) {
+                writeToDisplay(message.message, message.ident, message.type);
+            }
         }
         /**
          * An event that is triggered when a topic event occurs.

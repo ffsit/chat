@@ -349,7 +349,7 @@ div.blocked_message > span.text {
 	height: 0;
 }
 
-#chathistory div.modbroadcast div.text {
+#chathistory div.modbroadcast span.text {
     font-weight: bold;
     background-color: #FF6E00;
     color: #000000;
