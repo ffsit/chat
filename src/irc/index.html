@@ -1,0 +1,38 @@
+<html>
+    <head>
+        </head>
+    <body>
+        <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+        <script src="/util/globals.js"></script>
+        <script src="/util/websocket.js"></script>
+        <script src="/connectors/kiwi/kiwi-protocol.js"></script>
+        <script src="/connectors/kiwi/kiwi-connector.js"></script>
+        <script src="/chat.js"></script>
+        <script>
+            vga.util.enableDebug();           
+            var chat = new vga.chat();
+        </script>
+        <form>
+            Username: <input id="username" type="text" name="username"/>
+            Password: <input id="password" type="password" name="password"/>
+            <input type="submit" onClick="return chat.connect();" value="Login"/>
+        </form>
+        Message: <input id="message" type="text"/>
+        <button type="button" onClick="return chat.send();">Send</button>
+        <br/>
+        <br/>
+        Channel: <input id="channel" type="text" value="#ffstv"/>
+        <button type="button" onClick="return chat.join();">Join Channel</button>
+        <button type="button" onClick="return chat.leave();">Leave Channel</button>
+        <br/>
+        <button type="button" onClick="return chat.close();">Close</button>       
+        <div style="display:block;"> 
+            <div id="display" style="width: 500px;height: 500px;overflow-y:auto;display:inline-block;border: 1px solid black;">
+
+            </div>
+            <div id="userlist" style="width: 500px;height: 500px;overflow-y:auto;display:inline-block;border: 1px solid black;">
+
+            </div>
+        </div>
+    </body>
+</html>
