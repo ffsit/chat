@@ -60,7 +60,7 @@ vga.util = vga.util || {};
         CLOSED: 3
     }
 
-    var whiteListedMethods = {
+    const whiteListedMethods = {
         'onOpen': 'onOpen',
         'onClose' : 'onClose',
         'onMessage': 'onMessage',

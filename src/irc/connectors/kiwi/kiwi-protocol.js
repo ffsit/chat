@@ -86,7 +86,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     //-----------------------------------------------------------------
     // IRC Method Map
     //-----------------------------------------------------------------
-    var methodMap = {
+    const methodMap = {
         'connect': 'onConnect',
         'channel': 'onChannel',
         'options': 'onOptions',
