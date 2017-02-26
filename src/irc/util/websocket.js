@@ -120,7 +120,7 @@ vga.util = vga.util || {};
         send(data) {
             if (this._webSocket) {
                 if (this._webSocket.readyState === vga.util.websocket_states.OPEN || this._webSocket.readyState === vga.util.websocket_states.OPENING) {
-                    vga.util.debuglog.info('[vga.util.websocket.send]: ', data);
+                    vga.util.debuglog.info(`[vga.util.websocket.send] (ReadyState: ${this._webSocket.readyState}): `, data);
                     this._webSocket.send(data);
                     return;
                 }
