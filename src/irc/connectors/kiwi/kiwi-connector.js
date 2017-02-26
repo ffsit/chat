@@ -53,10 +53,12 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 ///////////////////////////////////////////////////////////
 (function(){
 
+    const defaultPrefixMap = {'~': 'q', '&': 'a', '@': 'o', '%': 'h', '+': 'v'}
+
     //-----------------------------------------------------------------
     // IRC Method Map
     //-----------------------------------------------------------------
-    var methodMap = {
+    const methodMap = {
         'connect': 'onConnect',
         'disconnect': 'onDisconnect',
         'message': 'onMessage',
@@ -64,11 +66,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         'topic': 'onTopic',
         'join': 'onJoin',
         'leave': 'onLeave',
-        'userMode' : 'onMode',
         'otherUserJoin': 'onOtherUserJoining',
         'otherUserLeave': 'onOtherUserLeaving',
-        'otherUserMode': 'onOtherUserMode',
         'channelMode': 'onChannelMode',
+        'userMode' : 'onRole',
+        'otherUserMode': 'onOtherUserRole',
         'accessDenied': 'onAccessDenied',
         'error': 'onError',
         'kicked': 'onKicked',
@@ -83,7 +85,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     vga.irc.connector.kiwi.serverShutDownRegEx = /^Closing link: [^\r\n]*\[Server shutdown\]$/;
 
     /**
-     * Increments the nickname suffix by one per original vga chat implementation.
+     * Increments the nickname suffix by one per original vga chat implementation by appending or incrementing a numeric suffix identifier.
      * @method incrementNickname
      * @param {string} nickname to increment.
      * @return {string} incremented nickname.
@@ -99,8 +101,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     }
 
     /**
-     * Sanitizes the nickname by removing the incremental suffix.
-     * @method incrementNickname
+     * Sanitizes the nickname by removing the numeric suffix identifier.
+     * @method sanitizeNickname
      * @param {string} nickname to sanitized.
      * @return {string} sanitized nickname.
      */
@@ -128,8 +130,9 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //Normalize.
             options = options || {};
             
-            //Channel specific information.
+            //Channel & Prefix maps.
             this._userListByChannel = {};
+            this._prefixMap = {};
 
             //User Identity information.
             this._nickname = this._identity = '';
@@ -191,6 +194,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     this._nickname = this._identity = authenticationParams.nick;
                 }
             }
+            return this;
         }
         /**
          * Attemps to sends a message to the specific target.
@@ -202,6 +206,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.send]: Sending to (${target}): ${message}.`);
                 this._protocol && this._protocol.sendIRCData('privmsg', {target: target, msg: message });
             }
+            return this;
         }
         /**
          * Attempts to join the channel specified.
@@ -212,9 +217,10 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             if (channel) {
                 vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.join]: Attempting to join channel: ${channel}.`);
                 this._protocol && this._protocol.sendIRCData('join', {channel: channel, key: '' });
-                return;
+                return this;
             }
             vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.join]: Invalid channel.', channel);
+            return this;
         }
         /**
          * Attempts to leave the channel specified.
@@ -225,21 +231,23 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             if (channel) {
                 vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.leave]: Attempting to leave channel: ${channel}.`);
                 this._protocol && this._protocol.sendIRCData('part', {channel: channel, message: message });
-                return;
+                return this;
             }
             vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.leave]: Invalid channel.', channel);
+            return this;
         }
         /**
          * Attempts to change the nickname of the currently authenticated user.
          * @method vga.irc.connector.kiwi.connector.nick
          * @param {string} nickname the nickname to change to.
          */
-        nick(nickname) {
+        setNickname(nickname) {
             if (nickname) {
                 this._nickname = nickname;
                 vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.nick]: Attempting to change nickname to: ${nickname}.`);
                 this._protocol && this._protocol.sendIRCData('nick', {nick: nickname});
             }
+            return this;
         }
         /**
          * Disconnects\closes an open connection.  This method is idempotent and safe as multiple calls have no side-effects.
@@ -252,6 +260,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 this._protocol.sendIRCData('quit', {message: message});
                 this._protocol.close(message);
             }
+            return this;
         }
         /**
          * Disposes of the connector, cleaning up any additional resources.
@@ -260,6 +269,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         dispose() {
             this.disconnect();
             this._protocol = vga.util.safeDispose(this._protocol);
+            return this;
         }
 
         //-----------------------------------------------------------------
@@ -272,7 +282,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with the established connection.
          */
         onConnect(eventData) {
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onConnect]', eventData);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onConnect]: AutoJoinChannel: ${this._autoJoinChannel !== '' ? this._autoJoinChannel : 'none' })`, eventData);
             if (this._autoJoinChannel !== '') {
                 this.join(this._autoJoinChannel);
             }
@@ -296,13 +306,32 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             this._listener.invokeListeners('disconnect');
         }
         /**
+         * This event is triggered when the IRC server sends the options information.
+         * @method vga.irc.connector.kiwi.connector.onOptions
+         * @param {object} eventData event data associated irc server.
+         */
+        onOptions(eventData) {
+            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onOptions].', eventData);
+
+            //If we don't have prefix map, create one.
+            if (vga.util.propertyCount(this._prefixMap) === 0) {
+                if (eventData.options && eventData.options.PREFIX) {
+                    eventData.options.PREFIX.forEach((prefixItem) => {
+                        if (prefixItem.symbol && prefixItem.mode) {
+                            this._prefixMap[prefixItem.symbol] = prefixItem.mode;
+                        }
+                    });
+                }
+            }
+        }
+        /**
          * This event is triggered when a user has successfully joined a channel.
-         * This event will be triggered for both the authenticated user and other users in the channel.
+         * This event is triggered for everyone, the authenticated user and everyone in & out of the channel.
          * @method vga.irc.connector.kiwi.connector.onChannel
-         * @param {object} eventData event data associated with channel joinn event.
+         * @param {object} eventData event data associated with channel join event.
          */        
         onChannel(eventData) {
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onChannel]', eventData);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onChannel]: Channel: ${eventData.channel} Identity: ${eventData.ident} Type: ${eventData.type}.`, eventData);
 
             //Determine if we have joined the auto channel.
             this._autoJoinChannelComplete = (eventData.type === 'join' 
@@ -315,8 +344,9 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             let nickname = (eventData.type !== 'kick') ? eventData.nick : eventData.kicked;
 
             //Determine if it is the current user joining or another user.
+            //We cannot use the identity since IRC works off nicknames and every nickname can be an independent session for a single ident.
+            //So we need to send event notifications on nicknames not the identity.
             let eventName = '';
-            //if (this.getIdentity() !== eventData.indent) {
             if (this.getNickname() !== nickname) {
                 eventName = 'otherUser';
             }
@@ -365,7 +395,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 //Support multiple nicknames per account if it is enabled, otherwise respond with an error.
                 case 'nickname_in_use':
                     if (this._supportConcurrentChannelJoins) {
-                        this.nick(incrementNickname(this._nickname));
+                        this.setNickname(incrementNickname(this.getNickname()));
                         return;
                     }
                     break;
@@ -413,8 +443,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onMessage]', eventData);
             if (eventData.type === 'message' || eventData.type === 'action') {
                 this._listener.invokeListeners('message', {
-                    nick: eventData.nick,
-                    ident: eventData.ident,
+                    nickname: eventData.nick,
+                    identity: eventData.ident,
                     target: eventData.target,
                     message: eventData.msg,
                     type: eventData.type
@@ -427,7 +457,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with a topic event.
          */
         onTopic(eventData) {
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onTopic]', eventData);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onTopic]: Topic: ${eventData.topic} Channel: ${eventData.channel}.`, eventData);
             this._listener.invokeListeners('topic', {
                 topic: eventData.topic,
                 channel: eventData.channel
@@ -439,47 +469,67 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with userlist sent by the server.
          */     
         onUserlist(eventData) {
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onUserlist] ', eventData);
+            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onUserlist].', eventData);
             
             //TODO: Dynamically discover based on the options block the server sends.
             //TODO: Have a backup static list if the server does not provide a list of prefix & modes.
             //TODO: Adjust these to match a global set of modes.
-            let defaultPrefixMap = {'~': 'q', '&': 'a', '@': 'o', '%': 'h', '+': 'v'  }
+            //let defaultPrefixMap = {'~': 'q', '&': 'a', '@': 'o', '%': 'h', '+': 'v'  }
+            let prefixMap = vga.util.propertyCount(this._prefixMap) > 0 ? this._prefixMap : defaultPrefixMap;
+            let userInfoMap = {};
 
             //Iterate through all users and extract the prefix and store it.
-            eventData.users = eventData.users.map((user) => {
+            let users = eventData.users.map((user) => {
                 let prefixes = [];
                 let nameIndex = 0;
                 //Iterate through all the first characters and remove the prefix until the first non-prefix character is found.
                 //According to the IRC RFC there can be multiple prefixes.
                 for(let i = 0; i < user.nick.length; i++) {
-                    if (!defaultPrefixMap.hasOwnProperty(user.nick[i])) {
+                    if (!prefixMap.hasOwnProperty(user.nick[i])) {
                         break;
                     }
 
-                    prefixes.push(defaultPrefixMap[user.nick[i]]);
+                    prefixes.push(prefixMap[user.nick[i]]);
                     nameIndex++;
                 }
 
-                //Preparse the nickname.
-                return {
-                    modes: user.modes,
-                    prefixes: prefixes,
-                    nick: user.nick.substring(nameIndex)
-                };
+                //Remove the prefix from the nickname.
+                let parsedNickname = user.nick.substring(nameIndex);
+
+                //Sanitizes the nickname by removing the numeric suffix identifier.
+                let sanitizedNickname = sanitizeNickname(parsedNickname);
+
+                let userInfo = userInfoMap[sanitizedNickname];
+                //Determine if we stored the nickname earlier.
+                if (!userInfo) {
+                    return userInfoMap[sanitizedNickname] = {
+                        modes: user.modes,
+                        prefixes: prefixes,
+                        //Push the sanitized, original nickname onto the nicknames array.
+                        nicknames: [sanitizedNickname]
+                    };
+                }
+                else {
+                    //Keep a collection of all of the alternative nicknames for this user.
+                    //For example: While the original user is caffe, let's say another session was opened by him then caffe would be assigned the nickname caffe_1.
+                    userInfo.nicknames.push(parsedNickname);
+                }
+            //Filter out undefined items.
+            }).filter((item) => {
+                return item;
             });
 
             //NOTE: There is no RPL_USERSSTART event as defined by the IRC Protocol, so we'll just wait for the RPL_ENDOFUSERS event.
-            this._userListByChannel[eventData.channel] = eventData;
+            this._userListByChannel[eventData.channel] = users;
         }
         onUserlistEnd(eventData) {
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onUserListEnd] ', eventData);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onUserListEnd]: Channel: ${eventData.channel} UserList: ${this._userListByChannel[eventData.channel].users}.`, eventData);
 
             //NOTE: There is no RPL_USERSSTART event as defined by the IRC Protocol, so we'll just wait for the RPL_ENDOFUSERS event.
             if (this._userListByChannel && eventData.channel && this._userListByChannel.hasOwnProperty(eventData.channel)) { 
                 this._listener.invokeListeners('userlist', {
-                    users: this._userListByChannel[eventData.channel].users,
-                    channel: this._userListByChannel[eventData.channel].channel
+                    users: this._userListByChannel[eventData.channel],
+                    channel: eventData.channel
                 });
             }
         }

@@ -52,10 +52,29 @@ vga.irc = vga.irc || {};
 (function(){
 
     //-----------------------------------------------------------------
+    // Expected structures note.
+    //-----------------------------------------------------------------
+    // Since JS is a dynamic language, we cannot force structures to conform to a specific format.
+    // We can document what type of structure needs to be provided to the chat by a connector.
+    // Event: onConnect()
+    // Event: onDisconnect()
+    // Event: onOtherUserJoining ({ identity: string, nickname: string, channel: string })
+    // Event: onOtherUserLeaving ({ identity: string, nickname: string, channel: string })
+    // Event: onJoin ({ identity: string, nickname: string, channel: string })
+    // Event: onLeave ({ identity: string, nickname: string, channel: string })
+    // Event: onTopic ({ topic: string, channel: string }): 
+    // Event: onMessage ({ identity: string, nickname: string, target: string, message: string, type: string }): 
+    // Event: onUserlist ({ channel: string, users: { modes: [ {mode: string} ], prefixes: [ {prefix: string} ], nicknames: [string] }): 
+    // Event: onAccessDenied()
+    // Event: onKicked ({ identity: string, nickname: string, channel: string })
+    // Event: onBanned ({ identity: string, nickname: string, channel: string })
+    // Event: onError ({ reason: string })
+
+    //-----------------------------------------------------------------
     // VGA Channel map.
     //-----------------------------------------------------------------
     // Simple states.
-    vga.irc.MODES = {
+    vga.irc.USER_MODES = {
         'q': 'owner',
         'a': 'admin',
         'o': 'op',
@@ -86,30 +105,31 @@ vga.irc = vga.irc || {};
 
     function writeUser(user, $userList) {
         $userList = $userList || $('#user_list');
-        $userList.append(`<div id="user_list_${user.name}">`
-            + `<span class="role ${(vga.irc.MODES[user.modes[0]] || 'regular')}"></span>`
-            + `<span class="user" data-nickname="${user.nick}">${user.nick}</span>`
+        let nickname = user.nicknames[0];
+        $userList.append(`<div id="user_list_${nickname}">`
+            + `<span class="role ${(vga.irc.USER_MODES[user.modes[0]] || 'regular')}"></span>`
+            + `<span class="user">${nickname}</span>`
             + '</div>');
     };
 
     function updateUserInList(user) {
         $userList = $userList || $('#user_list');
         var $element = $userList.find(`#user_list_${user.name} > span.role`);
-        $element.removeClass().addClass(`role ${(vga.irc.MODES[user.modes[0]] || 'regular')}`);
+        $element.removeClass().addClass(`role ${(vga.irc.USER_MODES[user.modes[0]] || 'regular')}`);
     };
 
     function writeUserList(users) {
         let $userList = $('#user_list');
         
-        //Write a collection of users to the list.
-        if (users) {
-            for(let i = 0; i < users.length; i++) {
-                writeUser(users[i], $userList);
-            }
-        }
         //If no users are supplied then just clear it.
-        else {
+        if (!users) {
             $userList.html('');
+            return;
+        }
+
+        //Write a collection of users to the list.
+        for(let i = 0; i < users.length; i++) {
+            writeUser(users[i], $userList);
         }
     };
 
@@ -182,6 +202,7 @@ vga.irc = vga.irc || {};
                 password: password,
                 channel: channel || this._defaultChannel
             });
+            return this;
         }
         /**
          * Attempts to close the connection.
@@ -190,6 +211,7 @@ vga.irc = vga.irc || {};
          */
         close(message) {
             this.connector && this.connector.disconnect(message);
+            return this;
         }
         /**
          * Attempts to leave a channel.
@@ -199,6 +221,7 @@ vga.irc = vga.irc || {};
         leave(message) {
             let channel = document.getElementById('channel').value;
             this.connector && this.connector.leave(message, channel);
+            return this;
         }
         /**
          * Attempts to join a channel.
@@ -207,6 +230,7 @@ vga.irc = vga.irc || {};
         join() {
             let channel = document.getElementById('channel').value;
             this.connector && this.connector.join(channel);
+            return this;
         }
         /**
          * Attempts to send a message.
@@ -223,6 +247,7 @@ vga.irc = vga.irc || {};
             else {
                 this.close(message.substring(6));
             }
+            return this;
         }
 
         //-----------------------------------------------------------------
@@ -247,7 +272,7 @@ vga.irc = vga.irc || {};
          */
         onMessage(message) {
             if (!this._wallRegEx.test(message.message) || !this._theaterMode) {
-                writeToDisplay(message.message, message.ident, message.type);
+                writeToDisplay(message.message, message.identity, message.type);
             }
         }
         /**
