@@ -89,6 +89,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     var methodMap = {
         'connect': 'onConnect',
         'channel': 'onChannel',
+        'options': 'onOptions',
         'irc_error': 'onError',
         'disconnect': 'onDisconnect',
         'message': 'onMessage',
@@ -268,6 +269,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             clearTimeout(this._pingId);
             this._heartbeatId = null;
             this._pingId = null;
+            return this;
         }
         /**
          * Closes an open connection.  This method is idempotent and safe as multiple calls have no side-effects.
@@ -275,7 +277,6 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {string} message a temporary message to send when closing the socket.
          */       
         close(message) {
-
             //Clean up all the ancillary processes.
             this.cleanUp();
 
@@ -309,7 +310,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          */
         onProxyOpened(proxyInfo) {
             proxyInfo = proxyInfo || {};
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onProxyOpened]: Proxy Connection Opened.', proxyInfo);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onProxyOpened]: Proxy Connection Opened (sid: ${proxyInfo.sid}, pingInterval: ${proxyInfo.pingInterval}, pingTimeout: ${proxyInfo.pingTimeout}).`, proxyInfo);
             this._state = vga.irc.connector.kiwi.STATES.PROXY_OPENED;
             
             this._connectionInfo = {
@@ -326,7 +327,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         onProxyConnected(proxyInfo) {
             proxyInfo = proxyInfo || {};
             this._state = vga.irc.connector.kiwi.STATES.PROXY_CONNECTED;
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onProxyConnected]: Proxy Connected.', proxyInfo);
+            vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onProxyConnected]: Proxy Connected', proxyInfo);
 
             //Create the heartbeat timer.
             if (!this._heartbeatId)
@@ -376,7 +377,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          */
         onOpen(event, authenticationParams) {
             this._state = vga.irc.connector.kiwi.STATES.SOCKET_OPENED;
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onOpen]:', event);
+            vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onOpen]', event);
             this.sendRawData('', vga.irc.connector.kiwi.PACKET_STATUS.UPGRADE);
 
             //We have to implement wait logic, as we may already have an open websocket connection, but the Kiwi proxy may still be trying to establish a connection with the IRC server.
@@ -410,7 +411,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} event socket event data. 
          */            
         onClose(event) {
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onClose]:', event);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onClose]: State before close: ${this._state}.`, event);
             this._state = vga.irc.connector.kiwi.STATES.CLOSED;
             this.cleanUp();
         }
@@ -436,7 +437,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                         let serverMessage = parsedMessage.packet;
                         let eventData = serverMessage.params[0].data || {};
                         let command = serverMessage.params[0].command.toLowerCase() || '';
-                        vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onMessage]: (${command}) -> `, eventData);
+                        vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onMessage]: EventData: ${eventData} Command: ${command}.`, eventData);
 
                         if (serverMessage.method === vga.irc.connector.kiwi.PROXY_PREFIX) {
                             this.onProxyConnected(eventData);
