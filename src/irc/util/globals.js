@@ -114,6 +114,17 @@ vga.util.encodeHTML = (rawString) => {
     });
 }
 
+/**
+ * Returns the number of properties on the object.
+ * @method vga.util.propertyCount
+ * @param {object} obj object to evaluate.
+ * @return number of properties.
+ * @api public
+ */
+vga.util.propertyCount = (obj) => {
+    return (obj.constructor === Object) ? Object.keys(obj).length : 0;
+}
+
 //-----------------------------------------------------------------
 // Version object
 //-----------------------------------------------------------------
