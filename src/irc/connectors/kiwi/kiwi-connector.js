@@ -53,7 +53,23 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 ///////////////////////////////////////////////////////////
 (function(){
 
+    //-----------------------------------------------------------------
+    // Default prefix map to mode.
+    // This is not used if the IRC server sends its own prefix to mode info.
+    //-----------------------------------------------------------------
     const defaultPrefixMap = {'~': 'q', '&': 'a', '@': 'o', '%': 'h', '+': 'v'}
+
+    //-----------------------------------------------------------------
+    // IRC mode to Chat role map.
+    // This abstracts the IRC modes from the chat in the event chat no longer uses IRC.
+    //-----------------------------------------------------------------    
+    const modeToRoleMap =  {
+        'q': vga.irc.roles.owner,
+        'a': vga.irc.roles.admin,
+        'o': vga.irc.roles.mod,
+        'h': vga.irc.roles.guest,
+        'v': vga.irc.roles.turbo
+    };
 
     //-----------------------------------------------------------------
     // IRC Method Map
@@ -61,6 +77,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     const methodMap = {
         'connect': 'onConnect',
         'disconnect': 'onDisconnect',
+        'reconnect': 'onReconnect',
         'message': 'onMessage',
         'userlist': 'onUserlist',
         'topic': 'onTopic',
@@ -112,6 +129,32 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             nickname = nickname.substring(0, suffixIndex);
         }
         return nickname;
+    }
+
+    /**
+     * Condenses an array of modes (array of strings) into a role.
+     * @method sanitizeNickname
+     * @param {array} modes to condense into roles.
+     * @return {number} condensed roles as a bit array. 
+     */
+    function condenseModesToRoles(modes){
+        //Normalize the modes.
+        modes = modes || [];
+
+        //Initialize the (roles) to 1 so that a user is always a 'shadow'.
+        let roles = vga.irc.roles.shadow;
+        if (modes.length === 0) {
+            return roles;
+        }
+        else if (modes.length === 1) {
+            return roles | (modeToRoleMap[modes[0]] || 0);
+        }
+        else {
+            //Initialize the accumulator with the shadow role.
+            return modes.reduce((a, b)=>{
+                return a | (modeToRoleMap[b] || 0);
+            }, roles);
+        }
     }
 
     /**
@@ -289,21 +332,19 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             this._listener.invokeListeners('connect');
         }
         /**
-         * This event is triggered when a disconnect event is triggered by the server.
+         * This event is triggered on a disconnect event regardless of whether it was the user or server.
          * @method vga.irc.connector.kiwi.connector.onDisconnect
          * @param {object} eventData event data associated with a disconnect event.
          */
         onDisconnect(eventData) {
-
-            /*
-            if(this._attemptReconnect && !this._closedByUser) {
-                this.connect();
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Reason: ${eventData.reason} closedByServer: ${eventData.closedByServer}`);
+            if (this._attemptReconnect && !eventData.closedByServer) {
+                this._listener.invokeListeners('reconnect');
             }
-            */
-
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Reason: ${eventData.reason}.`);
-            this._protocol && this._protocol.close();
-            this._listener.invokeListeners('disconnect');
+            else {
+                this._protocol && this._protocol.close();
+                this._listener.invokeListeners('disconnect');
+            }
         }
         /**
          * This event is triggered when the IRC server sends the options information.
@@ -363,76 +404,39 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with mode event sent by the server.
          */
         onMode(eventData) {
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onMode] ', eventData);
+            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onMode].', eventData);
 
-            //Determine if it is the current user joining or another user.
-            let eventName = '';
-            if (this.getIdentity() !== eventData.indent) {
-                eventName = 'otherUser';
+            //Ignore any events that have no mode information.
+            if (eventData.modes.length === 0) {
+                return;
             }
 
+            //Determine if we are a channel only mode change.
+            let eventName = '';
+            if (eventData.modes.length === 1) {
+                if (eventData.modes[0].param === null) {
+                    eventName = 'channel';
+                }
+            }
+            //Otherwise we are dealing with a user mode change.
+            else {
+                //Determine if it is the current user joining or another user.
+                eventName = (this.getIdentity() !== eventData.indent) ? 'otherUser' : 'user';
+            }
+
+            //TODO:
+            //Channel Mode
+            //4{"method":"irc","params":[{"command":"mode","data":{"target":"#ffstv","nick":"CaffMod","modes":[{"mode":"+M","param":null}],"connection_id":0}},null]}
+
             //NOTE:
+            //User Mode.
             //4{"method":"irc","params":[{"command":"mode","data":{"target":"#ffstv","nick":"ChanServ","modes":[{"mode":"+v","param":"cafftest_1"}],"connection_id":0}},null]}
             //4{"method":"irc","params":[{"command":"mode","data":{"target":"#ffstv","nick":"ChanServ","modes":[{"mode":"+v","param":"caffeinatedrat"}],"connection_id":0}},null]}
 
             this._listener.invokeListeners(`${eventName}Mode`, {
-                modes: eventData.modes,
+                roles: eventData.modes,
                 channel: eventData.target
             });
-        }
-        /**
-         * This event is triggered when an error is generated by the server.
-         * @method vga.irc.connector.kiwi.connector.onError
-         * @param {object} eventData event data associated with an error event from the server.
-         */
-        onError(eventData) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onError]: Error: ${eventData.error}, Reason: ${eventData.reason}.`);
-
-            //Return to complete logic.
-            //Break to invoke the unknown error logic.
-            switch(eventData.error)
-            {
-                //Support multiple nicknames per account if it is enabled, otherwise respond with an error.
-                case 'nickname_in_use':
-                    if (this._supportConcurrentChannelJoins) {
-                        this.setNickname(incrementNickname(this.getNickname()));
-                        return;
-                    }
-                    break;
-
-                //Occurs when someone has been kicked from the channel and tries to commit an action afterwards.
-                case 'cannot_send_to_channel':
-                    this._listener.invokeListeners('kicked', {
-                        identity: this.getIdentity(),
-                        nickname: this.getNickname(),
-                        channel: eventData.channel
-                    });
-                    return;
-
-                case 'banned_from_channel':
-                    this._listener.invokeListeners('banned', {
-                        identity: this.getIdentity(),
-                        nickname: this.getNickname(),
-                        channel: eventData.channel
-                    });
-                    return;
-
-                case 'channel_is_full':
-                    break;
-
-                case 'error':
-                    if (vga.irc.connector.kiwi.accessDeniedRegEx.test(eventData.reason)) {
-                        this._listener.invokeListeners('accessDenied');
-                        return;
-                    }
-                    break;
-
-                default:
-                    break;
-            }
-
-            //Unknown error.
-            this._listener.invokeListeners('error', {reason: eventData.reason});
         }
         /**
          * This event is triggered when a message is generated by the server.
@@ -499,11 +503,12 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 //Sanitizes the nickname by removing the numeric suffix identifier.
                 let sanitizedNickname = sanitizeNickname(parsedNickname);
 
+                //vga.irc.roles
+                //Determine if we stored the user information by nickname earlier.
                 let userInfo = userInfoMap[sanitizedNickname];
-                //Determine if we stored the nickname earlier.
                 if (!userInfo) {
                     return userInfoMap[sanitizedNickname] = {
-                        modes: user.modes,
+                        roles: condenseModesToRoles(user.modes),
                         prefixes: prefixes,
                         //Push the sanitized, original nickname onto the nicknames array.
                         nicknames: [sanitizedNickname]
@@ -533,6 +538,60 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 });
             }
         }
+        /**
+         * This event is triggered when an error is generated by the server.
+         * @method vga.irc.connector.kiwi.connector.onError
+         * @param {object} eventData event data associated with an error event from the server.
+         */
+        onError(eventData) {
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onError]: Error: ${eventData.error}, Reason: ${eventData.reason}.`);
+
+            //Return to complete logic.
+            //Break to invoke the unknown error logic.
+            switch(eventData.error)
+            {
+                //Support multiple nicknames per account if it is enabled, otherwise respond with an error.
+                case 'nickname_in_use':
+                    if (this._supportConcurrentChannelJoins) {
+                        this.setNickname(incrementNickname(this.getNickname()));
+                        return;
+                    }
+                    break;
+
+                //Occurs when someone has been kicked from the channel and tries to commit an action afterwards.
+                case 'cannot_send_to_channel':
+                    this._listener.invokeListeners('kicked', {
+                        identity: this.getIdentity(),
+                        nickname: this.getNickname(),
+                        channel: eventData.channel
+                    });
+                    return;
+
+                case 'banned_from_channel':
+                    this._listener.invokeListeners('banned', {
+                        identity: this.getIdentity(),
+                        nickname: this.getNickname(),
+                        channel: eventData.channel
+                    });
+                    return;
+
+                case 'channel_is_full':
+                    break;
+
+                case 'error':
+                    if (vga.irc.connector.kiwi.accessDeniedRegEx.test(eventData.reason)) {
+                        this._listener.invokeListeners('accessDenied');
+                        return;
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+
+            //Unknown error.
+            this._listener.invokeListeners('error', {reason: eventData.reason});
+        }        
     }
     //END OF vga.irc.connector.kiwi.connector.prototype = {...
 }());
