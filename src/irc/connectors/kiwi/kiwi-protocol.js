@@ -282,12 +282,10 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
             //Only close the state if we haven't closed it yet.
             if (this._state !== vga.irc.connector.kiwi.STATES.CLOSED && this._state !== vga.irc.connector.kiwi.STATES.CLOSING) {
-                this._socket && this._socket.close();
                 this._state = vga.irc.connector.kiwi.STATES.CLOSING;
-                
-                //Invoke a disconnect event if we perform a disconnect.
-                this._listener.invokeListeners('disconnect', {message: 'We closed the connection.'});
+                this._socket && this._socket.close();
             }
+
             return this;
         }
         /**
@@ -360,7 +358,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @method vga.irc.connector.kiwi.protocolwrapper.onConnect
          */
         onConnect() {
-            if (this._state === vga.irc.connector.kiwi.PROXY_CONNECTED) {
+            if (this._state === vga.irc.connector.kiwi.STATES.PROXY_CONNECTED) {
+                vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onConnect]: Received a PROXY_CONNECTED state, setting OPENED state.');
                 this._state = vga.irc.connector.kiwi.STATES.OPENED;
             }
         }
@@ -409,11 +408,26 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * An event that is triggered when the socket has closed.
          * @method vga.irc.connector.kiwi.protocolwrapper.onClose
          * @param {object} event socket event data. 
-         */            
+         */
         onClose(event) {
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onClose]: State before close: ${this._state}.`, event);
+            
+            //Determine if the client closed the socket or the server did.
+            //If the state is closing then the user initiated the close action, otherwise the server closed the connection.
+            let eventData;
+            if (this._state === vga.irc.connector.kiwi.STATES.CLOSING) {
+                eventData = {reason: 'User closed the connection.', closedByServer: false};
+            }
+            else {
+                eventData = {reason: 'Server closed the connection.', closedByServer: true};
+            }
+
+            //Set the state to closed and run cleanup if it has not been done already.
             this._state = vga.irc.connector.kiwi.STATES.CLOSED;
             this.cleanUp();
+
+            //Trigger the disconnect event.
+            this._listener.invokeListeners('disconnect', eventData);
         }
         /**
          * An event that is triggered whenever the socket sends a message.
