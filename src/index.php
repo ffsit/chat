@@ -95,7 +95,8 @@
 	<script src="/irc/util/globals.js"></script>
 	<script src="/irc/util/listener.js"></script>
     <script src="/irc/util/websocket.js"></script>
-    <script src="/irc/connectors/kiwi/kiwi-protocol.js"></script>
+    <script src="/irc/chat-defs.js"></script>
+	<script src="/irc/connectors/kiwi/kiwi-protocol.js"></script>
     <script src="/irc/connectors/kiwi/kiwi-connector.js"></script>
     <script src="/irc/chat.js"></script>
     <script>

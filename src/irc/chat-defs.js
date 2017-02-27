@@ -45,15 +45,6 @@
 var vga = vga || {};
 vga.irc = vga.irc || {};
 
-vga.irc.classes = {
-    owner: 'owner',
-    admin: 'admin',
-    mod: 'op',
-    guest: 'guest',
-    turbo: 'turbo',
-    shadow: 'shadow'
-};
-
 vga.irc.roles = {
     owner: 32,
     admin: 16,
@@ -63,6 +54,38 @@ vga.irc.roles = {
     shadow: 1
 };
 
+vga.irc.classes = {
+    owner: 'owner',
+    admin: 'admin',
+    mod: 'op',
+    guest: 'guest',
+    turbo: 'turbo',
+    shadow: 'shadow'
+};
+
 vga.irc.channelmodes = {
     turbo: 1
 };
+
+vga.irc.getMostSignificantRole = function(roles) {
+
+    //Unrolled loop to find the most significant role.
+    //Since the number of roles are limited and more than likely never increase beyond this, we'll use an un-rolled loop for now.
+    if (roles & vga.irc.roles.owner === vga.irc.roles.owner) {
+        return vga.irc.roles.owner;
+    }
+    else if (roles & vga.irc.roles.admin === vga.irc.roles.admin) {
+        return vga.irc.roles.admin;
+    }
+    else if (roles & vga.irc.roles.mod === vga.irc.roles.mod) {
+        return vga.irc.roles.mod;
+    }
+    else if (roles & vga.irc.roles.guest === vga.irc.roles.guest) {
+        return vga.irc.roles.guest;
+    }
+    else if (roles & vga.irc.roles.turbo === vga.irc.roles.turbo) {
+        return vga.irc.roles.turbo;
+    }
+
+    return vga.irc.roles.shadow;
+}
