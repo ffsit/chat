@@ -70,21 +70,9 @@ vga.irc = vga.irc || {};
     // Event: onBanned ({ identity: string, nickname: string, channel: string })
     // Event: onError ({ reason: string })
 
-    //-----------------------------------------------------------------
-    // VGA Channel map.
-    //-----------------------------------------------------------------
-    // Simple states.
-    vga.irc.USER_MODES = {
-        'q': 'owner',
-        'a': 'admin',
-        'o': 'op',
-        'h': 'guest',
-        'v': 'turbo',
-    };
-
     //TODO: Consider just ripping this logic out and putting it in the onTopic & onMessage events since they're so distinctly different.
     //TODO: We'll also need the role information and that will be stored in our channel collection in the instance of chat object.
-    function writeToDisplay(message, name, type) {
+    function writeToDisplay(channel, message, name, type) {
         let $chatHistory = $('#chathistory');
         let messageBody = '';
 
@@ -107,7 +95,7 @@ vga.irc = vga.irc || {};
         $userList = $userList || $('#user_list');
         let nickname = user.nicknames[0];
         $userList.append(`<div id="user_list_${nickname}">`
-            + `<span class="role ${(vga.irc.USER_MODES[user.modes[0]] || 'regular')}"></span>`
+            + `<span class="role ${(vga.irc.classes[vga.irc.getMostSignificantRole(user.roles)] || 'regular')}"></span>`
             + `<span class="user">${nickname}</span>`
             + '</div>');
     };
@@ -115,7 +103,7 @@ vga.irc = vga.irc || {};
     function updateUserInList(user) {
         $userList = $userList || $('#user_list');
         var $element = $userList.find(`#user_list_${user.name} > span.role`);
-        $element.removeClass().addClass(`role ${(vga.irc.USER_MODES[user.modes[0]] || 'regular')}`);
+        $element.removeClass().addClass(`role ${(vga.irc.classes[vga.irc.getMostSignificantRole(user.roles)] || 'regular')}`);
     };
 
     function writeUserList(users) {
@@ -242,7 +230,7 @@ vga.irc = vga.irc || {};
             
             if (message !== '/QUIT') {
                 this.connector && this.connector.send(message, channel);
-                writeToDisplay(message, this.connector.getIdentity());
+                writeToDisplay(channel, message, this.connector.getIdentity());
             }
             else {
                 this.close(message.substring(6));
@@ -265,6 +253,13 @@ vga.irc = vga.irc || {};
             toggleLoginWindow(true);
             writeUserList();
         }
+        ///TODO: Temporary Reconnect logic, merge with the connect logic currently in the index.php.
+        onReconnect() {
+            let nickname = $('#nickname').val();
+            let password = $('#password').val();
+            let channel = $('#channel').val();
+            this.connect(nickname, password, channel);
+        }
         /**
          * An event that is triggered when receiving a message from the chat server.
          * @method vga.irc.chat.onMessage
@@ -272,7 +267,7 @@ vga.irc = vga.irc || {};
          */
         onMessage(message) {
             if (!this._wallRegEx.test(message.message) || !this._theaterMode) {
-                writeToDisplay(message.message, message.identity, message.type);
+                writeToDisplay(message.target, message.message, message.identity, message.type);
             }
         }
         /**
@@ -281,7 +276,7 @@ vga.irc = vga.irc || {};
          * @param {string} topic information.
          */
         onTopic(topic) {
-            writeToDisplay(topic.topic);
+            writeToDisplay(topic.channel, topic.topic);
         }
         /**
          * An event that is triggered when a user list is provided.
@@ -325,7 +320,7 @@ vga.irc = vga.irc || {};
         onBanned(bannedInfo) {
             //TODO: Close channel window.
             //For now, disconnect the user if he or she is kicked from the channel.
-            this.close();
+            //this.close();
             setStatus('You have been banned.');
         }
         /**
