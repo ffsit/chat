@@ -48,7 +48,9 @@ vga.util = vga.util || { debug: false };
 ///////////////////////////////////////////////////////////
 // Global functionality.
 ///////////////////////////////////////////////////////////
-vga.util.debuglog = vga.util.debuglog || {};
+vga.util.debuglog = vga.util.debuglog || {
+    stream: console
+};
 
 /**
  * Global console.log method that is only invoked if debugging is enabled.
@@ -57,7 +59,11 @@ vga.util.debuglog = vga.util.debuglog || {};
  * @arguments writes all argumenst to the console if more than one is passed.
  * @api public
  */
-vga.util.debuglog.info = function(msg) { vga.util.debug && console.log((arguments.length === 1) ? msg : arguments); };
+vga.util.debuglog.info = function(msg) {
+    if (vga.util.debug) {
+         vga.util.debuglog.stream.log((arguments.length === 1) ? msg : arguments);
+    }
+};
 
 /**
  * Global console.warning method that is only invoked if debugging is enabled.
@@ -66,7 +72,11 @@ vga.util.debuglog.info = function(msg) { vga.util.debug && console.log((argument
  * @arguments writes all argumenst to the console if more than one is passed.
  * @api public
  */
-vga.util.debuglog.warning = function(msg) { vga.util.debug && console.warn((arguments.length === 1) ? msg : arguments); };
+vga.util.debuglog.warning = function(msg) {
+    if (vga.util.debug) {
+        vga.util.debuglog.stream.warn((arguments.length === 1) ? msg : arguments);
+    }
+};
 
 /**
  * Global console.error method that is only invoked if debugging is enabled.
@@ -75,7 +85,11 @@ vga.util.debuglog.warning = function(msg) { vga.util.debug && console.warn((argu
  * @arguments writes all argumenst to the console if more than one is passed.
  * @api public
  */
-vga.util.debuglog.error = function(msg) { vga.util.debug && console.error((arguments.length === 1) ? msg : arguments); };
+vga.util.debuglog.error = function(msg) {
+    if (vga.util.debug) {
+        vga.util.debuglog.stream.error((arguments.length === 1) ? msg : arguments);
+    }
+};
 
 /**
  * Enables or disables the global debug flag.
@@ -83,7 +97,9 @@ vga.util.debuglog.error = function(msg) { vga.util.debug && console.error((argum
  * @param {bool} enable Determines if global debugging is enabled or not.
  * @api public
  */
-vga.util.enableDebug = function (enable) { vga.util.debug = ((enable === undefined) ? true : enable); }
+vga.util.enableDebug = function (enable) {
+    vga.util.debug = ((enable === undefined) ? true : enable);
+}
 
 /**
  * Safely disposes of the object.
@@ -123,6 +139,14 @@ vga.util.encodeHTML = (rawString) => {
  */
 vga.util.propertyCount = (obj) => {
     return (obj.constructor === Object) ? Object.keys(obj).length : 0;
+}
+
+vga.util.forEach = (object, evaluator) => {
+    for (let property in object) {
+        if (object.hasOwnProperty(property)) {
+            evaluator && evaluator(property, object[property]);
+        }
+    }
 }
 
 //-----------------------------------------------------------------
