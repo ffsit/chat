@@ -62,48 +62,79 @@ vga.irc = vga.irc || {};
     // Event: onOtherUserLeaving ({ identity: string, nickname: string, channel: string })
     // Event: onJoin ({ identity: string, nickname: string, channel: string })
     // Event: onLeave ({ identity: string, nickname: string, channel: string })
-    // Event: onTopic ({ topic: string, channel: string }): 
-    // Event: onMessage ({ identity: string, nickname: string, target: string, message: string, type: string }): 
-    // Event: onUserlist ({ channel: string, users: { modes: [ {mode: string} ], prefixes: [ {prefix: string} ], nicknames: [string] }): 
+    // Event: onTopic ({ topic: string, channel: string })
+    // Event: onMessage ({ identity: string, nickname: string, target: string, message: string, type: string })
+    // Event: onUserlist ({ channel: string, users: { modes: [ {mode: string} ], prefixes: [ {prefix: string} ], nicknames: [string] })
+    // Event: onUserMode ({ channel: string, role: string, user: string })
     // Event: onAccessDenied()
     // Event: onKicked ({ identity: string, nickname: string, channel: string })
     // Event: onBanned ({ identity: string, nickname: string, channel: string })
     // Event: onError ({ reason: string })
 
+    function getCssClass(role) {
+        switch(role)
+        {
+            case vga.irc.roles.owner:
+            case vga.irc.roles.admin:
+                return 'crew';
+           
+            case vga.irc.roles.mod:
+                return 'mod';
+
+            case vga.irc.roles.guest:
+                return 'guest';
+
+            case vga.irc.roles.turbo:
+                return 'turbo';
+            
+            default:
+                return 'shadow';
+        }
+    }
+
     //TODO: Consider just ripping this logic out and putting it in the onTopic & onMessage events since they're so distinctly different.
     //TODO: We'll also need the role information and that will be stored in our channel collection in the instance of chat object.
-    function writeToDisplay(channel, message, name, type) {
+    function writeToChannel(channel, message, user, type) {
         let $chatHistory = $('#chathistory');
-        let messageBody = '';
 
         //Encode all HTML characters.
         message = vga.util.encodeHTML(message);
 
-        if (type === 'action') {
-            messageBody = `<span class="user action" data-nickname="${name}">${name}</span><span class="text action">${message}</span>`;
+        if (user) {
+            let name = user.nicknames[0];
+            let messageBody = '';
+            if (type === 'action') {
+                messageBody = `<div class="username action">${name}</div><div class="message action">${message}</div>`;
+            }
+            else {
+                messageBody = `<div class="username">${name}</div>:&nbsp<div class="message">${message}</div>`;
+            }
+
+            $chatHistory.append(`<div class="user-entry" data-nickname="${name}"><div class="role ${getCssClass(user.role)}"></div>${messageBody}</div>`);
         }
         else {
-            messageBody = `<span class="user" data-nickname="${name}">${name}</span>:&nbsp<span class="text">${message}</span>`;
+            $chatHistory.append(`<div class="informative"><span class="message">${message}</span></div>`);
         }
-        
-        $chatHistory.append(`<div class="message"><span class="role"></span>${messageBody}</div>`);
 
         //'<div class="informative"><span class="text">Welcome to Turbo Chat! | FAQ: http://videogamesawesome.com/forums/topic/faq/</span></div>';
     };
 
+    function updateDisplay(user, $chatHistory) {
+        let $element = $chatHistory.find(`.user-entry[data-nickname=${user.nicknames[0]}] > .role`)
+        $element.removeClass().addClass(`role ${getCssClass(user.role)}`);
+    };
+
     function writeUser(user, $userList) {
         $userList = $userList || $('#user_list');
-        let nickname = user.nicknames[0];
-        $userList.append(`<div id="user_list_${nickname}">`
-            + `<span class="role ${(vga.irc.classes[vga.irc.getMostSignificantRole(user.roles)] || 'regular')}"></span>`
-            + `<span class="user">${nickname}</span>`
+        $userList.append(`<div id="user_list_${user.nicknames[0]}" class='user-entry'>`
+            + `<div class="role ${getCssClass(user.role)}"></div>`
+            + `<div class="username">${user.nicknames[0]}</div>`
             + '</div>');
     };
 
-    function updateUserInList(user) {
-        $userList = $userList || $('#user_list');
-        var $element = $userList.find(`#user_list_${user.name} > span.role`);
-        $element.removeClass().addClass(`role ${(vga.irc.classes[vga.irc.getMostSignificantRole(user.roles)] || 'regular')}`);
+    function updateUserInList(user, $userList) {
+        let $element = $userList.find(`#user_list_${user.nicknames[0]} > .role`);
+        $element.removeClass().addClass(`role ${getCssClass(user.role)}`);
     };
 
     function writeUserList(users) {
@@ -116,9 +147,9 @@ vga.irc = vga.irc || {};
         }
 
         //Write a collection of users to the list.
-        for(let i = 0; i < users.length; i++) {
-            writeUser(users[i], $userList);
-        }
+        vga.util.forEach(users, (username, user)=>{
+            writeUser(user, $userList);
+        });
     };
 
     function setStatus(message) {
@@ -226,11 +257,15 @@ vga.irc = vga.irc || {};
          * @param {string} message the message to send to the chat with the specific channel.
          */      
         send(message) {
-            let channel = document.getElementById('channel').value;
+            let channelName = document.getElementById('channel').value;
             
             if (message !== '/QUIT') {
-                this.connector && this.connector.send(message, channel);
-                writeToDisplay(channel, message, this.connector.getIdentity());
+                this.connector && this.connector.send(message, channelName);
+                let channel = this._userChannels[channelName];
+                if (channel) {
+                    let user = channel[this.connector.getIdentity()];
+                    writeToChannel(channel, message, user);
+                }
             }
             else {
                 this.close(message.substring(6));
@@ -267,7 +302,12 @@ vga.irc = vga.irc || {};
          */
         onMessage(message) {
             if (!this._wallRegEx.test(message.message) || !this._theaterMode) {
-                writeToDisplay(message.target, message.message, message.identity, message.type);
+                let channel = this._userChannels[message.target];
+                let user;
+                if (channel) {
+                    user = this._userChannels[message.target][message.identity];
+                }
+                writeToChannel(message.target, message.message, user, message.type);
             }
         }
         /**
@@ -276,7 +316,7 @@ vga.irc = vga.irc || {};
          * @param {string} topic information.
          */
         onTopic(topic) {
-            writeToDisplay(topic.channel, topic.topic);
+            writeToChannel(topic.channel, topic.topic);
         }
         /**
          * An event that is triggered when a user list is provided.
@@ -287,11 +327,15 @@ vga.irc = vga.irc || {};
             this._userChannels[userListByChannel.channel] = userListByChannel.users;
             writeUserList(userListByChannel.users);
         }
-        onUserMode (userModeByChannel) {
-            let channel = this._userChannels[userModeByChannel.channel];
+        onRole (userRoleByChannel) {
+            let channel = this._userChannels[userRoleByChannel.channel];
             if (channel) {
-                channel[this.connector.getIdentity()].modes = userModeByChannel.modes;
-                updateUserInList(this.connector.getIdentity());
+                let user = channel[userRoleByChannel.user];
+                let updatedRoles = (userRoleByChannel.action === vga.irc.roleAction.add) ? vga.irc.addRole(user.roles, userRoleByChannel.roleMask) : vga.irc.removeRole(user.roles, userRoleByChannel.roleMask);
+                user.roles = updatedRoles;
+                user.role = vga.irc.getMostSignificantRole(updatedRoles);
+                updateUserInList(user, $('#user_list'));
+                updateDisplay(user, $('#chathistory'));
             }
         }
         /**

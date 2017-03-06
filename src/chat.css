@@ -379,12 +379,11 @@ User classes
 }
 
 .user-entry .message {
-	line-height: 16px;
-	display: block;
+	display: inline-block;
+	vertical-align: middle;
+	line-height: 16px;	
 	word-wrap: break-word;
-	padding: .2em;
-	padding-left: 0.5em;
-
+	padding-left: 2px;
 }
 
 /*
