@@ -18,7 +18,7 @@
 	<div class="center_helper">
 		<div id="user_list_wrapper" class="hidden">
 			<h2>User List</h2>
-			<div class="user_list" id="user_list"></div>
+			<div class="user_list mid-size" id="user_list"></div>
 		</div>
 	</div>
 
@@ -70,7 +70,7 @@
 		<div class="wrapper2">
 			<div id="upper_ui">
 				<div id="chathistory_wrapper">
-					<div class="chathistory" id="chathistory"></div>
+					<div class="chathistory small" id="chathistory"></div>
 				</div>
 			</div>
 		</div>

@@ -160,47 +160,35 @@ form.debug #showdebug {
 	background-color: #e6e6e6;
 	width: 100%;
     overflow-x: hidden;
+	animation-duration: 1s;
+	animation-name: pulse;
+	animation-iteration-count: infinite;
+  	animation-direction: alternate;
 }
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0px 0px 0px 0px red;
+  }
+  25% {
+    box-shadow: 0px 0px 1px 1px red;
+  }
+  50% {
+	  box-shadow: 0px 0px 2px 2px red;
+  }
+ 75% {
+	  box-shadow: 0px 0px 3px 2px red;
+  }
+ 100% {
+	box-shadow: 0px 0px 3px 2px red;
+  }
+}
+
 
 #chathistory {
 	overflow-x: hidden;
 	overflow-y: scroll;
 	height: 34em;
-}
-
-#chathistory div.message {
-	line-height: 16px;
-	padding: .2em;
-	padding-left: 0.5em;
-    word-wrap: break-word;
-}
-
-/*
-div.blocked_message > span.text {
-	color: #E6E6E6;
-}
-*/
-
-#chathistory div.message span.user {
-	font-weight: bold;
-	text-transform: capitalize;
-}
-
-#chathistory div.message span.user.action {
-	font-weight: normal;
-	font-style: italic;
-}
-
-#chathistory div.message span {
-	/*display: inline;*/
-	padding: 0;
-}
-
-/*#chathistory .message div.prefix, #chathistory .message div.suffix {
-}*/
-
-#chathistory div.message div.user:first-letter {
-    text-transform: uppercase;
 }
 
 #chathistory .message.self {
@@ -304,13 +292,6 @@ div.blocked_message > span.text {
 	height: 100%;
 }
 
-#user_list .user_entry{
-	font-size: 16px;
-	padding: .2em;
-	padding-left: 8pt;
-	border-bottom: 1px dotted #ccc;
-}
-
 #settings_wrapper {
 	padding: 0;
 	background-color: #e6e6e6;
@@ -349,6 +330,12 @@ div.blocked_message > span.text {
 	height: 0;
 }
 
+/*
+---------------------------
+Chat History classes
+---------------------------
+*/
+
 #chathistory div.modbroadcast span.text {
     font-weight: bold;
     background-color: #FF6E00;
@@ -356,115 +343,279 @@ div.blocked_message > span.text {
     padding: 0 1em;
 }
 
-.role {
+#chathistory div.user-message {
+	line-height: 16px;
+	padding: .2em;
+	padding-left: 0.5em;
+    word-wrap: break-word;
+}
+
+/*
+div.blocked_message > span.text {
+	color: #E6E6E6;
+}
+*/
+
+#chathistory .user-message .username {
+	font-weight: bold;
+	text-transform: capitalize;
+}
+
+#chathistory .user-message .username.action {
+	font-weight: normal;
+	font-style: italic;
+}
+
+/*
+---------------------------
+User classes
+---------------------------
+*/
+
+.user-entry {
+	display: block;
+	padding: 2px 4px;
+	border-bottom: 1px dotted #ccc;
+}
+
+.user-entry .message {
+	line-height: 16px;
+	display: block;
+	word-wrap: break-word;
+	padding: .2em;
+	padding-left: 0.5em;
+
+}
+
+/*
+---------------------------
+Username classes
+---------------------------
+*/
+
+.user-entry .username {
+	display: inline-block;
+	vertical-align: middle;
+	font-weight: bold;
+}
+
+.user-entry .username:first-letter {
+    text-transform: uppercase;
+}
+
+.large .user-entry .username {
+	margin-left: 0.4rem;
+	font-size: 1.8rem;
+}
+
+.mid-size .user-entry .username {
+	margin-left: 0.3rem;
+	font-size: 1.4rem;
+}
+
+.small .user-entry .username {
+	margin-left: 0.2rem;
+	font-size: 1.0rem;
+}
+
+/*
+---------------------------
+Role classes
+---------------------------
+*/
+
+div.role {
     vertical-align: middle;
-    padding-right: 5px;
+	background-image: url(/img/chat_spritesheet_128.png);
+	display: inline-block;
 }
 
-.role.crew {
-    content: url(/img/crew_icon.png);
+/*
+Large Icons
+*/
+
+.large .user-entry .role {
+	width: 32px;
+	height: 32px;
 }
 
-.role.op, .role.founder {
-	content: url(/img/mod_icon.png);
+.large .user-entry .role.crew {
+    background-position: 0px 0px;
 }
 
-.role.halfop {
-	content: url(/img/guest_icon.png);
+.large .user-entry .role.mod {
+	background-position: -32px 0px;
 }
 
-.role.voice {
-	content: url(/img/turbo_icon.png);
+.large .user-entry .role.guest {
+	background-position: -64px 0px;
 }
 
-.role.regular {
-	content: url(/img/reg_icon.png);
+.large .user-entry .role.turbo {
+	background-position: -96px 0px;
 }
 
-.user_list .crew, .chathistory div.crew div.user {
+.large .user-entry .role.shadow {
+	background-position: -0px -32px;
+}
+
+.large .user-entry .role.banned {
+	background-position: -32px -32px;
+}
+
+/*
+Mid-size Icons
+*/
+
+.mid-size .user-entry .role {
+	width: 24px;
+	height: 24px;
+}
+
+.mid-size .user-entry .role.crew {
+    background-position: 0px -64px;
+}
+
+.mid-size .user-entry .role.mod {
+	background-position: -24px -64px;
+}
+
+.mid-size .user-entry .role.guest {
+	background-position: -48px -64px;
+}
+
+.mid-size .user-entry .role.turbo {
+	background-position: -72px -64px;
+}
+
+.mid-size .user-entry .role.shadow {
+	background-position: -0px -88px;
+}
+
+.mid-size .user-entry .role.banned {
+	background-position: -24px -88px;
+}
+
+/*
+Small Icons
+*/
+
+.small .user-entry .role {
+	width: 16px;
+	height: 16px;
+}
+
+.small .user-entry .role.crew {
+    background-position: -64px -32px;
+}
+
+.small .user-entry .role.mod {
+	background-position: -80px -32px;
+}
+
+.small .user-entry .role.guest {
+	background-position: -96px -32px;
+}
+
+.small .user-entry .role.turbo {
+	background-position: -112px -32px;
+}
+
+.small .user-entry .role.shadow {
+	background-position: -64px -48px;
+}
+
+.small .user-entry .role.banned {
+	background-position: -80px -48px;
+}
+
+
+
+
+.user_list .crew, .chathistory div.crew div.username {
 	color: #8b2222;
 }
 
-.user_list .op, .user_list .founder, .chathistory div.op div.user {
+.user_list .op, .user_list .founder, .chathistory div.op div.username {
 	color: #228b22;
 }
 
-.user_list .halfop, .chathistory div.halfop div.user {
+.user_list .halfop, .chathistory div.halfop div.username {
 	color: #1e90ff;
 }
 
-.user_list .voice, .chathistory div.voice div.user {
+.user_list .voice, .chathistory div.voice div.username {
 	color: #4682D0;
 }
 
-.user_list .regular, .chathistory div.regular div.user {
+.user_list .regular, .chathistory div.regular div.username {
 	color: #B0A065;
 }
 
 /* Colors for users */
-div.regular.nickColor1 div.user {
+div.regular.nickColor1 div.username {
 	color: #ab6060;
 }
-div.regular.nickColor2 div.user {
+div.regular.nickColor2 div.username {
 	color: #6db05d;
 }
-div.regular.nickColor3 div.user {
+div.regular.nickColor3 div.username {
 	color: #75b3ae;
 }
-div.regular.nickColor4 div.user {
+div.regular.nickColor4 div.username {
 	color: #72a2b8;
 }
-div.regular.nickColor5 div.user {
+div.regular.nickColor5 div.username {
 	color: #8369a0;
 }
-div.regular.nickColor6 div.user {
+div.regular.nickColor6 div.username {
 	color: #a866a0;
 }
-div.regular.nickColor7 div.user {
+div.regular.nickColor7 div.username {
 	color: #bfa05d;
 }
 
-div.voice.nickColor1 div.user {
+div.voice.nickColor1 div.username {
 	color: #ac4b4b;
 }
-div.voice.nickColor2 div.user {
+div.voice.nickColor2 div.username {
 	color: #51b03b;
 }
-div.voice.nickColor3 div.user {
+div.voice.nickColor3 div.username {
 	color: #3bb0a8;
 }
-div.voice.nickColor4 div.user {
+div.voice.nickColor4 div.username {
 	color: #3b8db0;
 }
-div.voice.nickColor5 div.user {
+div.voice.nickColor5 div.username {
 	color: #713bb0;
 }
-div.voice.nickColor6 div.user {
+div.voice.nickColor6 div.username {
 	color: #b03ba0;
 }
-div.voice.nickColor7 div.user {
+div.voice.nickColor7 div.username {
 	color: #d1991a;
 }
 
-div.halfop.nickColor1 div.user, div.op.nickColor1 div.user, div.crew.nickColor1 div.user {
+div.halfop.nickColor1 div.username, div.op.nickColor1 div.username, div.crew.nickColor1 div.username {
 	color: #b03b3b;
 }
-div.halfop.nickColor2 div.user, div.op.nickColor2 div.user, div.crew.nickColor2 div.user {
+div.halfop.nickColor2 div.username, div.op.nickColor2 div.username, div.crew.nickColor2 div.username {
 	color: #51b03b;
 }
-div.halfop.nickColor3 div.user, div.op.nickColor3 div.user, div.crew.nickColor3 div.user {
+div.halfop.nickColor3 div.username, div.op.nickColor3 div.username, div.crew.nickColor3 div.username {
 	color: #3bb0a8;
 }
-div.halfop.nickColor4 div.user, div.op.nickColor4 div.user, div.crew.nickColor4 div.user {
+div.halfop.nickColor4 div.username, div.op.nickColor4 div.username, div.crew.nickColor4 div.username {
 	color: #3b8db0;
 }
-div.halfop.nickColor5 div.user, div.op.nickColor5 div.user, div.crew.nickColor5 div.user {
+div.halfop.nickColor5 div.username, div.op.nickColor5 div.username, div.crew.nickColor5 div.username {
 	color: #713bb0;
 }
-div.halfop.nickColor6 div.user, div.op.nickColor6 div.user, div.crew.nickColor6 div.user {
+div.halfop.nickColor6 div.username, div.op.nickColor6 div.username, div.crew.nickColor6 div.username {
 	color: #b03ba0;
 }
-div.halfop.nickColor7 div.user, div.op.nickColor7 div.user, div.crew.nickColor7 div.user {
+div.halfop.nickColor7 div.username, div.op.nickColor7 div.username, div.crew.nickColor7 div.username {
 	color: #d1991a;
 }
 
