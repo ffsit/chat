@@ -46,46 +46,61 @@ var vga = vga || {};
 vga.irc = vga.irc || {};
 
 vga.irc.roles = {
-    owner: 32,
-    admin: 16,
-    mod: 8,
-    guest: 4,
-    turbo: 2,
-    shadow: 1
+    owner:  32, //classes: 'owner' },
+    admin:  16, //classes: 'admin' },
+    mod:    8,  //classes: 'op' },
+    guest:  4,  //classes: 'guest' },
+    turbo:  2,  //classes: 'turbo' },
+    shadow: 1,  //classes: 'shadow' }
 };
 
-vga.irc.classes = {
-    owner: 'owner',
-    admin: 'admin',
-    mod: 'op',
-    guest: 'guest',
-    turbo: 'turbo',
-    shadow: 'shadow'
-};
+vga.irc.roleAction = {
+    remove: 0,
+    add: 1
+}
 
 vga.irc.channelmodes = {
     turbo: 1
 };
 
+/**
+ * Finds the most significant role based on the bit weight.
+ * @method vga.irc.getMostSignificantRole
+ * @param {number} roles bitarray of roles.
+ * @return most significant role.
+ * @api public
+ */
 vga.irc.getMostSignificantRole = function(roles) {
+    let numOfRoles = vga.util.propertyCount(vga.irc.roles);
+	for(let bitNum = numOfRoles - 1; bitNum >= 0; bitNum--) {
+		let bitVal = (1 << bitNum);
+		if ((roles & bitVal) === bitVal) {
+			return bitVal;
+		}
+	}
+	return vga.irc.roles.shadow;
+};
 
-    //Unrolled loop to find the most significant role.
-    //Since the number of roles are limited and more than likely never increase beyond this, we'll use an un-rolled loop for now.
-    if (roles & vga.irc.roles.owner === vga.irc.roles.owner) {
-        return vga.irc.roles.owner;
-    }
-    else if (roles & vga.irc.roles.admin === vga.irc.roles.admin) {
-        return vga.irc.roles.admin;
-    }
-    else if (roles & vga.irc.roles.mod === vga.irc.roles.mod) {
-        return vga.irc.roles.mod;
-    }
-    else if (roles & vga.irc.roles.guest === vga.irc.roles.guest) {
-        return vga.irc.roles.guest;
-    }
-    else if (roles & vga.irc.roles.turbo === vga.irc.roles.turbo) {
-        return vga.irc.roles.turbo;
-    }
+/**
+ * Applies a one or more roles to the current roles bitarray.
+ * @method vga.irc.addRole
+ * @param {number} roles bitarray of roles.
+ * @param {number} roleToApply bitarray of a role or roles to apply.
+ * @return updated roles bitarray.
+ * @api public
+ */
+vga.irc.addRole = function(roles, roleToApply) {
+    return (roles | roleToApply);
+};
 
-    return vga.irc.roles.shadow;
-}
+/**
+ * Removes a one or more roles to the current roles bitarray.
+ * @method vga.irc.removeRole
+ * @param {number} roles bitarray of roles.
+ * @param {number} roleToRemove bitarray of a role or roles to remove.
+ * @return updated roles bitarray.
+ * @api public
+ */
+vga.irc.removeRole = function(roles, roleToRemove) {
+    return (roles ^ (roles & roleToRemove));
+};
