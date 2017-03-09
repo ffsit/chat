@@ -141,10 +141,17 @@ vga.util.propertyCount = (obj) => {
     return (obj.constructor === Object) ? Object.keys(obj).length : 0;
 }
 
-vga.util.forEach = (object, evaluator) => {
+/**
+ * A helper utility that will iterate through a map (object).
+ * @method vga.util.forEach
+ * @param {object} object object to evaluate.
+ * @param {object} evaluatorFunction function invoked on each iteration.
+ * @api public
+ */
+vga.util.forEach = (object, evaluatorFunction) => {
     for (let property in object) {
         if (object.hasOwnProperty(property)) {
-            evaluator && evaluator(property, object[property]);
+            evaluatorFunction && evaluatorFunction(property, object[property]);
         }
     }
 }
