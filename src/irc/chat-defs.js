@@ -106,14 +106,14 @@ vga.irc.removeRole = function(roles, roleToRemove) {
 };
 
 /**
- * A helper method that will compile an array of modes into a roles bitarray.
- * @method vga.irc.compileModesToRoles
+ * A helper method that will compile an array of modes into a bitarray.
+ * @method vga.irc.compileModes
  * @param {array} modes array of modes.
  * @param {function} transformFunction the transformation function that transforms a mode into a role.
  * @return a compiled bitarray.
  * @api public
  */
-vga.irc.compileModesToRoles = function(modes, transformFunction){
+vga.irc.compileModes = function(modes, transformFunction){
         //Normalize the modes.
         modes = modes || [];
 
