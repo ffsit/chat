@@ -236,7 +236,6 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {string} method name of the method to pass to the IRC server.
          * @param {object} data arguments to pass to the IRC server.
          */ 
-        //sendIRCData: (method, data) => { return this.sendRawData(createIRCPacket(method, data)); },     
         sendIRCData(method, data) {
             return this.sendRawData(createIRCPacket(method, data));
         }
