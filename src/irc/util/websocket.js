@@ -117,10 +117,12 @@ vga.util = vga.util || {};
          * @method vga.util.websocket.send
          * @param {object} data Data to send through the websocket.
          */
-        send(data) {
+        send(data, blockLogging) {
             if (this._webSocket) {
                 if (this._webSocket.readyState === vga.util.websocket_states.OPEN || this._webSocket.readyState === vga.util.websocket_states.OPENING) {
-                    vga.util.debuglog.info(`[vga.util.websocket.send] (ReadyState: ${this._webSocket.readyState}): `, data);
+                    if (blockLogging) {
+                        vga.util.debuglog.info(`[vga.util.websocket.send] (ReadyState: ${this._webSocket.readyState}): `, data);
+                    }
                     this._webSocket.send(data);
                     return;
                 }

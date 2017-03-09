@@ -219,12 +219,14 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * A safe send method to send kiwi specific data to the socket.
          * @method vga.irc.connector.kiwi.protocolwrapper.sendRawData
          * @param {object} data the data to send to the socket.
+         * @param {number} status the kiwi status number.
+         * @param {bool} blockLogging blocks logging when instructed.
          */
-        sendRawData(data, status) {
+        sendRawData(data, status, blockLogging) {
             status = status || vga.irc.connector.kiwi.PACKET_STATUS.MESSAGE;
             if (this._socket) {
                 let message = (data) ? (status + (typeof(data) === 'object' ? JSON.stringify(data) : data)) : status;
-                this._socket.send(message);
+                this._socket.send(message, blockLogging);
             }
             return this;
         }
@@ -388,7 +390,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     //Wait until we are in the proxy connected state.
                     if (this._state === vga.irc.connector.kiwi.STATES.PROXY_CONNECTED) {
                         this.sendRawData(createKiwiProxyPacket("client_info", [{"build_version": vga.irc.connector.kiwi.CLIENT_VERSION.toString()}]));
-                        this.sendRawData(createKiwiProxyPacket('connect_irc', createAuthPacket(authenticationParams)));
+                        this.sendRawData(createKiwiProxyPacket('connect_irc', createAuthPacket(authenticationParams)), undefined, false);
                         return;
                     }
                     //Cancel the wait operation if the state changes to CLOSED before completing the transition to the PROXY_CONNECTED state.
