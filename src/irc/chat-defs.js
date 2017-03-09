@@ -46,12 +46,12 @@ var vga = vga || {};
 vga.irc = vga.irc || {};
 
 vga.irc.roles = {
-    owner:  32, //classes: 'owner' },
-    admin:  16, //classes: 'admin' },
-    mod:    8,  //classes: 'op' },
-    guest:  4,  //classes: 'guest' },
-    turbo:  2,  //classes: 'turbo' },
-    shadow: 1,  //classes: 'shadow' }
+    owner:  32,
+    admin:  16,
+    mod:    8,
+    guest:  4,
+    turbo:  2,
+    shadow: 1,
 };
 
 vga.irc.roleAction = {
@@ -104,3 +104,35 @@ vga.irc.addRole = function(roles, roleToApply) {
 vga.irc.removeRole = function(roles, roleToRemove) {
     return (roles ^ (roles & roleToRemove));
 };
+
+/**
+ * A helper method that will compile an array of modes into a roles bitarray.
+ * @method vga.irc.compileModesToRoles
+ * @param {array} modes array of modes.
+ * @param {function} transformFunction the transformation function that transforms a mode into a role.
+ * @return a compiled bitarray.
+ * @api public
+ */
+vga.irc.compileModesToRoles = function(modes, transformFunction){
+        //Normalize the modes.
+        modes = modes || [];
+
+        if (!transformFunction) {
+            throw new "The transformFunction is undefined.";
+        }
+
+        //Initialize the (roles) to 1 so that a user is always a 'shadow'.
+        let roles = vga.irc.roles.shadow;
+        if (modes.length === 0) {
+            return roles;
+        }
+        else if (modes.length === 1) {
+            return roles | (transformFunction(modes[0]) || 0);
+        }
+        else {
+            //Initialize the accumulator with the shadow role.
+            return modes.reduce((a, b)=>{
+                return a | (transformFunction[b] || 0);
+            }, roles);
+        }
+    }
