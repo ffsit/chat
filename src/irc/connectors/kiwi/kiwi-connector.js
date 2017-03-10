@@ -326,7 +326,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          */
         onDisconnect(eventData) {
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Reason: ${eventData.reason} closedByServer: ${eventData.closedByServer}`);
-            if (this._attemptReconnect && !eventData.closedByServer) {
+            if (this._attemptReconnect && eventData.closedByServer) {
                 this._listener.invokeListeners('reconnect');
             }
             else {
