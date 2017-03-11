@@ -262,7 +262,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         /**
          * Internal method to clean up after a socket is closed.
          * This method should be idempotent and safe to call multiple times.
-         * @method cleanUp
+         * @method vga.irc.connector.kiwi.protocolwrapper.cleanUp
          */    
         cleanUp() {
             //Shutdown the heartbeat.
