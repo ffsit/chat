@@ -57,7 +57,7 @@ vga.irc.roles = {
 vga.irc.roleAction = {
     remove: 0,
     add: 1
-}
+};
 
 vga.irc.channelmodes = {
     turbo: 1
@@ -114,25 +114,25 @@ vga.irc.removeRole = function(roles, roleToRemove) {
  * @api public
  */
 vga.irc.compileModes = function(modes, transformFunction){
-        //Normalize the modes.
-        modes = modes || [];
+    //Normalize the modes.
+    modes = modes || [];
 
-        if (!transformFunction) {
-            throw new "The transformFunction is undefined.";
-        }
-
-        //Initialize the (roles) to 1 so that a user is always a 'shadow'.
-        let roles = vga.irc.roles.shadow;
-        if (modes.length === 0) {
-            return roles;
-        }
-        else if (modes.length === 1) {
-            return roles | (transformFunction(modes[0]) || 0);
-        }
-        else {
-            //Initialize the accumulator with the shadow role.
-            return modes.reduce((a, b)=>{
-                return a | (transformFunction[b] || 0);
-            }, roles);
-        }
+    if (!transformFunction) {
+        throw new "The transformFunction is undefined.";
     }
+
+    //Initialize the (roles) to 1 so that a user is always a 'shadow'.
+    let roles = vga.irc.roles.shadow;
+    if (modes.length === 0) {
+        return roles;
+    }
+    else if (modes.length === 1) {
+        return roles | (transformFunction(modes[0]) || 0);
+    }
+    else {
+        //Initialize the accumulator with the shadow role.
+        return modes.reduce((a, b)=>{
+            return a | (transformFunction[b] || 0);
+        }, roles);
+    }
+};
