@@ -463,11 +463,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 }
 
                 //Determine if we are dealing with a channel or user mode.
-                let user = modePerUser.param;
-                if (user !== null) {
-                    let eventName = (this.getIdentity() !== user) ? 'otherUser' : 'user';
+                let userName = modePerUser.param;
+                if (userName !== null) {
+                    let eventName = (this.getNickname() !== userName) ? 'otherUser' : 'user';
                     this._listener.invokeListeners(`${eventName}Mode`, {
-                        user: user,
+                        userName: sanitizeNickname(userName),
                         action: action,
                         roles: vga.irc.compileModes([mode], (userMode) => modeToRolesMap[userMode]),
                         channel: eventData.target
