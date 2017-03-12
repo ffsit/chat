@@ -91,7 +91,6 @@
 		</div>
 	</div>
     <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
-    <!-- <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script> -->
 	<script src="/irc/util/globals.js"></script>
 	<script src="/irc/util/listener.js"></script>
     <script src="/irc/util/websocket.js"></script>
@@ -101,28 +100,27 @@
     <script src="/irc/chat.js"></script>
     <script>
 		//TODO: Move all of this to its own file.
-        vga.util.enableDebug();
-        $(function(){
-
-            var chat = new vga.irc.chat({
+		$(function(){
+			vga.util.enableDebug();
+			var chat = new vga.irc.chat({
 				url: "ws://valhalla.ffsit.net:7778/?transport=websocket",
 				hostname: "valhalla.ffsit.net",
 				port: "6667"
 			});
 
-			
-            $('#Login').click(function(e){
-                let nickname = $('#nickname').val();
-                let password = $('#password').val();
-                let channel = $('#channel').val();
-                chat.connect(nickname, password, channel);
-                e.preventDefault();
-            });
+			$('#Login').click(function(e){
+				let nickname = $('#nickname').val();
+				let password = $('#password').val();
+				let channel = $('#channel').val();
+				chat.connect(nickname, password, channel);
+				e.preventDefault();
+			});
 
 			$('#chatbox_input').keyup(function(e){
 				let value = $(this).val();
 				if (e.which === 13 && value !== '') {
 					chat.send(value);
+					$(this).val('');
 				}
 			});
 
@@ -131,8 +129,51 @@
 				$userListWrapper.toggleClass('hidden', !$userListWrapper.hasClass('hidden'));
 				e.preventDefault();
 			});
-        });
-
+		});
     </script>
+	<!-- Enable Babel -->
+	<!-- 
+	<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+	<script type="text/babel" src="/irc/util/globals.js"></script>
+	<script type="text/babel" src="/irc/util/listener.js"></script>
+    <script type="text/babel" src="/irc/util/websocket.js"></script>
+    <script type="text/babel" src="/irc/chat-defs.js"></script>
+	<script type="text/babel" src="/irc/connectors/kiwi/kiwi-protocol.js"></script>
+    <script type="text/babel" src="/irc/connectors/kiwi/kiwi-connector.js"></script>
+    <script type="text/babel" src="/irc/chat.js"></script>
+    <script type="text/babel">
+		//TODO: Move all of this to its own file.
+		$(function(){
+			vga.util.enableDebug();
+			var chat = new vga.irc.chat({
+				url: "ws://valhalla.ffsit.net:7778/?transport=websocket",
+				hostname: "valhalla.ffsit.net",
+				port: "6667"
+			});
+
+			$('#Login').click(function(e){
+				let nickname = $('#nickname').val();
+				let password = $('#password').val();
+				let channel = $('#channel').val();
+				chat.connect(nickname, password, channel);
+				e.preventDefault();
+			});
+
+			$('#chatbox_input').keyup(function(e){
+				let value = $(this).val();
+				if (e.which === 13 && value !== '') {
+					chat.send(value);
+					$(this).val('');
+				}
+			});
+
+			$('#chatui_button_nicklist').click(function(e){
+				let $userListWrapper = $('#user_list_wrapper');
+				$userListWrapper.toggleClass('hidden', !$userListWrapper.hasClass('hidden'));
+				e.preventDefault();
+			});
+		});
+    </script>
+	-->
 </body>
 </html>
