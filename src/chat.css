@@ -1,3 +1,8 @@
+/*
+---------------------------
+Generic HTML Element classes
+---------------------------
+*/
 html, body {
 	font-family: sans-serif;
 	font-size: 10pt;
@@ -6,6 +11,43 @@ html, body {
 	margin: 0;
 }
 
+/*
+---------------------------
+Global classes
+---------------------------
+*/
+.hidden {
+	display:none !important;
+}
+
+.pulse {
+	animation-duration: 1s;
+	animation-name: pulse;
+	animation-iteration-count: infinite;
+  	animation-direction: alternate;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0px 0px 0px 0px red;
+  }
+  25% {
+    box-shadow: 0px 0px 1px 1px red;
+  }
+  50% {
+	  box-shadow: 0px 0px 2px 2px red;
+  }
+ 75% {
+	  box-shadow: 0px 0px 3px 2px red;
+  }
+ 100% {
+	box-shadow: 0px 0px 3px 2px red;
+  }
+}
+
+/*
+---
+*/
 #login-wrapper a, #login-wrapper a:hover, #login-wrapper a:visited, #login-wrapper a:active {
 	color: #FFFF99;
 	text-decoration: none;
@@ -104,10 +146,6 @@ html, body {
 	line-height: 1.5em;
 }
 
-#nickname {
-	width: 90pt;
-}
-
 #debug_wrapper {
 	padding: 0;
 	background-color: #e6e6e6;
@@ -160,30 +198,7 @@ form.debug #showdebug {
 	background-color: #e6e6e6;
 	width: 100%;
     overflow-x: hidden;
-	animation-duration: 1s;
-	animation-name: pulse;
-	animation-iteration-count: infinite;
-  	animation-direction: alternate;
 }
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0px 0px 0px 0px red;
-  }
-  25% {
-    box-shadow: 0px 0px 1px 1px red;
-  }
-  50% {
-	  box-shadow: 0px 0px 2px 2px red;
-  }
- 75% {
-	  box-shadow: 0px 0px 3px 2px red;
-  }
- 100% {
-	box-shadow: 0px 0px 3px 2px red;
-  }
-}
-
 
 #chathistory {
 	overflow-x: hidden;
@@ -269,29 +284,6 @@ form.debug #showdebug {
 	width: 6em;
 }
 
-#user_list_wrapper {
-	padding: 0;
-	background-color: #e6e6e6;
-	max-width: 28em;
-	max-height: 30em;
-	padding-bottom: 2em;
-	border: 5pt solid #707070;
-	border-top-width: 0;
-	position: relative;
-	margin: 0 auto;
-	border-radius: 0 0 5px 5px;
-	box-shadow: 1px 1px 20px #000000;
-	border-color: rgba(112, 112, 112, .6);
-	z-index: 20;
-	overflow-x: hidden;
-	overflow-y: scroll;
-}
-
-#user_list {
-	width: 100%;
-	height: 100%;
-}
-
 #settings_wrapper {
 	padding: 0;
 	background-color: #e6e6e6;
@@ -324,46 +316,57 @@ form.debug #showdebug {
 	color: #121214;
 }
 
-#events {
-	border: 0;
-	width: 0;
-	height: 0;
-}
-
 /*
 ---------------------------
-Chat History classes
+User List classes
 ---------------------------
 */
 
-#chathistory div.modbroadcast span.text {
-    font-weight: bold;
-    background-color: #FF6E00;
-    color: #000000;
-    padding: 0 1em;
+#user_list_wrapper {
+	padding: 0;
+	background-color: #e6e6e6;
+	max-width: 28em;
+	max-height: 30em;
+	padding-bottom: 2em;
+	border: 5pt solid #707070;
+	border-top-width: 0;
+	position: relative;
+	margin: 0 auto;
+	border-radius: 0 0 5px 5px;
+	box-shadow: 1px 1px 20px #000000;
+	border-color: rgba(112, 112, 112, .6);
+	z-index: 20;
+	overflow-x: hidden;
+	overflow-y: scroll;
 }
 
-#chathistory div.user-message {
-	line-height: 16px;
-	padding: .2em;
-	padding-left: 0.5em;
-    word-wrap: break-word;
+.user_list {
+	width: 100%;
+	height: 100%;
 }
 
-/*
-div.blocked_message > span.text {
-	color: #E6E6E6;
-}
-*/
-
-#chathistory .user-message .username {
-	font-weight: bold;
-	text-transform: capitalize;
+.user_list .user-entry > .icon.role.crew + .username {
+	color: #8b2222;
 }
 
-#chathistory .user-message .username.action {
-	font-weight: normal;
-	font-style: italic;
+.user_list .user-entry > .icon.role.mod + .username {
+	color: #228b22;
+}
+
+.user_list .user-entry > .icon.role.guest + .username {
+	color: #1e90ff;
+}
+
+.user_list .user-entry > .icon.role.turbo + .username {
+	color: #4682D0;
+}
+
+.user_list .user-entry > .icon.role.shadow + .username {
+	color: #B0A065;
+}
+
+.user_list .user-entry > .icon.role.banned + .username {
+	color: #aaa;
 }
 
 /*
@@ -371,7 +374,6 @@ div.blocked_message > span.text {
 User classes
 ---------------------------
 */
-
 .user-entry {
 	display: block;
 	padding: 2px 4px;
@@ -391,7 +393,6 @@ User classes
 Username classes
 ---------------------------
 */
-
 .user-entry .username {
 	display: inline-block;
 	vertical-align: middle;
@@ -419,11 +420,10 @@ Username classes
 
 /*
 ---------------------------
-Role classes
+Icon classes
 ---------------------------
 */
-
-div.role {
+div.icon.role {
     vertical-align: middle;
 	background-image: url(/img/chat_spritesheet_128.png);
 	display: inline-block;
@@ -433,32 +433,32 @@ div.role {
 Large Icons
 */
 
-.large .user-entry .role {
+.large .user-entry .icon.role {
 	width: 32px;
 	height: 32px;
 }
 
-.large .user-entry .role.crew {
+.large .user-entry .icon.role.crew {
     background-position: 0px 0px;
 }
 
-.large .user-entry .role.mod {
+.large .user-entry .icon.role.mod {
 	background-position: -32px 0px;
 }
 
-.large .user-entry .role.guest {
+.large .user-entry .icon.role.guest {
 	background-position: -64px 0px;
 }
 
-.large .user-entry .role.turbo {
+.large .user-entry .icon.role.turbo {
 	background-position: -96px 0px;
 }
 
-.large .user-entry .role.shadow {
+.large .user-entry .icon.role.shadow {
 	background-position: -0px -32px;
 }
 
-.large .user-entry .role.banned {
+.large .user-entry .icon.role.banned {
 	background-position: -32px -32px;
 }
 
@@ -466,32 +466,32 @@ Large Icons
 Mid-size Icons
 */
 
-.mid-size .user-entry .role {
+.mid-size .user-entry .icon.role {
 	width: 24px;
 	height: 24px;
 }
 
-.mid-size .user-entry .role.crew {
+.mid-size .user-entry .icon.role.crew {
     background-position: 0px -64px;
 }
 
-.mid-size .user-entry .role.mod {
+.mid-size .user-entry .icon.role.mod {
 	background-position: -24px -64px;
 }
 
-.mid-size .user-entry .role.guest {
+.mid-size .user-entry .icon.role.guest {
 	background-position: -48px -64px;
 }
 
-.mid-size .user-entry .role.turbo {
+.mid-size .user-entry .icon.role.turbo {
 	background-position: -72px -64px;
 }
 
-.mid-size .user-entry .role.shadow {
+.mid-size .user-entry .icon.role.shadow {
 	background-position: -0px -88px;
 }
 
-.mid-size .user-entry .role.banned {
+.mid-size .user-entry .icon.role.banned {
 	background-position: -24px -88px;
 }
 
@@ -499,57 +499,67 @@ Mid-size Icons
 Small Icons
 */
 
-.small .user-entry .role {
+.small .user-entry .icon.role {
 	width: 16px;
 	height: 16px;
 }
 
-.small .user-entry .role.crew {
+.small .user-entry .icon.role.crew {
     background-position: -64px -32px;
 }
 
-.small .user-entry .role.mod {
+.small .user-entry .icon.role.mod {
 	background-position: -80px -32px;
 }
 
-.small .user-entry .role.guest {
+.small .user-entry .icon.role.guest {
 	background-position: -96px -32px;
 }
 
-.small .user-entry .role.turbo {
+.small .user-entry .icon.role.turbo {
 	background-position: -112px -32px;
 }
 
-.small .user-entry .role.shadow {
+.small .user-entry .icon.role.shadow {
 	background-position: -64px -48px;
 }
 
-.small .user-entry .role.banned {
+.small .user-entry .icon.role.banned {
 	background-position: -80px -48px;
 }
 
-
-
-
-.user_list .crew, .chathistory div.crew div.username {
-	color: #8b2222;
+/*
+---------------------------
+Chat History classes
+---------------------------
+*/
+#chathistory div.modbroadcast span.text {
+    font-weight: bold;
+    background-color: #FF6E00;
+    color: #000000;
+    padding: 0 1em;
 }
 
-.user_list .op, .user_list .founder, .chathistory div.op div.username {
-	color: #228b22;
+#chathistory div.user-message {
+	line-height: 16px;
+	padding: .2em;
+	padding-left: 0.5em;
+    word-wrap: break-word;
 }
 
-.user_list .halfop, .chathistory div.halfop div.username {
-	color: #1e90ff;
+#chathistory .user-message .username {
+	font-weight: bold;
+	text-transform: capitalize;
 }
 
-.user_list .voice, .chathistory div.voice div.username {
-	color: #4682D0;
+#chathistory .user-message .username.action {
+	font-weight: normal;
+	font-style: italic;
 }
 
-.user_list .regular, .chathistory div.regular div.username {
-	color: #B0A065;
-}
+/*
+----
+*/
 
 /* Colors for users */
 div.regular.nickColor1 div.username {
@@ -616,8 +626,4 @@ div.halfop.nickColor6 div.username, div.op.nickColor6 div.username, div.crew.nic
 }
 div.halfop.nickColor7 div.username, div.op.nickColor7 div.username, div.crew.nickColor7 div.username {
 	color: #d1991a;
-}
-
-.hidden {
-	display:none !important;
 }

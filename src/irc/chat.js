@@ -65,7 +65,7 @@ vga.irc = vga.irc || {};
     // Event: onTopic ({ topic: string, channel: string })
     // Event: onMessage ({ identity: string, nickname: string, target: string, message: string, type: string })
     // Event: onUserlist ({ channel: string, users: { roles: bitarray, prefixes: [ {prefix: string} ], nicknames: [string] })
-    // Event: onRole ({ channel: string, user: string, roles: bitarray, action: vga.irc.roleAction })
+    // Event: onRole ({ channel: string, userName: string, roles: bitarray, action: vga.irc.roleAction })
     // Event: onChannelMode ({ channel: string, modes: bitarray, action: vga.irc.roleAction })
     // Event: onAccessDenied()
     // Event: onKicked ({ identity: string, nickname: string, channel: string })
@@ -78,7 +78,7 @@ vga.irc = vga.irc || {};
      * @param {number} roles a bitarray of roles assigned to the user.
      * @return {string} the CSS class assigned to the most significant role.
      */
-    function getCssClass(roles) {      
+    function getCssClass(roles) {
         switch(vga.irc.getMostSignificantRole(roles))
         {
             case vga.irc.roles.owner:
@@ -97,7 +97,16 @@ vga.irc = vga.irc || {};
             default:
                 return 'shadow';
         }
-    }
+    };
+
+    function writeInformationalMessage(channel, message) {
+        let $chatHistory = $('#chathistory');
+        $chatHistory.append(`<div class="informative"><span class="message">${vga.util.encodeHTML(message)}</span></div>`);
+    };
+
+    function updateIcon(roles) {
+        return `<div class="icon role ${getCssClass(roles)}"></div>`;
+    };
 
     //TODO: Consider just ripping this logic out and putting it in the onTopic & onMessage events since they're so distinctly different.
     //TODO: We'll also need the role information and that will be stored in our channel collection in the instance of chat object.
@@ -117,7 +126,7 @@ vga.irc = vga.irc || {};
                 messageBody = `<div class="username">${name}</div>:&nbsp<div class="message">${message}</div>`;
             }
 
-            $chatHistory.append(`<div class="user-entry" data-nickname="${name}"><div class="role ${getCssClass(user.roles)}"></div>${messageBody}</div>`);
+            $chatHistory.append(`<div class="user-entry" data-nickname="${name}">${updateIcon(user.roles)}${messageBody}</div>`);
         }
         else {
             $chatHistory.append(`<div class="informative"><span class="message">${message}</span></div>`);
@@ -128,20 +137,21 @@ vga.irc = vga.irc || {};
 
     function updateDisplay(user, $chatHistory) {
         let $element = $chatHistory.find(`.user-entry[data-nickname=${user.nicknames[0]}] > .role`)
-        $element.removeClass().addClass(`role ${getCssClass(user.roles)}`);
+        $element.replaceWith(updateIcon(user.roles));
     };
 
     function writeUser(user, $userList) {
         $userList = $userList || $('#user_list');
         $userList.append(`<div id="user_list_${user.nicknames[0]}" class='user-entry'>`
-            + `<div class="role ${getCssClass(user.roles)}"></div>`
+            + updateIcon(user.roles)
             + `<div class="username">${user.nicknames[0]}</div>`
             + '</div>');
     };
 
     function updateUserInList(user, $userList) {
         let $element = $userList.find(`#user_list_${user.nicknames[0]} > .role`);
-        $element.removeClass().addClass(`role ${getCssClass(user.roles)}`);
+        //$element.removeClass().addClass(`icon role ${getCssClass(user.roles)}`);
+        $element.replaceWith(updateIcon(user.roles));
     };
 
     function writeUserList(users) {
@@ -207,9 +217,16 @@ vga.irc = vga.irc || {};
             //User's channel information.
             this._userChannels = {};
 
+            let connectorOptions = {
+                supportConcurrentChannelJoins: options.supportConcurrentChannelJoins,
+                autoJoinChannel: options.autoJoinChannel,
+                attemptReconnect: true, //options.attemptReconnect,
+                listeners: [this]
+            }
+
             //The connector.  This guy has abstracted all the IRC & Kiwi IRC logic away.
             //If we switch to another IRC type, a new connector can be written to handle this without rewriting all of chat.
-            this.connector = new vga.irc.connector.kiwi.connector(options.url, {listeners: [this]});
+            this.connector = new vga.irc.connector.kiwi.connector(options.url, connectorOptions);
         }
         /**
          * Attempts to connect a user to the chat server.
@@ -308,7 +325,7 @@ vga.irc = vga.irc || {};
          * @param {string} topic information.
          */
         onTopic(topic) {
-            writeToChannel(topic.channel, topic.topic);
+            writeInformationalMessage(topic.channel, topic.topic);
         }
         /**
          * An event that is triggered when receiving a message from the chat server.
@@ -329,10 +346,27 @@ vga.irc = vga.irc || {};
          * An event that is triggered when a user list is provided.
          * @method vga.irc.chat.onUserlist
          * @param {object} userListByChannel An object that contains the channel and the users associated with that channel.
-         */        
+         */ 
         onUserlist (userListByChannel) {
             this._userChannels[userListByChannel.channel] = userListByChannel.users;
             writeUserList(userListByChannel.users);
+        }
+        /**
+         * An event that is triggered when the authenticated user has joined a channel.
+         * @method vga.irc.chat.onJoin
+         * @param {object} joinEventByChannel
+         */
+        onJoin(joinEventByChannel) {
+            //TODO: Channel management.
+            writeInformationalMessage(joinEventByChannel.channel, `Joined ${joinEventByChannel.channel} channel`);
+        }
+        /**
+         * An event that is triggered when another user has joined the channel.
+         * @method vga.irc.chat.onOtherUserJoin
+         * @param {object} joinEventByChannel
+         */
+        onOtherUserJoin(joinEventByChannel) {
+
         }
         /**
          * 
@@ -350,7 +384,7 @@ vga.irc = vga.irc || {};
         onRole (userRoleByChannel) {
             let channel = this._userChannels[userRoleByChannel.channel];
             if (channel) {
-                let user = channel[userRoleByChannel.user];
+                let user = channel[userRoleByChannel.userName];
                 if (user) {
                     user.roles = (userRoleByChannel.action === vga.irc.roleAction.add) 
                         ? vga.irc.addRole(user.roles, userRoleByChannel.roles) 
