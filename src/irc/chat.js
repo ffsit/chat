@@ -221,6 +221,7 @@ vga.irc = vga.irc || {};
                 supportConcurrentChannelJoins: options.supportConcurrentChannelJoins,
                 autoJoinChannel: options.autoJoinChannel,
                 attemptReconnect: true, //options.attemptReconnect,
+                normalizeNicknames: true, //Normalized nicknames into one.
                 listeners: [this]
             }
 
@@ -287,7 +288,7 @@ vga.irc = vga.irc || {};
                 this.connector && this.connector.send(message, channelName);
                 let channel = this._userChannels[channelName];
                 if (channel) {
-                    let user = channel[this.connector.getIdentity()];
+                    let user = channel[this.connector.getNickname()];
                     writeToChannel(channel, message, user);
                 }
             }

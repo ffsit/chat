@@ -162,6 +162,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
             //User Identity information.
             this._nickname = this._identity = '';
+            this._normalizeNicknames = (options.normalizeNicknames !== undefined) ? options.normalizeNicknames : false;
 
             //Autojoin logic.  If this is set we will try to autojoin a channel.
             this._autoJoinChannel = (options.autoJoinChannel !== undefined) ? options.autoJoinChannel : true;
@@ -192,7 +193,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         /**
          * Returns the identity of the user, which may not be the same as the nickname.
          * @method vga.irc.connector.kiwi.connector.getIdentity
-         * @return {string} current user's identity.
+         * @return {string} authenticated user's identity.
          */
         getIdentity() {
             return this._identity;
@@ -200,10 +201,19 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         /**
          * Returns the nickname of the user assigned on authentication.
          * @method vga.irc.connector.kiwi.connector.getNickname
-         * @param {string} current user's nickname.
+         * @return {string} authenticated user's nickname.
          */
         getNickname() {
             return this._nickname;
+        }
+        /**
+         * Returns true if the entity name matches the user's identity or nickname.
+         * @method vga.irc.connector.kiwi.connector.isMe
+         * @param {string} current the entity's nickname.
+         * @return {bool} true if the entity is the currently authenticated user.
+         */        
+        isMe(entityName){
+            return this._nickname === entityName || this._identity === entityName;
         }
         /**
          * Attempts to open a connection to the kiwi IRC server.   This method is idempotent and safe as multiple calls have no side-effects.
@@ -415,7 +425,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //Determine if we have joined the auto channel.
             this._autoJoinChannelComplete = (eventData.type === 'join' 
                 && eventData.channel === this._autoJoinChannel
-                && eventData.ident === this.getIdentity());
+                && this.isMe(eventData.ident));
 
             //The nickname will vary based on the action.
             //A kick type action will only hold the nickname of the kickee in the kicked property, with the kicker in the nick property.
@@ -426,7 +436,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //We cannot use the identity since IRC works off nicknames and every nickname can be an independent session for a single ident.
             //So we need to send event notifications on nicknames not the identity.
             let eventName = '';
-            if (this.getNickname() !== nickname) {
+            if (!this.isMe(nickname)) {
                 eventName = 'otherUser';
             }
 
@@ -465,9 +475,13 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 //Determine if we are dealing with a channel or user mode.
                 let userName = modePerUser.param;
                 if (userName !== null) {
-                    let eventName = (this.getNickname() !== userName) ? 'otherUser' : 'user';
+
+                    //Sanitizes the nickname by removing the numeric suffix identifier.
+                    let sanitizedNickname = this._normalizeNicknames ? sanitizeNickname(userName) : userName;
+
+                    let eventName = this.isMe(sanitizedNickname) ? 'otherUser' : 'user';
                     this._listener.invokeListeners(`${eventName}Mode`, {
-                        userName: sanitizeNickname(userName),
+                        userName: sanitizedNickname,
                         action: action,
                         roles: vga.irc.compileModes([mode], (userMode) => modeToRolesMap[userMode]),
                         channel: eventData.target
@@ -513,7 +527,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 let parsedNickname = user.nick.substring(nameIndex);
 
                 //Sanitizes the nickname by removing the numeric suffix identifier.
-                let sanitizedNickname = sanitizeNickname(parsedNickname);
+                let sanitizedNickname = this._normalizeNicknames ? sanitizeNickname(parsedNickname) : parsedNickname;
 
                 //Determine if we stored the user information by nickname earlier.
                 let userInfo = userInfoMap[sanitizedNickname];
