@@ -92,13 +92,13 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         'reconnect': 'onReconnect',
         'message': 'onMessage',
         'topic': 'onTopic',
-        //Channel events.
+        //User events.
         'userlist': 'onUserlist',
         'join': 'onJoin',
         'leave': 'onLeave',
-        'otherUserJoin': 'onOtherUserJoining',
-        'otherUserLeave': 'onOtherUserLeaving',
-        //Mode events
+        'otherUserJoin': 'onOtherUserJoin',
+        'otherUserLeave': 'onOtherUserLeave',
+        //Mode & Channel events
         'channelMode': 'onChannelMode',
         'userMode' : 'onRole',
         'otherUserMode': 'onRole',
@@ -164,16 +164,17 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             this._nickname = this._identity = '';
 
             //Autojoin logic.  If this is set we will try to autojoin a channel.
-            this._autoJoinChannel = '';
+            this._autoJoinChannel = (options.autoJoinChannel !== undefined) ? options.autoJoinChannel : true;
             this._autoJoinChannelComplete = false;
 
             //Supports the option of having the same user join the same channel multiple times.
             //This voids the nickname in use error.
-            this._supportConcurrentChannelJoins = (options._supportConcurrentChannelJoins !== undefined) ? options._supportConcurrentChannelJoins : true;
+            this._supportConcurrentChannelJoins = (options.supportConcurrentChannelJoins !== undefined) ? options.supportConcurrentChannelJoins : true;
 
             //Determine if the connection was closed by the user or the protocol.
             this._attemptReconnect = (options.attemptReconnect !== undefined) ? options.attemptReconnect : false;
-            this._numberOfReconnectAttempts = options.numberOfReconnectAttempts || 3;
+            this._maxNumberOfReconnectAttempts = options.maxNumberOfReconnectAttempts || 3;
+            this._numberOfReconnectsAttempted = 0;
 
             //Protocol information.
             this._listener = new vga.util.listener(methodMap, options.listeners);
@@ -286,6 +287,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {string} message a temporary message to send when closing the socket.
          */
         disconnect(message) {
+            //Perform the cleanup routine.
+            this.cleanUp();           
             if (this._protocol) {
                 vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.disconnect]: Attempting to disconnect with message: ${message}.`);
                 this._protocol.sendIRCData('quit', {message: message});
@@ -296,11 +299,22 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         /**
          * Disposes of the connector, cleaning up any additional resources.
          * @method vga.irc.connector.kiwi.connector.dispose
-         */     
+         */
         dispose() {
             this.disconnect();
             this._protocol = vga.util.safeDispose(this._protocol);
             return this;
+        }
+        /**
+         * Internal clean up method to clear any variables during a disconnect event.
+         * This method should be idempotent and safe to call multiple times.
+         * @method vga.irc.connector.kiwi.connector.cleanUp
+         */    
+        cleanUp() {
+            this._nickname = this._identity = '';
+            this._userListByChannel = {};
+            this._prefixMap = {};
+            this._numberOfReconnectsAttempted = 0;
         }
 
         //-----------------------------------------------------------------
@@ -313,6 +327,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with the established connection.
          */
         onConnect(eventData) {
+            this._numberOfReconnectsAttempted = 0;
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onConnect]: AutoJoinChannel: ${this._autoJoinChannel !== '' ? this._autoJoinChannel : 'none' })`, eventData);
             if (this._autoJoinChannel !== '') {
                 this.join(this._autoJoinChannel);
@@ -327,7 +342,14 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         onDisconnect(eventData) {
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Reason: ${eventData.reason} closedByServer: ${eventData.closedByServer}`);
             if (this._attemptReconnect && eventData.closedByServer) {
-                this._listener.invokeListeners('reconnect');
+                if (this._numberOfReconnectsAttempted < this._maxNumberOfReconnectAttempts) {
+                    this._numberOfReconnectsAttempted++;
+                    vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Attempt to reconnect is enabled, attempting try: ${this._numberOfReconnectsAttempted}.`);
+                    this._listener.invokeListeners('reconnect');
+                }
+                else {
+                    vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Exceeded the number of retry event: ${this._maxNumberOfReconnectAttempts}. Giving up.`);
+                }
             }
             else {
                 this._protocol && this._protocol.close();
@@ -459,10 +481,6 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     });
                 }
             });
-
-            //TODO:
-            //Channel Mode
-            //4{"method":"irc","params":[{"command":"mode","data":{"target":"#ffstv","nick":"CaffMod","modes":[{"mode":"+M","param":null}],"connection_id":0}},null]}
         }
         /**
          * This event is triggered when the userlist has been sent by the server.
