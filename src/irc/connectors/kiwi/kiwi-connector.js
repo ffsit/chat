@@ -230,7 +230,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 //Retain some information as long as the states are valid.
                 let currentState = this._protocol.getState();
                 if (currentState === vga.irc.connector.kiwi.STATES.CLOSED || currentState === vga.irc.connector.kiwi.STATES.OPENING)
-                { 
+                {
                     //If there is a channel supplied attempt to autojoin it.
                     this._autoJoinChannel = authenticationParams.channel || '';
                     this._nickname = this._identity = authenticationParams.nick;
@@ -298,7 +298,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          */
         disconnect(message) {
             //Perform the cleanup routine.
-            this.cleanUp();           
+            this.cleanUp();
             if (this._protocol) {
                 vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.disconnect]: Attempting to disconnect with message: ${message}.`);
                 this._protocol.sendIRCData('quit', {message: message});
@@ -535,10 +535,9 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     let compiledRoles = vga.irc.compileModes(user.modes, (mode) => modeToRolesMap[mode]);
                     userInfoMap[sanitizedNickname] = {
                         roles: compiledRoles,
-                        /*role: vga.irc.getMostSignificantRole(compiledRoles),*/
                         prefixes: prefixes,
-                        //Push the sanitized, original nickname onto the nicknames array.
-                        nicknames: [sanitizedNickname]
+                        nickname: sanitizedNickname,
+                        nicknames: [parsedNickname]
                     };
                 }
                 else {
