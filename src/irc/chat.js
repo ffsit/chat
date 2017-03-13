@@ -49,7 +49,7 @@ vga.irc = vga.irc || {};
 ///////////////////////////////////////////////////////////
 // The main VGA chat application.
 ///////////////////////////////////////////////////////////
-(function(){
+$(function(){
 
     //-----------------------------------------------------------------
     // Expected structures note.
@@ -72,13 +72,17 @@ vga.irc = vga.irc || {};
     // Event: onBanned ({ identity: string, nickname: string, channel: string })
     // Event: onError ({ reason: string })
 
+    //-----------------------------------------------------------------
+    // Intenral helper methods.
+    //-----------------------------------------------------------------
+
     /**
-     * Returns a CSS class based on the most significant role of the user.
-     * @method getCssClass
+     * Returns a role name based on the most significant role of the user.
+     * @method getRoleName
      * @param {number} roles a bitarray of roles assigned to the user.
      * @return {string} the CSS class assigned to the most significant role.
      */
-    function getCssClass(roles) {
+    function getRoleName(roles) {
         switch(vga.irc.getMostSignificantRole(roles))
         {
             case vga.irc.roles.owner:
@@ -99,74 +103,72 @@ vga.irc = vga.irc || {};
         }
     };
 
+    //-----------------------------------------------------------------
+    // jQuery presentation logic.
+    //-----------------------------------------------------------------
+    var $chatHistory = $('#chathistory');
+    var $userList = $('#user_list');
+    var $channel = $('#channel');
+    var $nickname = $('#nickname');
+    var $password = $('#password');
+
+    function updateIcon(roles) {
+        let roleName = getRoleName(roles);
+        return `<div class="icon role ${roleName}" title="${roleName}"></div>`;
+    };
+
     function writeInformationalMessage(channel, message) {
-        let $chatHistory = $('#chathistory');
         $chatHistory.append(`<div class="informative"><span class="message">${vga.util.encodeHTML(message)}</span></div>`);
     };
 
-    function updateIcon(roles) {
-        return `<div class="icon role ${getCssClass(roles)}"></div>`;
-    };
-
-    //TODO: Consider just ripping this logic out and putting it in the onTopic & onMessage events since they're so distinctly different.
-    //TODO: We'll also need the role information and that will be stored in our channel collection in the instance of chat object.
     function writeToChannel(channel, message, user, type) {
-        let $chatHistory = $('#chathistory');
-
         //Encode all HTML characters.
         message = vga.util.encodeHTML(message);
 
-        if (user) {
-            let name = user.nicknames[0];
-            let messageBody = '';
-            if (type === 'action') {
-                messageBody = `<div class="username action">${name}</div><div class="message action">${message}</div>`;
-            }
-            else {
-                messageBody = `<div class="username">${name}</div>:&nbsp<div class="message">${message}</div>`;
-            }
-
-            $chatHistory.append(`<div class="user-entry" data-nickname="${name}">${updateIcon(user.roles)}${messageBody}</div>`);
+        let name = user.nickname;
+        let messageBody = '';
+        if (type === 'action') {
+            messageBody = `<div class="username action">${name}</div><div class="message action">${message}</div>`;
         }
         else {
-            $chatHistory.append(`<div class="informative"><span class="message">${message}</span></div>`);
+            messageBody = `<div class="username">${name}</div>:&nbsp<div class="message">${message}</div>`;
         }
 
-        //'<div class="informative"><span class="text">Welcome to Turbo Chat! | FAQ: http://videogamesawesome.com/forums/topic/faq/</span></div>';
+        $chatHistory.append(`<div class="user-entry" data-nickname="${name}">${updateIcon(user.roles)}${messageBody}</div>`);
     };
 
-    function updateDisplay(user, $chatHistory) {
-        let $element = $chatHistory.find(`.user-entry[data-nickname=${user.nicknames[0]}] > .role`)
-        $element.replaceWith(updateIcon(user.roles));
+    function updateDisplay(user) {
+        $chatHistory.find(`.user-entry[data-nickname=${user.nickname}] > .role`).replaceWith(updateIcon(user.roles));
     };
 
-    function writeUser(user, $userList) {
-        $userList = $userList || $('#user_list');
-        $userList.append(`<div id="user_list_${user.nicknames[0]}" class='user-entry'>`
+    function writeUser(user) {
+
+        let nicknames = '';
+        user.nicknames.forEach((nickname) => {
+            nicknames += `${(nicknames.length > 0 ? ',' : '')}${nickname}`;
+        });
+
+        $userList.append(`<div id="user_list_${user.nickname}" class='user-entry'>`
             + updateIcon(user.roles)
-            + `<div class="username">${user.nicknames[0]}</div>`
+            + `<div class="username" title="Nicknames: ${nicknames}">${user.nickname}</div>`
             + '</div>');
     };
 
-    function updateUserInList(user, $userList) {
-        let $element = $userList.find(`#user_list_${user.nicknames[0]} > .role`);
-        //$element.removeClass().addClass(`icon role ${getCssClass(user.roles)}`);
-        $element.replaceWith(updateIcon(user.roles));
-    };
-
     function writeUserList(users) {
-        let $userList = $('#user_list');
-        
-        //If no users are supplied then just clear it.
-        if (!users) {
-            $userList.html('');
+        //Write a collection of users to the list if there is one.
+        if (users) {
+            vga.util.forEach(users, (username, user)=>{
+                writeUser(user, $userList);
+            });
             return;
         }
 
-        //Write a collection of users to the list.
-        vga.util.forEach(users, (username, user)=>{
-            writeUser(user, $userList);
-        });
+        //Otherwise clear hte list.
+        $userList.html('');
+    };
+
+    function updateUserInList(user) {
+        $userList.find(`#user_list_${user.nickname} > .role`).replaceWith(updateIcon(user.roles));
     };
 
     function setStatus(message) {
@@ -174,12 +176,15 @@ vga.irc = vga.irc || {};
     }
 
     function toggleLoginWindow(show) {
-        //$('#chathistory_wrapper').toggleClass('hidden', show);
         $('#login-wrapper').toggleClass('hidden', !show);
     }
 
+    //-----------------------------------------------------------------
+    // Main chat class.
+    //-----------------------------------------------------------------
+
     /**
-     * Constructor for the chat control.
+     * Main chat logic.
      * @method vga.irc.chat
      * @param {object} options Additional options for chat.
      */
@@ -217,17 +222,15 @@ vga.irc = vga.irc || {};
             //User's channel information.
             this._userChannels = {};
 
-            let connectorOptions = {
+            //The connector.  This guy has abstracted all the IRC & Kiwi IRC logic away.
+            //If we switch to another IRC type, a new connector can be written to handle this without rewriting all of chat.
+            this.connector = new vga.irc.connector.kiwi.connector(options.url, {
                 supportConcurrentChannelJoins: options.supportConcurrentChannelJoins,
                 autoJoinChannel: options.autoJoinChannel,
                 attemptReconnect: true, //options.attemptReconnect,
                 normalizeNicknames: true, //Normalized nicknames into one.
                 listeners: [this]
-            }
-
-            //The connector.  This guy has abstracted all the IRC & Kiwi IRC logic away.
-            //If we switch to another IRC type, a new connector can be written to handle this without rewriting all of chat.
-            this.connector = new vga.irc.connector.kiwi.connector(options.url, connectorOptions);
+            });
         }
         /**
          * Attempts to connect a user to the chat server.
@@ -263,8 +266,7 @@ vga.irc = vga.irc || {};
          * @param {string} message the message to send to the server when leaving a channel.
          */   
         leave(message) {
-            let channel = document.getElementById('channel').value;
-            this.connector && this.connector.leave(message, channel);
+            this.connector && this.connector.leave(message, $channel.val());
             return this;
         }
         /**
@@ -272,8 +274,7 @@ vga.irc = vga.irc || {};
          * @method vga.irc.chat.join
          */
         join() {
-            let channel = document.getElementById('channel').value;
-            this.connector && this.connector.join(channel);
+            this.connector && this.connector.join($channel.val());
             return this;
         }
         /**
@@ -282,13 +283,13 @@ vga.irc = vga.irc || {};
          * @param {string} message the message to send to the chat with the specific channel.
          */      
         send(message) {
-            let channelName = document.getElementById('channel').value;
+            let channelName = $channel.val();
             
             if (message !== '/QUIT') {
                 this.connector && this.connector.send(message, channelName);
                 let channel = this._userChannels[channelName];
                 if (channel) {
-                    let user = channel[this.connector.getNickname()];
+                    let user = channel[this.connector.getIdentity()];
                     writeToChannel(channel, message, user);
                 }
             }
@@ -315,10 +316,10 @@ vga.irc = vga.irc || {};
         }
         ///TODO: Temporary Reconnect logic, merge with the connect logic currently in the index.php.
         onReconnect() {
-            let nickname = $('#nickname').val();
-            let password = $('#password').val();
-            let channel = $('#channel').val();
-            this.connect(nickname, password, channel);
+            let nickname = $nickname.val() || '';
+            let password = $password.val() || '';
+            let channelName = $channel.val() || '';
+            this.connect(nickname, password, channelName);
         }
         /**
          * An event that is triggered when a topic event occurs.
@@ -342,7 +343,7 @@ vga.irc = vga.irc || {};
                 }
                 writeToChannel(message.target, message.message, user, message.type);
             }
-        }        
+        }
         /**
          * An event that is triggered when a user list is provided.
          * @method vga.irc.chat.onUserlist
@@ -390,8 +391,8 @@ vga.irc = vga.irc || {};
                     user.roles = (userRoleByChannel.action === vga.irc.roleAction.add) 
                         ? vga.irc.addRole(user.roles, userRoleByChannel.roles) 
                         : vga.irc.removeRole(user.roles, userRoleByChannel.roles);
-                    updateUserInList(user, $('#user_list'));
-                    updateDisplay(user, $('#chathistory'));
+                    updateUserInList(user);
+                    updateDisplay(user);
                 }
             }
         }
@@ -437,4 +438,5 @@ vga.irc = vga.irc || {};
             vga.util.debuglog.error(errorInfo.reason);
         }
     }
+
 }());

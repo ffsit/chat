@@ -222,10 +222,12 @@ form.debug #showdebug {
 	background-color: #f0f;
 }
 
+/*
 #chathistory .message:hover {
     background-color: #f0f0f0 !important;
 	box-shadow: 0px 0px 6px #999999 !important;
 }
+*/
 
 #chathistory .message .messagebuttons {
     display: none;
