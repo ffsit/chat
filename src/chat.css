@@ -96,7 +96,6 @@ Global classes
 	top: 0;
 	left: 0;
 	position: absolute;
-
 }
 
 #login-wrapper {
@@ -193,32 +192,34 @@ form.debug #showdebug {
 	min-width: 300px;
 }
 
+/*
 #chathistory_wrapper {
 	display: block;
-	background-color: #e6e6e6;
 	width: 100%;
     overflow-x: hidden;
 }
+*/
 
-#chathistory {
+.chathistory {
+	background-color: #e6e6e6;
 	overflow-x: hidden;
 	overflow-y: scroll;
 	height: 34em;
 }
 
-#chathistory .message.self {
+.chathistory .message.self {
 	background-color: #e6dfdf;
 }
 
-#chathistory .message.mentioned{
+.chathistory .message.mentioned{
 	background-color: #F6E6E6;
 }
 
-#chathistory .message.private{
+.chathistory .message.private{
 	background-color: #cccccc;
 }
 
-#chathistory .message.ctcp {
+.chathistory .message.ctcp {
 	background-color: #f0f;
 }
 
@@ -229,15 +230,15 @@ form.debug #showdebug {
 }
 */
 
-#chathistory .message .messagebuttons {
+.chathistory .message .messagebuttons {
     display: none;
 }
 
-#chathistory .message:hover .messagebuttons {
+.chathistory .message:hover .messagebuttons {
     display: inline;
 }
 
-#chathistory .informative {
+.chathistory .informative {
 	font-style: italic;
 	color: #999;
 	text-align: center;
@@ -539,26 +540,26 @@ User List classes
 Chat History classes
 ---------------------------
 */
-#chathistory div.modbroadcast span.text {
+.chathistory div.modbroadcast span.text {
     font-weight: bold;
     background-color: #FF6E00;
     color: #000000;
     padding: 0 1em;
 }
 
-#chathistory div.user-message {
+.chathistory div.user-message {
 	line-height: 16px;
 	padding: .2em;
 	padding-left: 0.5em;
     word-wrap: break-word;
 }
 
-#chathistory .user-message .username {
+.chathistory .user-message .username {
 	font-weight: bold;
 	text-transform: capitalize;
 }
 
-#chathistory .user-message .username.action {
+.chathistory .user-message .username.action {
 	font-weight: normal;
 	font-style: italic;
 }

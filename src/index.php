@@ -69,9 +69,9 @@
 	<div id="wrapper1">
 		<div class="wrapper2">
 			<div id="upper_ui">
-				<div id="chathistory_wrapper">
-					<div class="chathistory small" id="chathistory"></div>
-				</div>
+				<div id="channel_ffstv" class="chathistory small"></div>
+				<div id="channel_support" class="chathistory small hidden"></div>
+				<div id="channel_spoiers" class="chathistory small hidden"></div>
 			</div>
 		</div>
 
