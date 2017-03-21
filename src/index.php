@@ -16,13 +16,6 @@
 <body>
 
 	<div class="center_helper">
-		<div id="user_list_wrapper" class="hidden">
-			<h2>User List</h2>
-			<div class="user_list mid-size" id="user_list"></div>
-		</div>
-	</div>
-
-	<div class="center_helper">
 		<div id="settings_wrapper">
 			<h2>Settings</h2>
 			<div id="settings">
@@ -68,10 +61,34 @@
 
 	<div id="wrapper1">
 		<div class="wrapper2">
-			<div id="upper_ui">
-				<div id="channel_ffstv" class="chathistory small"></div>
-				<div id="channel_support" class="chathistory small hidden"></div>
-				<div id="channel_spoiers" class="chathistory small hidden"></div>
+			<div id="channel-container-ffstv" class="channel-container">
+				<div class="center_helper">
+					<div class="user-list-wrapper hidden">
+						<h2>User List</h2>
+						<div class="user-list mid-size"></div>
+					</div>
+				</div>
+				<div id="channel-ffstv" class="chathistory small"></div>
+			</div>
+
+			<div id="channel-container-support" class="channel-container hidden">
+				<div class="center_helper">
+					<div class="user-list-wrapper hidden">
+						<h2>User List</h2>
+						<div class="user-list mid-size"></div>
+					</div>
+				</div>
+				<div id="channel-support" class="chathistory small"></div>
+			</div>
+
+			<div id="channel-container-spoilers" class="channel-container hidden">
+				<div class="center_helper">
+					<div class="user-list-wrapper hidden">
+						<h2>User List</h2>
+						<div class="user-list mid-size"></div>
+					</div>
+				</div>
+				<div id="channel-spoilers" class="chathistory small"></div>
 			</div>
 		</div>
 
@@ -125,7 +142,7 @@
 			});
 
 			$('#chatui_button_nicklist').click(function(e){
-				let $userListWrapper = $('#user_list_wrapper');
+				let $userListWrapper = $('#channel-container-ffstv .user-list-wrapper');
 				$userListWrapper.toggleClass('hidden', !$userListWrapper.hasClass('hidden'));
 				e.preventDefault();
 			});
@@ -168,7 +185,7 @@
 			});
 
 			$('#chatui_button_nicklist').click(function(e){
-				let $userListWrapper = $('#user_list_wrapper');
+				let $userListWrapper = $('#channel-container-ffstv .user-list-wrapper');
 				$userListWrapper.toggleClass('hidden', !$userListWrapper.hasClass('hidden'));
 				e.preventDefault();
 			});

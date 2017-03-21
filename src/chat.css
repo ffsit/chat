@@ -484,7 +484,7 @@ User List classes
 ---------------------------
 */
 
-#user_list_wrapper {
+.user-list-wrapper {
 	padding: 0;
 	background-color: #e6e6e6;
 	max-width: 28em;

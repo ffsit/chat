@@ -106,8 +106,8 @@ $(function(){
     //-----------------------------------------------------------------
     // jQuery presentation logic.
     //-----------------------------------------------------------------
-    var $chatHistory = $('#channel_ffstv');
-    var $userList = $('#user_list');
+    var $chatHistory = $('#channel-ffstv');
+    //var $userList = $('#user-list');
     var $channel = $('#channel');
     var $nickname = $('#nickname');
     var $password = $('#password');
@@ -141,24 +141,25 @@ $(function(){
         $chatHistory.find(`.user-entry[data-nickname=${user.nickname}] > .role`).replaceWith(updateIcon(user.roles));
     };
 
-    function writeUser(user) {
+    function writeUser($userList, user) {
 
         let nicknames = '';
         user.nicknames.forEach((nickname) => {
             nicknames += `${(nicknames.length > 0 ? ',' : '')}${nickname}`;
         });
 
-        $userList.append(`<div id="user_list_${user.nickname}" class='user-entry'>`
+        $userList.append(`<div id="user-list-${user.nickname}" class='user-entry'>`
             + updateIcon(user.roles)
             + `<div class="username" title="Nicknames: ${nicknames}">${user.nickname}</div>`
             + '</div>');
     };
 
-    function writeUserList(users) {
+    function writeUserList(channelName, users) {
+        let $userList = $(`#channel-container-${channelName.replace('#', '')} .user-list-wrapper .user-list`);
         //Write a collection of users to the list if there is one.
         if (users) {
             vga.util.forEach(users, (username, user)=>{
-                writeUser(user, $userList);
+                writeUser($userList, user);
             });
             return;
         }
@@ -167,12 +168,9 @@ $(function(){
         $userList.html('');
     };
 
-    function pulseChannelWindow(channel, enable) {
-        $chatHistory.toggleClass('pulse', enable);
-    };
-
-    function updateUserInList(user) {
-        $userList.find(`#user_list_${user.nickname} > .role`).replaceWith(updateIcon(user.roles));
+    function updateUserInList(channelName, user) {
+        let $userList = $(`#channel-container-${channelName.replace('#', '')} .user-list-wrapper .user-list`);
+        $userList.find(`#user-list-${user.nickname} > .role`).replaceWith(updateIcon(user.roles));
     };
 
     function setStatus(message) {
@@ -182,6 +180,10 @@ $(function(){
     function toggleLoginWindow(show) {
         $('#login-wrapper').toggleClass('hidden', !show);
     }
+
+    function pulseChannelWindow(channel, enable) {
+        $chatHistory.toggleClass('pulse', enable);
+    };
 
     //-----------------------------------------------------------------
     // Main chat class.
@@ -323,7 +325,7 @@ $(function(){
         }
         onDisconnect() {
             let channelName = $channel.val() || '';
-            writeUserList();
+            writeUserList(channelName);
             toggleLoginWindow(true);
             pulseChannelWindow(channelName, false);
         }
@@ -365,7 +367,7 @@ $(function(){
          */ 
         onUserlist (userListByChannel) {
             this._userChannels[userListByChannel.channel] = userListByChannel.users;
-            writeUserList(userListByChannel.users);
+            writeUserList(userListByChannel.channel, userListByChannel.users);
         }
         /**
          * An event that is triggered when the authenticated user has joined a channel.
@@ -405,7 +407,7 @@ $(function(){
                     user.roles = (userRoleByChannel.action === vga.irc.roleAction.add) 
                         ? vga.irc.addRole(user.roles, userRoleByChannel.roles) 
                         : vga.irc.removeRole(user.roles, userRoleByChannel.roles);
-                    updateUserInList(user);
+                    updateUserInList(userRoleByChannel.channel, user);
                     updateDisplay(user);
                 }
             }
