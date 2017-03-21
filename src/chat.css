@@ -502,36 +502,36 @@ User List classes
 	overflow-y: scroll;
 }
 
-.user_list {
+.user-list {
 	width: 100%;
 	height: 100%;
 }
 
-.user_list .user-entry > .icon.role.crew + .username {
+.user-list .user-entry > .icon.role.crew + .username {
 	color: #8b2222;
 }
 
-.user_list .user-entry > .icon.role.mod + .username {
+.user-list .user-entry > .icon.role.mod + .username {
 	color: #228b22;
 }
 
-.user_list .user-entry > .icon.role.guest + .username {
+.user-list .user-entry > .icon.role.guest + .username {
 	color: #1e90ff;
 }
 
-.user_list .user-entry > .icon.role.turbo + .username {
+.user-list .user-entry > .icon.role.turbo + .username {
 	color: #4682D0;
 }
 
-.user_list .user-entry > .icon.role.shadow + .username {
+.user-list .user-entry > .icon.role.shadow + .username {
 	color: #B0A065;
 }
 
-.user_list .user-entry > .icon.role.banned + .username {
+.user-list .user-entry > .icon.role.banned + .username {
 	color: #aaa;
 }
 
-.user_list .user-entry {
+.user-list .user-entry {
 	border-bottom: 1px dotted #ccc;
 }
 
