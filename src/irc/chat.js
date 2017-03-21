@@ -106,7 +106,7 @@ $(function(){
     //-----------------------------------------------------------------
     // jQuery presentation logic.
     //-----------------------------------------------------------------
-    var $chatHistory = $('#chathistory');
+    var $chatHistory = $('#channel_ffstv');
     var $userList = $('#user_list');
     var $channel = $('#channel');
     var $nickname = $('#nickname');
@@ -163,8 +163,12 @@ $(function(){
             return;
         }
 
-        //Otherwise clear hte list.
+        //Otherwise clear the list.
         $userList.html('');
+    };
+
+    function pulseChannelWindow(channel, enable) {
+        $chatHistory.toggleClass('pulse', enable);
     };
 
     function updateUserInList(user) {
@@ -273,8 +277,9 @@ $(function(){
          * Attempts to join a channel.
          * @method vga.irc.chat.join
          */
-        join() {
-            this.connector && this.connector.join($channel.val());
+        join(channel) {
+            channel = channel || $channel.val();
+            this.connector && this.connector.join(channel);
             return this;
         }
         /**
@@ -285,7 +290,13 @@ $(function(){
         send(message) {
             let channelName = $channel.val();
             
-            if (message !== '/QUIT') {
+            if (message.startsWith("/QUIT")) {
+                this.close(message.substring(6));
+            }
+            else if (message.startsWith("/JOIN")) {
+                this.join(message.substring(6));
+            }
+            else {
                 this.connector && this.connector.send(message, channelName);
                 let channel = this._userChannels[channelName];
                 if (channel) {
@@ -293,9 +304,7 @@ $(function(){
                     writeToChannel(channel, message, user);
                 }
             }
-            else {
-                this.close(message.substring(6));
-            }
+
             return this;
         }
 
@@ -308,17 +317,22 @@ $(function(){
          * @method vga.irc.chat.onConnect
          */
         onConnect() {
+            let channelName = $channel.val() || '';
             toggleLoginWindow(false);
+            pulseChannelWindow(channelName, false);
         }
         onDisconnect() {
-            toggleLoginWindow(true);
+            let channelName = $channel.val() || '';
             writeUserList();
+            toggleLoginWindow(true);
+            pulseChannelWindow(channelName, false);
         }
         ///TODO: Temporary Reconnect logic, merge with the connect logic currently in the index.php.
         onReconnect() {
             let nickname = $nickname.val() || '';
             let password = $password.val() || '';
             let channelName = $channel.val() || '';
+            pulseChannelWindow(channelName, true);
             this.connect(nickname, password, channelName);
         }
         /**
