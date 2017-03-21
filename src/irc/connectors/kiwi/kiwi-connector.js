@@ -207,7 +207,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             return this._nickname;
         }
         /**
-         * Returns true if the entity name matches the user's identity or nickname.
+         * A normalized way of determining if the current user's identity or nickname is the same as the authenticated user.
+         * NOTE: This method is safe from nickname mutation.
          * @method vga.irc.connector.kiwi.connector.isMe
          * @param {string} current the entity's nickname.
          * @return {bool} true if the entity is the currently authenticated user.
@@ -233,6 +234,10 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 {
                     //If there is a channel supplied attempt to autojoin it.
                     this._autoJoinChannel = authenticationParams.channel || '';
+                    this._userListByChannel = {};
+                    this._prefixMap = {};
+
+                    //NOTE: That our nickname & identity are assigned to us once per session rather than per channel.
                     this._nickname = this._identity = authenticationParams.nick;
                 }
             }
@@ -298,9 +303,10 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          */
         disconnect(message) {
             //Perform the cleanup routine.
-            this.cleanUp();
+            this._nickname = this._identity = '';
+            this._numberOfReconnectsAttempted = 0;
             if (this._protocol) {
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.disconnect]: Attempting to disconnect with message: ${message}.`);
+                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.disconnect]: Attempting to disconnect with message: ${message || 'undefined'}.`);
                 this._protocol.sendIRCData('quit', {message: message});
                 this._protocol.close(message);
             }
@@ -315,18 +321,6 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             this._protocol = vga.util.safeDispose(this._protocol);
             return this;
         }
-        /**
-         * Internal clean up method to clear any variables during a disconnect event.
-         * This method should be idempotent and safe to call multiple times.
-         * @method vga.irc.connector.kiwi.connector.cleanUp
-         */    
-        cleanUp() {
-            this._nickname = this._identity = '';
-            this._userListByChannel = {};
-            this._prefixMap = {};
-            this._numberOfReconnectsAttempted = 0;
-        }
-
         //-----------------------------------------------------------------
         // IRC Protocol Events
         // These events are triggered by the Kiwi Protocol Layer.
@@ -356,15 +350,15 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     this._numberOfReconnectsAttempted++;
                     vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Attempt to reconnect is enabled, attempting try: ${this._numberOfReconnectsAttempted}.`);
                     this._listener.invokeListeners('reconnect');
+                    return;
                 }
-                else {
-                    vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Exceeded the number of retry event: ${this._maxNumberOfReconnectAttempts}. Giving up.`);
-                }
+
+                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Exceeded the number of retry event: ${this._maxNumberOfReconnectAttempts}. Giving up.`);
             }
-            else {
-                this._protocol && this._protocol.close();
-                this._listener.invokeListeners('disconnect');
-            }
+
+            this._numberOfReconnectsAttempted = 0;
+            this._protocol && this._protocol.close();
+            this._listener.invokeListeners('disconnect');
         }
         /**
          * This event is triggered when the IRC server sends the options information.
@@ -422,15 +416,15 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         onChannel(eventData) {
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onChannel]: Channel: ${eventData.channel} Identity: ${eventData.ident} Type: ${eventData.type}.`, eventData);
 
+            //The nickname will vary based on the action.
+            //A kick type action will only hold the nickname of the kickee in the kicked property, with the kicker in the nick property.
+            //All other actions appear to keep the target's name in the nick.
+            let nickname = (eventData.type !== 'kick') ? eventData.nick : eventData.kicked;
+
             //Determine if we have joined the auto channel.
             this._autoJoinChannelComplete = (eventData.type === 'join' 
                 && eventData.channel === this._autoJoinChannel
-                && this.isMe(eventData.ident));
-
-            //The nickname will vary based on the action.
-            //A kick type action will only hold the nickname of the kickee in the kicked property, with the kicker in the nick property.
-            //All other actions appear to keep the target's name in the nick. 
-            let nickname = (eventData.type !== 'kick') ? eventData.nick : eventData.kicked;
+                && this.isMe(nickname));
 
             //Determine if it is the current user joining or another user.
             //We cannot use the identity since IRC works off nicknames and every nickname can be an independent session for a single ident.
