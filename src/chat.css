@@ -16,6 +16,11 @@ html, body {
 Global classes
 ---------------------------
 */
+
+[role=button] {
+	cursor: pointer;
+}
+
 .hidden {
 	display:none !important;
 }
@@ -64,30 +69,10 @@ Global classes
 	width: 100%;
 }
 
-.wrapper3 {
-	margin-top: 0.5em;
-	display: table;
-	width: 100%;
-}
-
-.wrapper4 {
-	display: table-row;
-	width: 100%;
-}
-
 #upper_ui {
 	display: block;
 	height: 34em;
 	border-spacing: 0.5em;
-}
-
-#lower_wrapper {
-	display: table-row;
-}
-
-#lower_ui {
-	display: table-cell;
-	vertical-align: top;
 }
 
 .center_helper {
@@ -192,101 +177,6 @@ form.debug #showdebug {
 	min-width: 300px;
 }
 
-/*
-#chathistory_wrapper {
-	display: block;
-	width: 100%;
-    overflow-x: hidden;
-}
-*/
-
-.chathistory {
-	background-color: #e6e6e6;
-	overflow-x: hidden;
-	overflow-y: scroll;
-	height: 34em;
-}
-
-.chathistory .message.self {
-	background-color: #e6dfdf;
-}
-
-.chathistory .message.mentioned{
-	background-color: #F6E6E6;
-}
-
-.chathistory .message.private{
-	background-color: #cccccc;
-}
-
-.chathistory .message.ctcp {
-	background-color: #f0f;
-}
-
-/*
-#chathistory .message:hover {
-    background-color: #f0f0f0 !important;
-	box-shadow: 0px 0px 6px #999999 !important;
-}
-*/
-
-.chathistory .message .messagebuttons {
-    display: none;
-}
-
-.chathistory .message:hover .messagebuttons {
-    display: inline;
-}
-
-.chathistory .informative {
-	font-style: italic;
-	color: #999;
-	text-align: center;
-	padding: .3em;
-}
-
-#chatbox_input {
-	font-size: 10pt;
-	margin: 0;
-	padding: 0;
-	border: 0;
-	width: 100%;
-	vertical-align: top;
-}
-
-.chatui_form {
-	width: 100%;
-	border-bottom: 0.5em solid #707070;
-	display: table-cell;
-	vertical-align: top;
-}
-
-#chatui_buttons {
-	display: table-cell;
-	vertical-align: top;
-	min-width: 80px;
-	margin: 0;
-	padding: 0;
-	border: 0;
-}
-
-#chatui_buttons a {
-	display: inline;
-	margin-left: 4px;
-	padding: 0;
-	border: 0;
-}
-
-#chatui_buttons a img {
-	padding: 0;
-	border: 0;
-	margin: 0;
-}
-
-.chatbox_button {
-	width: 6em;
-}
-
 #settings_wrapper {
 	padding: 0;
 	background-color: #e6e6e6;
@@ -317,6 +207,57 @@ form.debug #showdebug {
 	border: 1px solid #121214;
 	background-color: #E6E6E6;
 	color: #121214;
+}
+
+/*
+---------------------------
+Lower UI classes
+---------------------------
+*/
+
+.lower-ui {
+	margin-top: 0.5em;
+	width: 100%;
+}
+
+.lower-ui input {
+	width: 100%;
+	border: 1px solid darkgray;
+	height: 1.5em;
+	vertical-align: middle;
+	border-radius: 3px;
+}
+
+.lower-ui .right {
+	float: right;
+	width: 80px;
+	margin-left: 5px;
+}
+
+.lower-ui .left {
+	float: none;
+	width: auto;
+	overflow: hidden;
+}
+
+.lower-ui .button-container {
+	position: relative;
+	display: inline-block;
+	background-color: #3a5cf9;
+	vertical-align: middle;
+	width: 20px;
+	height: 20px;
+	line-height: 1.5em;
+	border: 1px solid #00008c;
+	border-radius: 3px;
+}
+
+.lower-ui .button-container .button {
+	position:absolute;
+	left:0;
+	width:100%;
+	line-height:inherit;
+	text-align:center;
 }
 
 /*
@@ -540,6 +481,46 @@ User List classes
 Chat History classes
 ---------------------------
 */
+
+.chathistory {
+	background-color: #e6e6e6;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	height: 34em;
+	border-radius: 3px;
+}
+
+.chathistory .message.self {
+	background-color: #e6dfdf;
+}
+
+.chathistory .message.mentioned{
+	background-color: #F6E6E6;
+}
+
+.chathistory .message.private{
+	background-color: #cccccc;
+}
+
+.chathistory .message.ctcp {
+	background-color: #f0f;
+}
+
+.chathistory .message .messagebuttons {
+    display: none;
+}
+
+.chathistory .message:hover .messagebuttons {
+    display: inline;
+}
+
+.chathistory .informative {
+	font-style: italic;
+	color: #999;
+	text-align: center;
+	padding: .3em;
+}
+
 .chathistory div.modbroadcast span.text {
     font-weight: bold;
     background-color: #FF6E00;

@@ -60,53 +60,36 @@
 	</div>
 
 	<div id="wrapper1">
-		<div class="wrapper2">
-			<div id="channel-container-ffstv" class="channel-container">
+		<div id="channel-container" class="wrapper2">
+			<!-- Serves as a template to create other channels from -->
+			<div id="channel-template" class="channel">
 				<div class="center_helper">
 					<div class="user-list-wrapper hidden">
 						<h2>User List</h2>
 						<div class="user-list mid-size"></div>
 					</div>
 				</div>
-				<div id="channel-ffstv" class="chathistory small"></div>
-			</div>
-
-			<div id="channel-container-support" class="channel-container hidden">
-				<div class="center_helper">
-					<div class="user-list-wrapper hidden">
-						<h2>User List</h2>
-						<div class="user-list mid-size"></div>
+				<div class="chathistory small"></div>
+				<div class="lower-ui">
+					<div class="right">
+						<span class="button-container chatui_button_nicklist">
+							<i class="fa fa-users fa-inverse button" aria-hidden="true" title="Show or hide user list" alt="☃" role="button"></i>
+						</span>
+						<span class="button-container chatui_button_settings">
+							<i class="fa fa-cog fa-inverse button" aria-hidden="true" title="Show or hide settings" alt="✔" role="button"></i>
+						</span>
+						<span class="button-container chatui_button_support">
+							<i class="fa fa-exclamation-circle  fa-inverse button" aria-hidden="true" title="Support" alt="!" role="button"></i>
+						</span>
 					</div>
-				</div>
-				<div id="channel-support" class="chathistory small"></div>
-			</div>
-
-			<div id="channel-container-spoilers" class="channel-container hidden">
-				<div class="center_helper">
-					<div class="user-list-wrapper hidden">
-						<h2>User List</h2>
-						<div class="user-list mid-size"></div>
-					</div>
-				</div>
-				<div id="channel-spoilers" class="chathistory small"></div>
-			</div>
-		</div>
-
-		<div class="wrapper3">
-			<div id="lower_wrapper">
-				<div id="lower_ui">
-					<div class="wrapper2">
-						<div class="wrapper4">
-							<input type="text" id="chatbox_input" class="chatui_form" maxlength="300">
-							<div id="chatui_buttons">
-								<a title="Show or hide user list" id="chatui_button_nicklist" href=""><img src="http://irc.videogamesawesome.com/img/nicklist_button.png" alt="☃"/></a><a title="Show or hide settings" id="chatui_button_settings" href=""><img src="http://irc.videogamesawesome.com/img/settings_button.png" alt="✔"/></a><a title="Show or hide debug stuff" id="chatui_button_debug" href=""><img src="http://irc.videogamesawesome.com/img/debug_button.png" alt="☣"/></a>
-							</div>
-						</div>
+					<div class="left">
+						<input type="text" class="chatbox_input" maxlength="300">
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
+	<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
 	<script src="/irc/util/globals.js"></script>
 	<script src="/irc/util/listener.js"></script>
@@ -133,7 +116,7 @@
 				e.preventDefault();
 			});
 
-			$('#chatbox_input').keyup(function(e){
+			$('#channel-container').on('keyup', 'input', function(e){
 				let value = $(this).val();
 				if (e.which === 13 && value !== '') {
 					chat.send(value);
@@ -141,8 +124,8 @@
 				}
 			});
 
-			$('#chatui_button_nicklist').click(function(e){
-				let $userListWrapper = $('#channel-container-ffstv .user-list-wrapper');
+			$('#channel-container').on('click', '.chatui_button_nicklist', function(e){
+				let $userListWrapper = $(this).parents('.channel').find('.user-list-wrapper');
 				$userListWrapper.toggleClass('hidden', !$userListWrapper.hasClass('hidden'));
 				e.preventDefault();
 			});
@@ -176,7 +159,7 @@
 				e.preventDefault();
 			});
 
-			$('#chatbox_input').keyup(function(e){
+			$('#channel-container').on('keyup', 'input', function(e){
 				let value = $(this).val();
 				if (e.which === 13 && value !== '') {
 					chat.send(value);
@@ -184,8 +167,8 @@
 				}
 			});
 
-			$('#chatui_button_nicklist').click(function(e){
-				let $userListWrapper = $('#channel-container-ffstv .user-list-wrapper');
+			$('#channel-container').on('click', '.chatui_button_nicklist', function(e){
+				let $userListWrapper = $(this).parents('.channel').find('.user-list-wrapper');
 				$userListWrapper.toggleClass('hidden', !$userListWrapper.hasClass('hidden'));
 				e.preventDefault();
 			});

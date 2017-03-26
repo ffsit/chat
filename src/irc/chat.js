@@ -106,22 +106,37 @@ $(function(){
     //-----------------------------------------------------------------
     // jQuery presentation logic.
     //-----------------------------------------------------------------
-    var $chatHistory = $('#channel-ffstv');
+    var $channelContainer = $('#channel-container');
     //var $userList = $('#user-list');
     var $channel = $('#channel');
     var $nickname = $('#nickname');
     var $password = $('#password');
+
+    function getChannelControl(channelName) {
+        let $channelControl = $channelContainer.find(`#channel-${channelName.replace('#', '')}`);
+        if ($channelControl.length === 0)
+        {
+            let $template = $channelContainer.find('#channel-template');
+            $channelControl = $template.clone();
+            $channelControl.attr('id', `channel-${channelName.replace('#', '')}`).removeClass('hidden');
+            $template.addClass('hidden');
+            $channelContainer.append($channelControl);
+        }
+
+        return $channelControl;
+    }
 
     function updateIcon(roles) {
         let roleName = getRoleName(roles);
         return `<div class="icon role ${roleName}" title="${roleName}"></div>`;
     };
 
-    function writeInformationalMessage(channel, message) {
+    function writeInformationalMessage(channelName, message) {
+        let $chatHistory = getChannelControl(channelName).find('.chathistory');
         $chatHistory.append(`<div class="informative"><span class="message">${vga.util.encodeHTML(message)}</span></div>`);
     };
 
-    function writeToChannel(channel, message, user, type) {
+    function writeToChannel(channelName, message, user, type) {
         //Encode all HTML characters.
         message = vga.util.encodeHTML(message);
 
@@ -134,10 +149,12 @@ $(function(){
             messageBody = `<div class="username">${name}</div>:&nbsp<div class="message">${message}</div>`;
         }
 
+        let $chatHistory = getChannelControl(channelName).find('.chathistory');
         $chatHistory.append(`<div class="user-entry" data-nickname="${name}">${updateIcon(user.roles)}${messageBody}</div>`);
     };
 
-    function updateDisplay(user) {
+    function updateDisplay(channelName, user) {
+        let $chatHistory = getChannelControl(channelName).find('.chathistory');
         $chatHistory.find(`.user-entry[data-nickname=${user.nickname}] > .role`).replaceWith(updateIcon(user.roles));
     };
 
@@ -155,7 +172,7 @@ $(function(){
     };
 
     function writeUserList(channelName, users) {
-        let $userList = $(`#channel-container-${channelName.replace('#', '')} .user-list-wrapper .user-list`);
+        let $userList = getChannelControl(channelName).find('.user-list-wrapper .user-list');
         //Write a collection of users to the list if there is one.
         if (users) {
             vga.util.forEach(users, (username, user)=>{
@@ -169,7 +186,7 @@ $(function(){
     };
 
     function updateUserInList(channelName, user) {
-        let $userList = $(`#channel-container-${channelName.replace('#', '')} .user-list-wrapper .user-list`);
+        let $userList = getChannelControl(channelName).find('.user-list-wrapper .user-list');
         $userList.find(`#user-list-${user.nickname} > .role`).replaceWith(updateIcon(user.roles));
     };
 
@@ -190,7 +207,8 @@ $(function(){
         $('#login-wrapper').toggleClass('hidden', !show);
     }
 
-    function pulseChannelWindow(channel, enable) {
+    function pulseChannelWindow(channelName, enable) {
+        let $chatHistory = getChannelControl(channelName).find('.chathistory');
         $chatHistory.toggleClass('pulse', enable);
     };
 
@@ -312,7 +330,7 @@ $(function(){
                 let channel = this._userChannels[channelName];
                 if (channel) {
                     let user = channel[this.connector.getNicknameKey()];
-                    writeToChannel(channel, message, user);
+                    writeToChannel(channelName, message, user);
                 }
             }
 
@@ -423,7 +441,7 @@ $(function(){
                         ? vga.irc.addRole(user.roles, userRoleByChannel.roles) 
                         : vga.irc.removeRole(user.roles, userRoleByChannel.roles);
                     updateUserInList(userRoleByChannel.channelKey, user);
-                    updateDisplay(user);
+                    updateDisplay(userRoleByChannel.channelKey, user);
                 }
             }
         }
