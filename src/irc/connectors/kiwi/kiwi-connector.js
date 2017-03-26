@@ -492,6 +492,18 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             });
         }
         /**
+         * This event is triggered on a nickname change.
+         * @method vga.irc.connector.kiwi.connector.onNick
+         * @param {object} eventData event data associated with nickname event sent by the server.
+         */
+        onNick(eventData) {
+            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onNick].', eventData);
+
+            if (!this.isMe(eventData.nick)) {
+                //eventData.newnick;
+            }
+        }
+        /**
          * This event is triggered when a mode event has occured.
          * @method vga.irc.connector.kiwi.connector.onMode
          * @param {object} eventData event data associated with mode event sent by the server.
