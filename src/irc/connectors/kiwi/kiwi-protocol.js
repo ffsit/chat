@@ -49,7 +49,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
 ///////////////////////////////////////////////////////////
 // Our Kiwi IRC Protocol.
-// This is another abstracted logic layer that happens to extract the more raw kiwi protocol logic and to help clean up the connector class. 
+// This is another abstracted logic layer that happens to extract the more raw kiwi protocol logic and to help clean up the connector class and allow it to be more readable. 
 // This class can be merged with the kiwi-connector if necessary.
 ///////////////////////////////////////////////////////////
 (function(){
