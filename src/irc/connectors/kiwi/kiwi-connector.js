@@ -162,6 +162,10 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
             //User Identity information.
             this._nickname = this._identity = '';
+
+            //We can disable the nicknames normalization and allow the mutated nicknames to be an individual entity.
+            //This means that all events meant for one person will now only target individual nicknames.
+            //For Example: The message meant for cafftest_1 will not longer be sent to cafftest.
             this._normalizeNicknames = (options.normalizeNicknames !== undefined) ? options.normalizeNicknames : false;
 
             //Autojoin logic.  If this is set we will try to autojoin a channel.
@@ -199,12 +203,12 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             return this._identity;
         }
         /**
-         * Returns the nickname of the user assigned on authentication.
+         * Returns the normalized nickname assigned to the user on login.
          * @method vga.irc.connector.kiwi.connector.getNickname
          * @return {string} authenticated user's nickname.
          */
         getNickname() {
-            return this._nickname;
+            return this._normalizeNicknames ? sanitizeNickname(this._nickname) : parsedNickname;
         }
         /**
          * A normalized way of determining if the current user's identity or nickname is the same as the authenticated user.
@@ -233,7 +237,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 if (currentState === vga.irc.connector.kiwi.STATES.CLOSED || currentState === vga.irc.connector.kiwi.STATES.OPENING)
                 {
                     //If there is a channel supplied attempt to autojoin it.
-                    this._autoJoinChannel = authenticationParams.channel || '';
+                    this._autoJoinChannel = (authenticationParams.channel || '').toLowerCase();
                     this._userListByChannel = {};
                     this._prefixMap = {};
 
@@ -402,10 +406,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with a topic event.
          */
         onTopic(eventData) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onTopic]: Topic: ${eventData.topic} Channel: ${eventData.channel}.`, eventData);
+            let channelName = eventData.channel.toLowerCase();
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onTopic]: Topic: ${eventData.topic} Channel: ${channelName}.`, eventData);
             this._listener.invokeListeners('topic', {
                 topic: eventData.topic,
-                channel: eventData.channel
+                channel: channelName
             });
         }
         /**
@@ -414,7 +419,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with channel join event.
          */        
         onChannel(eventData) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onChannel]: Channel: ${eventData.channel} Identity: ${eventData.ident} Type: ${eventData.type}.`, eventData);
+            let channelName = eventData.channel.toLowerCase();
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onChannel]: Channel: ${channelName} Identity: ${eventData.ident} Type: ${eventData.type}.`, eventData);
 
             //The nickname will vary based on the action.
             //A kick type action will only hold the nickname of the kickee in the kicked property, with the kicker in the nick property.
@@ -423,7 +429,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
             //Determine if we have joined the auto channel.
             this._autoJoinChannelComplete = (eventData.type === 'join' 
-                && eventData.channel === this._autoJoinChannel
+                && channelName === this._autoJoinChannel
                 && this.isMe(nickname));
 
             //Determine if it is the current user joining or another user.
@@ -437,7 +443,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             this._listener.invokeListeners(`${eventName}${eventData.type}`,{
                 identity: eventData.ident,
                 nickname: nickname,
-                channel: eventData.channel
+                channel: channelName
             });
         }
         /**
@@ -470,12 +476,12 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 let userName = modePerUser.param;
                 if (userName !== null) {
 
-                    //Sanitizes the nickname by removing the numeric suffix identifier.
-                    let sanitizedNickname = this._normalizeNicknames ? sanitizeNickname(userName) : userName;
+                    //Sanitizes the nickname by removing the numeric suffix identifier, but only if we have enabled normalizing nicknames.
+                    let normalizedNickname = this._normalizeNicknames ? sanitizeNickname(userName) : userName;
 
-                    let eventName = this.isMe(sanitizedNickname) ? 'otherUser' : 'user';
+                    let eventName = this.isMe(normalizedNickname) ? 'otherUser' : 'user';
                     this._listener.invokeListeners(`${eventName}Mode`, {
-                        userName: sanitizedNickname,
+                        userName: normalizedNickname,
                         action: action,
                         roles: vga.irc.compileModes([mode], (userMode) => modeToRolesMap[userMode]),
                         channel: eventData.target
@@ -521,16 +527,16 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 let parsedNickname = user.nick.substring(nameIndex);
 
                 //Sanitizes the nickname by removing the numeric suffix identifier.
-                let sanitizedNickname = this._normalizeNicknames ? sanitizeNickname(parsedNickname) : parsedNickname;
+                let normalizedNickname = this._normalizeNicknames ? sanitizeNickname(parsedNickname) : parsedNickname;
 
                 //Determine if we stored the user information by nickname earlier.
-                let userInfo = userInfoMap[sanitizedNickname];
+                let userInfo = userInfoMap[normalizedNickname];
                 if (!userInfo) {
                     let compiledRoles = vga.irc.compileModes(user.modes, (mode) => modeToRolesMap[mode]);
-                    userInfoMap[sanitizedNickname] = {
+                    userInfoMap[normalizedNickname] = {
                         roles: compiledRoles,
                         prefixes: prefixes,
-                        nickname: sanitizedNickname,
+                        nickname: normalizedNickname,
                         nicknames: [parsedNickname]
                     };
                 }
@@ -542,7 +548,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             });
 
             //NOTE: There is no RPL_USERSSTART event as defined by the IRC Protocol, so we'll just wait for the RPL_ENDOFUSERS event.
-            this._userListByChannel[eventData.channel] = userInfoMap;
+            this._userListByChannel[eventData.channel.toLowerCase()] = userInfoMap;
         }
         /**
          * This event is triggered when the userlist_end has been sent by the server.
@@ -550,13 +556,15 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with userlist_end sent by the server.
          */         
         onUserlistEnd(eventData) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onUserListEnd]: Channel: ${eventData.channel} UserList: ${this._userListByChannel[eventData.channel].users}.`, eventData);
+            let channelName = eventData.channel.toLowerCase();
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onUserListEnd]: Channel: ${channelName}`, eventData);
 
             //NOTE: There is no RPL_USERSSTART event as defined by the IRC Protocol, so we'll just wait for the RPL_ENDOFUSERS event.
-            if (this._userListByChannel && eventData.channel && this._userListByChannel.hasOwnProperty(eventData.channel)) { 
+            if (this._userListByChannel && channelName && this._userListByChannel.hasOwnProperty(channelName)) { 
+                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onUserListEnd]:  UserList: ${this._userListByChannel[channelName].users}.`, eventData);
                 this._listener.invokeListeners('userlist', {
-                    users: this._userListByChannel[eventData.channel],
-                    channel: eventData.channel
+                    users: this._userListByChannel[channelName],
+                    channel: channelName
                 });
             }
         }
@@ -575,7 +583,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 //Support multiple nicknames per account if it is enabled, otherwise respond with an error.
                 case 'nickname_in_use':
                     if (this._supportConcurrentChannelJoins) {
-                        this.setNickname(incrementNickname(this.getNickname()));
+                        this.setNickname(incrementNickname(this._nickname));
                         return;
                     }
                     break;
@@ -583,17 +591,15 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 //Occurs when someone has been kicked from the channel and tries to commit an action afterwards.
                 case 'cannot_send_to_channel':
                     this._listener.invokeListeners('kicked', {
-                        identity: this.getIdentity(),
                         nickname: this.getNickname(),
-                        channel: eventData.channel
+                        channel: eventData.channel.toLowerCase()
                     });
                     return;
 
                 case 'banned_from_channel':
                     this._listener.invokeListeners('banned', {
-                        identity: this.getIdentity(),
                         nickname: this.getNickname(),
-                        channel: eventData.channel
+                        channel: eventData.channel.toLowerCase()
                     });
                     return;
 
