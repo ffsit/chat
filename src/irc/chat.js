@@ -57,19 +57,19 @@ $(function(){
     // Since JS is a dynamic language, we cannot force structures to conform to a specific format.
     // We can document what type of structure needs to be provided to the chat by a connector.
     // Event: onConnect()
-    // Event: onDisconnect()
-    // Event: onOtherUserJoining ({ identity: string, nickname: string, channel: string })
-    // Event: onOtherUserLeaving ({ identity: string, nickname: string, channel: string })
-    // Event: onJoin ({ identity: string, nickname: string, channel: string })
-    // Event: onLeave ({ identity: string, nickname: string, channel: string })
-    // Event: onTopic ({ topic: string, channel: string })
-    // Event: onMessage ({ identity: string, nickname: string, target: string, message: string, type: string })
-    // Event: onUserlist ({ channel: string, users: { roles: bitarray, prefixes: [ {prefix: string} ], nicknames: [string] })
-    // Event: onRole ({ channel: string, userName: string, roles: bitarray, action: vga.irc.roleAction })
-    // Event: onChannelMode ({ channel: string, modes: bitarray, action: vga.irc.roleAction })
+    // Event: onDisconnect({closedByServer: bool})
+    // Event: onOtherUserJoining ({ identity: string, nickname: string, channelKey: string })
+    // Event: onOtherUserLeaving ({ identity: string, nickname: string, channelKey: string })
+    // Event: onJoin ({ identity: string, nickname: string, channelKey: string })
+    // Event: onLeave ({ identity: string, nickname: string, channelKey: string })
+    // Event: onTopic ({ topic: string, channelKey: string })
+    // Event: onMessage ({ nicknameKey: string, nickname: string, identity: string, target: string, message: string, type: string })
+    // Event: onUserlist ({ channelKey: string, users: { roles: bitarray, prefixes: [ {prefix: string} ], nicknames: [string] })
+    // Event: onRole ({ channelKey: string, userNameKey: string, userName: string, action: vga.irc.roleAction, roles: bitarray })
+    // Event: onChannelMode ({ channelKey: string, modes: bitarray, action: vga.irc.roleAction })
     // Event: onAccessDenied()
-    // Event: onKicked ({ identity: string, nickname: string, channel: string })
-    // Event: onBanned ({ identity: string, nickname: string, channel: string })
+    // Event: onKicked ({ identity: string, nicknameKey: string, channelKey: string })
+    // Event: onBanned ({ identity: string, nicknameKey: string, channelKey: string })
     // Event: onError ({ reason: string })
 
     //-----------------------------------------------------------------
@@ -173,8 +173,17 @@ $(function(){
         $userList.find(`#user-list-${user.nickname} > .role`).replaceWith(updateIcon(user.roles));
     };
 
-    function setStatus(message) {
-        $('#slide_message').text(message || '').toggleClass('hidden', !message);
+    function setStatus(message, timeout) {
+        let $slideMessage = $('#slide_message');
+        $slideMessage.text(message || '').toggleClass('hidden', !message)
+        
+        if (timeout) {
+            setTimeout(() => {
+                $slideMessage.fadeOut( "slow", () => {
+                    $slideMessage.toggleClass('hidden', true).css('display', '');
+                });
+            }, timeout);
+        }
     }
 
     function toggleLoginWindow(show) {
@@ -246,7 +255,7 @@ $(function(){
          * @param {string} channel the channel the user is attempting to autojoin.
          */
         connect(nickname, password, channel) {
-            setStatus();
+            //setStatus();
             this.connector.connect({ 
                 nick: nickname,
                 hostname: this._hostname,
@@ -290,7 +299,7 @@ $(function(){
          * @param {string} message the message to send to the chat with the specific channel.
          */      
         send(message) {
-            let channelName = $channel.val();
+            let channelName = $channel.val().toLowerCase();
             
             if (message.startsWith("/QUIT")) {
                 this.close(message.substring(6));
@@ -302,7 +311,7 @@ $(function(){
                 this.connector && this.connector.send(message, channelName);
                 let channel = this._userChannels[channelName];
                 if (channel) {
-                    let user = channel[this.connector.getIdentity()];
+                    let user = channel[this.connector.getNicknameKey()];
                     writeToChannel(channel, message, user);
                 }
             }
@@ -321,13 +330,18 @@ $(function(){
         onConnect() {
             let channelName = $channel.val() || '';
             toggleLoginWindow(false);
+            setStatus();
             pulseChannelWindow(channelName, false);
         }
-        onDisconnect() {
+        onDisconnect(eventData) {
             let channelName = $channel.val() || '';
             writeUserList(channelName);
             toggleLoginWindow(true);
             pulseChannelWindow(channelName, false);
+            if (eventData.closedByServer)
+            {
+                setStatus('Unable to reach the server.  Try again later.', 5000);
+            }
         }
         ///TODO: Temporary Reconnect logic, merge with the connect logic currently in the index.php.
         onReconnect() {
@@ -335,6 +349,7 @@ $(function(){
             let password = $password.val() || '';
             let channelName = $channel.val() || '';
             pulseChannelWindow(channelName, true);
+            setStatus('The server stopped responding...retrying.', 5000);
             this.connect(nickname, password, channelName);
         }
         /**
@@ -343,7 +358,7 @@ $(function(){
          * @param {string} topic information.
          */
         onTopic(topic) {
-            writeInformationalMessage(topic.channel, topic.topic);
+            writeInformationalMessage(topic.channelKey, topic.topic);
         }
         /**
          * An event that is triggered when receiving a message from the chat server.
@@ -355,7 +370,7 @@ $(function(){
                 let channel = this._userChannels[message.target];
                 let user;
                 if (channel) {
-                    user = this._userChannels[message.target][message.identity];
+                    user = channel[message.nicknameKey];
                 }
                 writeToChannel(message.target, message.message, user, message.type);
             }
@@ -366,8 +381,8 @@ $(function(){
          * @param {object} userListByChannel An object that contains the channel and the users associated with that channel.
          */ 
         onUserlist (userListByChannel) {
-            this._userChannels[userListByChannel.channel] = userListByChannel.users;
-            writeUserList(userListByChannel.channel, userListByChannel.users);
+            this._userChannels[userListByChannel.channelKey] = userListByChannel.users;
+            writeUserList(userListByChannel.channelKey, userListByChannel.users);
         }
         /**
          * An event that is triggered when the authenticated user has joined a channel.
@@ -376,7 +391,7 @@ $(function(){
          */
         onJoin(joinEventByChannel) {
             //TODO: Channel management.
-            writeInformationalMessage(joinEventByChannel.channel, `Joined ${joinEventByChannel.channel} channel`);
+            writeInformationalMessage(joinEventByChannel.channelKey, `Joined ${joinEventByChannel.channelKey} channel`);
         }
         /**
          * An event that is triggered when another user has joined the channel.
@@ -400,14 +415,14 @@ $(function(){
          * @param {object} userRoleByChannel contains the role information for the specific channel per user.
          */          
         onRole (userRoleByChannel) {
-            let channel = this._userChannels[userRoleByChannel.channel];
+            let channel = this._userChannels[userRoleByChannel.channelKey];
             if (channel) {
-                let user = channel[userRoleByChannel.userName];
+                let user = channel[userRoleByChannel.userNameKey];
                 if (user) {
                     user.roles = (userRoleByChannel.action === vga.irc.roleAction.add) 
                         ? vga.irc.addRole(user.roles, userRoleByChannel.roles) 
                         : vga.irc.removeRole(user.roles, userRoleByChannel.roles);
-                    updateUserInList(userRoleByChannel.channel, user);
+                    updateUserInList(userRoleByChannel.channelKey, user);
                     updateDisplay(user);
                 }
             }
