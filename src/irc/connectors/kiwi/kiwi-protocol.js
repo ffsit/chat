@@ -72,7 +72,6 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     //-----------------------------------------------------------------
     // Protocol States
     //-----------------------------------------------------------------
-    // Simple states.
     vga.irc.connector.kiwi.STATES = {
         CLOSED: 0,
         CLOSING: 1,
@@ -111,6 +110,10 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     //-----------------------------------------------------------------
     vga.irc.connector.kiwi.PROXY_PREFIX = 'kiwi';
     vga.irc.connector.kiwi.IRC_PREFIX = 'irc';
+
+    //-----------------------------------------------------------------
+    // Helper functions
+    //-----------------------------------------------------------------
 
     /**
      * Internal method to create an authentication packet to conform to the auth packet for the Kiwi IRC server.
@@ -190,7 +193,6 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             this._url = url || '';
             this._state = vga.irc.connector.kiwi.STATES.CLOSED;
             this._connectionInfo = {};
-            this._closedByUser = false;
 
             this._heartbeatId = null;
             this._pingId = null;
