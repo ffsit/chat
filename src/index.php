@@ -47,7 +47,7 @@
 					<label for="password">Password:</label>
 					<input type="password" id="password" maxlength="128" value="">
 					<label for="channel">Channel:</label>
-					<input type="text" id="channel" maxlength="128" value="#ffstv" list="channels">
+					<input type="text" id="channel" maxlength="128" list="channels" placeholder="#ffstv">
 						<datalist id="channels">
 							<option value="#ffstv">
 							<option value="#spoilers">
@@ -58,18 +58,19 @@
 			</div>
 		</div>
 	</div>
-
 	<div id="wrapper1">
 		<div id="channel-container" class="wrapper2">
-			<!-- Serves as a template to create other channels from -->
-			<div id="channel-template" class="channel">
+			<!-- Serves as a template to create other channels. -->
+			<div id="channel-tab-template" class="channel-tab">
 				<div class="center_helper">
 					<div class="user-list-wrapper hidden">
 						<h2>User List</h2>
 						<div class="user-list mid-size"></div>
 					</div>
 				</div>
-				<div class="chathistory small"></div>
+				<!-- Chat messages and events go here. -->
+				<div class="channel-window small"></div>
+				<!-- Adaptive chat buttons -->
 				<div class="lower-ui">
 					<div class="right">
 						<span class="button-container chatui_button_nicklist">
@@ -82,6 +83,7 @@
 							<i class="fa fa-exclamation-circle  fa-inverse button" aria-hidden="true" title="Support" alt="!" role="button"></i>
 						</span>
 					</div>
+					<!-- Input here to chat. -->
 					<div class="left">
 						<input type="text" class="chatbox_input" maxlength="300">
 					</div>
@@ -105,7 +107,8 @@
 			var chat = new vga.irc.chat({
 				url: "ws://valhalla.ffsit.net:7778/?transport=websocket",
 				hostname: "valhalla.ffsit.net",
-				port: "6667"
+				port: "6667",
+				defaultChannel: '#ffstv'
 			});
 
 			$('#Login').click(function(e){
@@ -119,13 +122,14 @@
 			$('#channel-container').on('keyup', 'input', function(e){
 				let value = $(this).val();
 				if (e.which === 13 && value !== '') {
-					chat.send(value);
+					let channelName = $(this).parents('.channel-tab').data('channel');
+					chat.send(channelName, value);
 					$(this).val('');
 				}
 			});
 
 			$('#channel-container').on('click', '.chatui_button_nicklist', function(e){
-				let $userListWrapper = $(this).parents('.channel').find('.user-list-wrapper');
+				let $userListWrapper = $(this).parents('.channel-tab').find('.user-list-wrapper');
 				$userListWrapper.toggleClass('hidden', !$userListWrapper.hasClass('hidden'));
 				e.preventDefault();
 			});
@@ -162,7 +166,8 @@
 			$('#channel-container').on('keyup', 'input', function(e){
 				let value = $(this).val();
 				if (e.which === 13 && value !== '') {
-					chat.send(value);
+					let channelName = $(this).find('.channel-tab').data('channel');
+					chat.send(channelName, value);
 					$(this).val('');
 				}
 			});

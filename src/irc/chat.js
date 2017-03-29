@@ -56,7 +56,7 @@ $(function(){
     //-----------------------------------------------------------------
     // Since JS is a dynamic language, we cannot force structures to conform to a specific format.
     // We can document what type of structure needs to be provided to the chat by a connector.
-    // Event: onConnect()
+    // Event: onConnect({channelKey: string}})
     // Event: onDisconnect({closedByServer: bool})
     // Event: onOtherUserJoining ({ identity: string, nickname: string, channelKey: string })
     // Event: onOtherUserLeaving ({ identity: string, nickname: string, channelKey: string })
@@ -107,36 +107,58 @@ $(function(){
     // jQuery presentation logic.
     //-----------------------------------------------------------------
     var $channelContainer = $('#channel-container');
-    //var $userList = $('#user-list');
     var $channel = $('#channel');
     var $nickname = $('#nickname');
     var $password = $('#password');
 
-    function getChannelControl(channelName) {
-        let $channelControl = $channelContainer.find(`#channel-${channelName.replace('#', '')}`);
-        if ($channelControl.length === 0)
-        {
-            let $template = $channelContainer.find('#channel-template');
-            $channelControl = $template.clone();
-            $channelControl.attr('id', `channel-${channelName.replace('#', '')}`).removeClass('hidden');
+    //-----------------------------------------------------------------
+    // Helper functions
+    //-----------------------------------------------------------------
+
+    /**
+     * Creates a channel tab and returns a reference to it.
+     * This function is idempotent and will have no side effects if called multiple times.
+     * @method getRoleName
+     * @param {string} channelName the name of the channel tab to create.
+     * @return {string} the CSS class assigned to the most significant role.
+     */
+    function createChannelTab(channelName) {
+        //Create a tab if one does not already exist.
+        let $channelTab = $channelContainer.find(`#channel-${channelName.replace('#', '')}`);
+        if ($channelTab.length === 0) {
+            let $template = $channelContainer.find('#channel-tab-template');
+            $channelTab = $template.clone();
+            $channelTab.attr('id', `channel-tab-${channelName.replace('#', '')}`).removeClass('hidden').data('channel', channelName);
             $template.addClass('hidden');
-            $channelContainer.append($channelControl);
+            $channelContainer.append($channelTab);
         }
 
-        return $channelControl;
+        return $channelTab;
     }
+
+    function getChannelTab(channelName) {
+        return $channelContainer.find(`#channel-tab-${channelName.replace('#', '')}`);
+    }
+
+    function getChannelWindow(channelName) {
+        return getChannelTab(channelName).find('.channel-window');
+    }
+
+    //Generic icon functions.
 
     function updateIcon(roles) {
         let roleName = getRoleName(roles);
         return `<div class="icon role ${roleName}" title="${roleName}"></div>`;
     };
 
+    //Chat history functions
+
     function writeInformationalMessage(channelName, message) {
-        let $chatHistory = getChannelControl(channelName).find('.chathistory');
-        $chatHistory.append(`<div class="informative"><span class="message">${vga.util.encodeHTML(message)}</span></div>`);
+        let $channelWindow = getChannelWindow(channelName);
+        $channelWindow.append(`<div class="informative"><span class="message">${vga.util.encodeHTML(message)}</span></div>`);
     };
 
-    function writeToChannel(channelName, message, user, type) {
+    function writeToChannelWindow(channelName, message, user, type) {
         //Encode all HTML characters.
         message = vga.util.encodeHTML(message);
 
@@ -149,14 +171,16 @@ $(function(){
             messageBody = `<div class="username">${name}</div>:&nbsp<div class="message">${message}</div>`;
         }
 
-        let $chatHistory = getChannelControl(channelName).find('.chathistory');
-        $chatHistory.append(`<div class="user-entry" data-nickname="${name}">${updateIcon(user.roles)}${messageBody}</div>`);
+        let $channelWindow = getChannelWindow(channelName);
+        $channelWindow.append(`<div class="user-entry" data-nickname="${name}">${updateIcon(user.roles)}${messageBody}</div>`);
     };
 
     function updateDisplay(channelName, user) {
-        let $chatHistory = getChannelControl(channelName).find('.chathistory');
-        $chatHistory.find(`.user-entry[data-nickname=${user.nickname}] > .role`).replaceWith(updateIcon(user.roles));
+        let $channelWindow = getChannelWindow(channelName);
+        $channelWindow.find(`.user-entry[data-nickname=${user.nickname}] > .role`).replaceWith(updateIcon(user.roles));
     };
+
+    //User list functions
 
     function writeUser($userList, user) {
 
@@ -172,7 +196,7 @@ $(function(){
     };
 
     function writeUserList(channelName, users) {
-        let $userList = getChannelControl(channelName).find('.user-list-wrapper .user-list');
+        let $userList = getChannelTab(channelName).find('.user-list-wrapper .user-list');
         //Write a collection of users to the list if there is one.
         if (users) {
             vga.util.forEach(users, (username, user)=>{
@@ -186,7 +210,7 @@ $(function(){
     };
 
     function updateUserInList(channelName, user) {
-        let $userList = getChannelControl(channelName).find('.user-list-wrapper .user-list');
+        let $userList = getChannelTab(channelName).find('.user-list-wrapper .user-list');
         $userList.find(`#user-list-${user.nickname} > .role`).replaceWith(updateIcon(user.roles));
     };
 
@@ -207,9 +231,9 @@ $(function(){
         $('#login-wrapper').toggleClass('hidden', !show);
     }
 
-    function pulseChannelWindow(channelName, enable) {
-        let $chatHistory = getChannelControl(channelName).find('.chathistory');
-        $chatHistory.toggleClass('pulse', enable);
+    function pulseChannelTab(channelName, enable) {
+        let $channelWindow = getChannelWindow(channelName);
+        $channelWindow.toggleClass('pulse', enable);
     };
 
     //-----------------------------------------------------------------
@@ -314,26 +338,26 @@ $(function(){
         /**
          * Attempts to send a message.
          * @method vga.irc.chat.send
+         * @param {string} channelName to send the message to.
          * @param {string} message the message to send to the chat with the specific channel.
          */      
-        send(message) {
-            let channelName = $channel.val().toLowerCase();
-            
-            if (message.startsWith("/QUIT")) {
-                this.close(message.substring(6));
-            }
-            else if (message.startsWith("/JOIN")) {
-                this.join(message.substring(6));
-            }
-            else {
-                this.connector && this.connector.send(message, channelName);
-                let channel = this._userChannels[channelName];
-                if (channel) {
-                    let user = channel[this.connector.getNicknameKey()];
-                    writeToChannel(channelName, message, user);
+        send(channelName, message) {
+            if (channelName) {
+                if (message.startsWith("/QUIT")) {
+                    this.close(message.substring(6));
+                }
+                else if (message.startsWith("/JOIN")) {
+                    this.join(message.substring(6));
+                }
+                else {
+                    this.connector && this.connector.send(message, channelName);
+                    let channel = this._userChannels[channelName];
+                    if (channel) {
+                        let user = channel[this.connector.getNicknameKey()];
+                        writeToChannelWindow(channelName, message, user);
+                    }
                 }
             }
-
             return this;
         }
 
@@ -344,36 +368,46 @@ $(function(){
         /**
          * An event that is triggered on a successful connection to the chat server.
          * @method vga.irc.chat.onConnect
+         * @param {object} connectData information.
          */
-        onConnect() {
-            let channelName = $channel.val() || '';
+        onConnect(connectData) {
             toggleLoginWindow(false);
             setStatus();
-            pulseChannelWindow(channelName, false);
+            createChannelTab(connectData.channelKey);
+            pulseChannelTab(connectData.channelKey, false);
         }
-        onDisconnect(eventData) {
+        /**
+         * An event that is triggered when a disonnect event happens.
+         * @method vga.irc.chat.onDisconnect
+         * @param {object} disonnectData information.
+         */
+        onDisconnect(disonnectData) {
             let channelName = $channel.val() || '';
             writeUserList(channelName);
             toggleLoginWindow(true);
-            pulseChannelWindow(channelName, false);
-            if (eventData.closedByServer)
+            pulseChannelTab(channelName, false);
+            if (disonnectData.closedByServer)
             {
                 setStatus('Unable to reach the server.  Try again later.', 5000);
             }
         }
         ///TODO: Temporary Reconnect logic, merge with the connect logic currently in the index.php.
+        /**
+         * An event that is triggered when a topic event occurs.
+         * @method vga.irc.chat.onReconnect
+         */
         onReconnect() {
             let nickname = $nickname.val() || '';
             let password = $password.val() || '';
             let channelName = $channel.val() || '';
-            pulseChannelWindow(channelName, true);
+            pulseChannelTab(channelName, true);
             setStatus('The server stopped responding...retrying.', 5000);
             this.connect(nickname, password, channelName);
         }
         /**
          * An event that is triggered when a topic event occurs.
          * @method vga.irc.chat.onTopic
-         * @param {string} topic information.
+         * @param {object} topic information.
          */
         onTopic(topic) {
             writeInformationalMessage(topic.channelKey, topic.topic);
@@ -390,7 +424,7 @@ $(function(){
                 if (channel) {
                     user = channel[message.nicknameKey];
                 }
-                writeToChannel(message.target, message.message, user, message.type);
+                writeToChannelWindow(message.target, message.message, user, message.type);
             }
         }
         /**

@@ -478,11 +478,11 @@ User List classes
 
 /*
 ---------------------------
-Chat History classes
+Channel window classes
 ---------------------------
 */
 
-.chathistory {
+.channel-window {
 	background-color: #e6e6e6;
 	overflow-x: hidden;
 	overflow-y: scroll;
@@ -490,57 +490,57 @@ Chat History classes
 	border-radius: 3px;
 }
 
-.chathistory .message.self {
+.channel-window .message.self {
 	background-color: #e6dfdf;
 }
 
-.chathistory .message.mentioned{
+.channel-window .message.mentioned{
 	background-color: #F6E6E6;
 }
 
-.chathistory .message.private{
+.channel-window .message.private{
 	background-color: #cccccc;
 }
 
-.chathistory .message.ctcp {
+.channel-window .message.ctcp {
 	background-color: #f0f;
 }
 
-.chathistory .message .messagebuttons {
+.channel-window .message .messagebuttons {
     display: none;
 }
 
-.chathistory .message:hover .messagebuttons {
+.channel-window .message:hover .messagebuttons {
     display: inline;
 }
 
-.chathistory .informative {
+.channel-window .informative {
 	font-style: italic;
 	color: #999;
 	text-align: center;
 	padding: .3em;
 }
 
-.chathistory div.modbroadcast span.text {
+.channel-window div.modbroadcast span.text {
     font-weight: bold;
     background-color: #FF6E00;
     color: #000000;
     padding: 0 1em;
 }
 
-.chathistory div.user-message {
+.channel-window div.user-message {
 	line-height: 16px;
 	padding: .2em;
 	padding-left: 0.5em;
     word-wrap: break-word;
 }
 
-.chathistory .user-message .username {
+.channel-window .user-message .username {
 	font-weight: bold;
 	text-transform: capitalize;
 }
 
-.chathistory .user-message .username.action {
+.channel-window .user-message .username.action {
 	font-weight: normal;
 	font-style: italic;
 }
