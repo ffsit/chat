@@ -110,6 +110,10 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         'error': 'onError'
     };
 
+    //-----------------------------------------------------------------
+    // Helper functions
+    //-----------------------------------------------------------------
+
     /**
      * Increments the nickname suffix by one per original vga chat implementation by appending or incrementing a numeric suffix identifier.
      * @method incrementNickname
@@ -373,12 +377,14 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with the established connection.
          */
         onConnect(eventData) {
+            let channelKey = '';
             this._numberOfReconnectsAttempted = 0;
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onConnect]: AutoJoinChannel: ${this._autoJoinChannel !== '' ? this._autoJoinChannel : 'none' })`, eventData);
             if (this._autoJoinChannel !== '') {
                 this.join(this._autoJoinChannel);
+                channelKey = this._autoJoinChannel;
             }
-            this._listener.invokeListeners('connect');
+            this._listener.invokeListeners('connect', {channelKey: channelKey});
         }
         /**
          * This event is triggered on a disconnect event regardless of whether it was the user or server.
