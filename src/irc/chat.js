@@ -103,6 +103,16 @@ $(function(){
         }
     };
 
+    /**
+     * Determines if the roles provided have mod capabilities, which is any role above mod.
+     * @method hasModRoles
+     * @param {*} roles 
+     * @return {bool} true if the roles contain mod capabilities.
+     */
+    function hasModCapabilities(roles) {
+        return vga.irc.getMostSignificantRole(roles) >= vga.irc.roles.mod;
+    }
+
     //-----------------------------------------------------------------
     // jQuery presentation logic.
     //-----------------------------------------------------------------
@@ -124,7 +134,7 @@ $(function(){
      */
     function createChannelTab(channelName) {
         //Create a tab if one does not already exist.
-        let $channelTab = $channelContainer.find(`#channel-${channelName.replace('#', '')}`);
+        let $channelTab = $channelContainer.find(`#channel-tab-${channelName.replace('#', '')}`);
         if ($channelTab.length === 0) {
             let $template = $channelContainer.find('#channel-tab-template');
             $channelTab = $template.clone();
@@ -145,34 +155,38 @@ $(function(){
     }
 
     //Generic icon functions.
-
     function updateIcon(roles) {
         let roleName = getRoleName(roles);
         return `<div class="icon role ${roleName}" title="${roleName}"></div>`;
     };
 
     //Chat history functions
-
     function writeInformationalMessage(channelName, message) {
         let $channelWindow = getChannelWindow(channelName);
         $channelWindow.append(`<div class="informative"><span class="message">${vga.util.encodeHTML(message)}</span></div>`);
     };
 
-    function writeToChannelWindow(channelName, message, user, type) {
+    function writeToChannelWindow(channelName, message, user, me, type) {
         //Encode all HTML characters.
         message = vga.util.encodeHTML(message);
 
-        let name = user.nickname;
-        let messageBody = '';
-        if (type === 'action') {
-            messageBody = `<div class="username action">${name}</div><div class="message action">${message}</div>`;
-        }
-        else {
-            messageBody = `<div class="username">${name}</div>:&nbsp<div class="message">${message}</div>`;
+        let optionBody = '';
+        if (me && hasModCapabilities(me.roles)) {
+            optionBody = '<span class="timeout"><i class="fa fa-clock-o" role="button" title="Timeout Chatter!"></i></span>'
         }
 
+        let userName = (user !== undefined) ? user.nickname : 'undefined';
+        let messageBody = '';
+        if (type === 'action') {
+            messageBody = `<div class="username action">${userName}</div><div class="message action">${message}</div>`;
+        }
+        else {
+            messageBody = `<div class="username">${userName}</div>:&nbsp<div class="message">${message}</div>`;
+        }
+
+        let userRoles = (user !== undefined) ? user.roles : vga.irc.roles.shadow; 
         let $channelWindow = getChannelWindow(channelName);
-        $channelWindow.append(`<div class="user-entry" data-nickname="${name}">${updateIcon(user.roles)}${messageBody}</div>`);
+        $channelWindow.append(`<div class="user-entry" data-nickname="${userName}">${updateIcon(userRoles)}${optionBody}${messageBody}</div>`);
     };
 
     function updateDisplay(channelName, user) {
@@ -353,8 +367,8 @@ $(function(){
                     this.connector && this.connector.send(message, channelName);
                     let channel = this._userChannels[channelName];
                     if (channel) {
-                        let user = channel[this.connector.getNicknameKey()];
-                        writeToChannelWindow(channelName, message, user);
+                        let user = channel[this.connector.getMyNicknameKey()];
+                        writeToChannelWindow(channelName, message, user, user);
                     }
                 }
             }
@@ -383,9 +397,9 @@ $(function(){
          */
         onDisconnect(disonnectData) {
             let channelName = $channel.val() || '';
+            pulseChannelTab(channelName, false);
             writeUserList(channelName);
             toggleLoginWindow(true);
-            pulseChannelTab(channelName, false);
             if (disonnectData.closedByServer)
             {
                 setStatus('Unable to reach the server.  Try again later.', 5000);
@@ -401,6 +415,7 @@ $(function(){
             let password = $password.val() || '';
             let channelName = $channel.val() || '';
             pulseChannelTab(channelName, true);
+            //writeInformationalMessage(channelName, 'The server stopped responding...retrying.')
             setStatus('The server stopped responding...retrying.', 5000);
             this.connect(nickname, password, channelName);
         }
@@ -420,11 +435,12 @@ $(function(){
         onMessage(message) {
             if (!this._wallRegEx.test(message.message) || !this._theaterMode) {
                 let channel = this._userChannels[message.target];
-                let user;
+                let user, me;
                 if (channel) {
                     user = channel[message.nicknameKey];
+                    me = channel[this.connector.getMyNicknameKey()];
                 }
-                writeToChannelWindow(message.target, message.message, user, message.type);
+                writeToChannelWindow(message.target, message.message, user, me, message.type);
             }
         }
         /**

@@ -199,27 +199,27 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             return this;
         }
         /**
-         * Returns the identity of the user, which may not be the same as the nickname.
-         * @method vga.irc.connector.kiwi.connector.getIdentity
-         * @return {string} authenticated user's identity.
+         * Returns the identity of the current user, which may not be the same as the nickname.
+         * @method vga.irc.connector.kiwi.connector.getMyIdentity
+         * @return {string} the currently authenticated user's identity.
          */
-        getIdentity() {
+        getMyIdentity() {
             return this._identity;
         }
         /**
          * Returns the normalized nickname assigned to the user on login.
-         * @method vga.irc.connector.kiwi.connector.getNickname
-         * @return {string} authenticated user's nickname.
+         * @method vga.irc.connector.kiwi.connector.getMyNickname
+         * @return {string} the currently authenticated user's nickname.
          */
-        getNickname() {
+        getMyNickname() {
             return this.normalizeNickname(this._nickname);
         }
         /**
          * Returns a generated nickname key assigned to the user on login.
-         * @method vga.irc.connector.kiwi.connector.getNicknameKey
-         * @return {string} user's nickname key.
+         * @method vga.irc.connector.kiwi.connector.getMyNicknameKey
+         * @return {string} the currently authenticated user's nickname key.
          */        
-        getNicknameKey() {
+        getMyNicknameKey() {
             return this.generateNicknameKey(this._nickname);
         }
         /**
@@ -656,14 +656,14 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 //Occurs when someone has been kicked from the channel and tries to commit an action afterwards.
                 case 'cannot_send_to_channel':
                     this._listener.invokeListeners('kicked', {
-                        nicknameKey: this.getNicknameKey(),
+                        nicknameKey: this.getMyNicknameKey(),
                         channelKey: this.generateChannelKey(eventData.channel)
                     });
                     return;
 
                 case 'banned_from_channel':
                     this._listener.invokeListeners('banned', {
-                        nicknameKey: this.getNicknameKey(),
+                        nicknameKey: this.getMyNicknameKey(),
                         channelKey: this.generateChannelKey(eventData.channel)
                     });
                     return;
