@@ -96,14 +96,14 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         'userlist': 'onUserlist',
         'join': 'onJoin',
         'leave': 'onLeave',
-        'otherUserJoin': 'onOtherUserJoin',
-        'otherUserLeave': 'onOtherUserLeave',
+        'otheruserjoin': 'onOtherUserJoin',
+        'otheruserleave': 'onOtherUserLeave',
         //Mode & Channel events
-        'channelMode': 'onChannelMode',
-        'userMode' : 'onRole',
-        'otherUserMode': 'onRole',
+        'channelmode': 'onChannelMode',
+        'usermode' : 'onRole',
+        'otherusermode': 'onRole',
         //Error events
-        'accessDenied': 'onAccessDenied',
+        'accessdenied': 'onAccessDenied',
         'kicked': 'onKicked',
         'kick': 'onKicked',
         'banned': 'onBanned',
@@ -350,7 +350,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         disconnect(message) {
             //Perform the cleanup routine.
             this._nickname = this._identity = '';
-            this._numberOfReconnectsAttempted = 0;
+            //this._numberOfReconnectsAttempted = 0;
             if (this._protocol) {
                 vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.disconnect]: Attempting to disconnect with message: ${message || 'undefined'}.`);
                 this._protocol.sendIRCData('quit', {message: message});
@@ -392,8 +392,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with a disconnect event.
          */
         onDisconnect(eventData) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Reason: ${eventData.reason} closedByServer: ${eventData.closedByServer}`);
-            if (this._attemptReconnect && eventData.closedByServer) {
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Reason: ${eventData.reason} closedByServer: ${eventData.closedByServer} existingConnection: ${eventData.existingConnection}`);
+            if (this._attemptReconnect && eventData.closedByServer && eventData.existingConnection) {
                 if (this._numberOfReconnectsAttempted < this._maxNumberOfReconnectAttempts) {
                     this._numberOfReconnectsAttempted++;
                     vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Attempt to reconnect is enabled, attempting try: ${this._numberOfReconnectsAttempted}.`);
@@ -404,7 +404,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Exceeded the number of retry event: ${this._maxNumberOfReconnectAttempts}. Giving up.`);
             }
 
-            this._numberOfReconnectsAttempted = 0;
+            //this._numberOfReconnectsAttempted = 0;
             this._protocol && this._protocol.close();
             this._listener.invokeListeners('disconnect', {closedByServer: eventData.closedByServer});
         }
@@ -487,7 +487,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //So we need to send event notifications on nicknames not the identity.
             let eventName = '';
             if (!this.isMe(nickname)) {
-                eventName = 'otherUser';
+                eventName = 'otheruser';
             }
 
             this._listener.invokeListeners(`${eventName}${eventData.type}`,{
@@ -542,8 +542,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     //Normalize the nickname as defined by the normalization option.
                     let normalizedNickname = this.normalizeNickname(userName);
 
-                    let eventName = this.isMe(normalizedNickname) ? 'otherUser' : 'user';
-                    this._listener.invokeListeners(`${eventName}Mode`, {
+                    let eventName = this.isMe(normalizedNickname) ? 'otheruser' : 'user';
+                    this._listener.invokeListeners(`${eventName}mode`, {
                         channelKey: channelKey,
                         userNameKey: this.generateNicknameKey(userName),
                         userName: userName,
@@ -552,7 +552,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     });
                 }
                 else {
-                    this._listener.invokeListeners(`channelMode`, {
+                    this._listener.invokeListeners(`channelmode`, {
                         action: action,
                         modes: vga.irc.compileModes([mode], (channelMode) => channelModeMap[channelMode]),
                         channelKey: channelKey
@@ -673,7 +673,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
                 case 'error':
                     if (vga.irc.connector.kiwi.accessDeniedRegEx.test(eventData.reason)) {
-                        this._listener.invokeListeners('accessDenied');
+                        this._listener.invokeListeners('accessdenied');
                         return;
                     }
                     break;
