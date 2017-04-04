@@ -420,10 +420,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //If the state is closing then the user initiated the close action, otherwise the server closed the connection.
             let eventData;
             if (this._state === vga.irc.connector.kiwi.STATES.CLOSING) {
-                eventData = {reason: 'User closed the connection.', closedByServer: false};
+                eventData = {reason: 'User closed the connection.', closedByServer: false, existingConnection: true};
             }
             else {
-                eventData = {reason: 'Server closed the connection.', closedByServer: true};
+                let existingConnection = (this._state === vga.irc.connector.kiwi.STATES.OPENED);
+                eventData = {reason: 'Server closed the connection.', closedByServer: true, existingConnection: existingConnection};
             }
 
             //Set the state to closed and run cleanup if it has not been done already.
