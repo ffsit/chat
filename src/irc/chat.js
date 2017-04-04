@@ -467,7 +467,13 @@ $(function(){
          * @param {object} joinEventByChannel
          */
         onOtherUserJoin(joinEventByChannel) {
-
+            let channel = this._userChannels[joinEventByChannel.channelKey];
+            if (channel) {
+                let user = channel[joinEventByChannel.nicknameKey];
+                if (user) {
+                    user.nicknames.push(joinEventByChannel.nickname);
+                }
+            }
         }
         /**
          * 
