@@ -177,7 +177,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
     /**
      * Constructor for the kiwi protocol wrapper.
-     * @method vga.irc.connector.kiwi.protocolwrapper
+     * @class vga.irc.connector.kiwi.protocolwrapper
      * @param {object} options Additional options for the connector.
      */
     vga.irc.connector.kiwi.protocolwrapper = class {
