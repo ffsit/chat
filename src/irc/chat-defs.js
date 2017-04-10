@@ -136,3 +136,73 @@ vga.irc.compileModes = function(modes, transformFunction){
         }, roles);
     }
 };
+
+/**
+ * Common user entity class used to maintain consistency and normalize the user entity object.
+ * @class vga.irc.userEntity
+ */
+vga.irc.userEntity = class  {
+    constructor(identity, nickname, roles) {
+        this.roles = (roles !== undefined) ? roles : vga.irc.roles.shadow;
+        this.identity = identity;
+        this.nicknames = (nickname !== undefined) ? (Array.isArray(nickname) ? nickname : [nickname]) : [];
+    }
+    /**
+     * Applies a role based on the action to the current user entity.
+     * @method vga.irc.applyRoles
+     * @param {number} roleAction type of action (vga.irc.roleAction) to apply.
+     * @param {number} rolesToApply bitarray of roles to apply.
+     * @api public
+     */
+    applyRoles(roleAction, rolesToApply) {
+        this.roles = (roleAction === vga.irc.roleAction.add)
+            ? this.addRoles(rolesToApply)
+            : this.removeRoles(rolesToApply);
+    }
+    /**
+     * Add roles based on the roles to add.
+     * @method vga.irc.addRoles
+     * @param {number} roles bitarray of roles to add.
+     * @return {number} updated bitarray of roles.
+     * @api public
+     */
+    addRoles(roles) {
+        return vga.irc.addRole(this.roles, roles);
+    }
+    /**
+     * Remove roles based on the roles to remove.
+     * @method vga.irc.removeRoles
+     * @param {number} roles bitarray of roles to remove.
+     * @return {number} updated bitarray of roles.
+     * @api public
+     */
+    removeRoles(roles) {
+        return vga.irc.removeRole(this.roles, roles);
+    }
+    /**
+     * Append a nickname to the user entity.
+     * @method vga.irc.addNickname
+     * @param {string} nickname a nickname to append to the user.
+     * @api public
+     */    
+    addNickname(nickname) {
+        if (this.nicknames.indexOf(nickname) === -1) {
+            this.nicknames.push(nickname);
+        }
+    }
+    /**
+     * Removes a nickname from the user entity.
+     * @method vga.irc.removeNickname
+     * @param {string} nickname a nickname to remove to the user.
+     * @api public
+     */        
+    removeNickname(nickname) {
+        let index = this.nicknames.indexOf(nickname);
+        if (index > -1) {
+            let swap = this.nicknames.pop();
+            if (swap && index < this.nicknames.length) { 
+                this.nicknames[index] = swap;
+            }
+        }
+    }
+};
