@@ -458,7 +458,6 @@ $(function(){
         onChannelMode(eventData) {
             let channel = this._userChannels[eventData.channelKey];
             if (channel) {
-                let me = channel[this.connector.getMyNicknameKey()];
                 let $channelTab = getChannelTab(eventData.channelKey);
 
                 if (eventData.modes == vga.irc.channelmodes.turbo) {
@@ -481,12 +480,10 @@ $(function(){
         onMessage(eventData) {
             if (!this._wallRegEx.test(eventData.message) || !this._theaterMode) {
                 let channel = this._userChannels[eventData.target];
-                let user, me;
                 if (channel) {
-                    user = channel[eventData.nicknameKey];
-                    me = channel[this.connector.getMyNicknameKey()];
+                    let user = channel[eventData.nicknameKey];
+                    this.writeToChannelWindow(eventData.target, user, eventData.message, eventData.type);
                 }
-                this.writeToChannelWindow(eventData.target, user, eventData.message, eventData.type);
             }
         }
         /**
@@ -516,7 +513,6 @@ $(function(){
             if (channel) {
                 //Retrieve the user entity if he or she already exists in the userlist.
                 let user = channel[eventData.nicknameKey];
-                let me = channel[this.connector.getMyNicknameKey()];
                 //If the user is new then add him or her to the userlist and channel information block.
                 if (!user) {
                     user = new vga.irc.userEntity(eventData.identity, eventData.nickname);
@@ -541,7 +537,6 @@ $(function(){
             if (channel) {
                 //If the user exists then remove this nickname from the user entity, otherwise ignore the event.
                 let user = channel[eventData.nicknameKey];
-                let me = channel[this.connector.getMyNicknameKey()];
                 if (user) {
                     user.removeNickname(eventData.nickname);
                     //If we have exhasted the number of nicknames then we need to remove the user entity from the channel information block.
