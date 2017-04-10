@@ -58,15 +58,17 @@ $(function(){
     // We can document what type of structure needs to be provided to the chat by a connector.
     // Event: onConnect({channelKey: string}})
     // Event: onDisconnect({closedByServer: bool})
-    // Event: onOtherUserJoining ({ identity: string, nickname: string, channelKey: string })
-    // Event: onOtherUserLeaving ({ identity: string, nickname: string, channelKey: string })
-    // Event: onJoin ({ identity: string, nickname: string, channelKey: string })
-    // Event: onLeave ({ identity: string, nickname: string, channelKey: string })
+    // Event: onReconnect()
     // Event: onTopic ({ topic: string, channelKey: string })
-    // Event: onMessage ({ nicknameKey: string, nickname: string, identity: string, target: string, message: string, type: string })
+    // Event: onMessage ({ nicknameKey: string, identity: string, nickname: string, target: string, message: string, type: string })
     // Event: onUserlist ({ channelKey: string, users: { roles: bitarray, prefixes: [ {prefix: string} ], nicknames: [string] })
-    // Event: onRole ({ channelKey: string, userNameKey: string, userName: string, action: vga.irc.roleAction, roles: bitarray })
+    // Event: onJoin ({ channelKey: string, nicknameKey: string, identity: string, nickname: string })
+    // Event: onLeave ({ channelKey: string, nicknameKey: string, identity: string, nickname: string })
+    // Event: onOtherUserJoin ({ channelKey: string, nicknameKey: string, identity: string, nickname: string })
+    // Event: onOtherUserLeave ({ channelKey: string, nicknameKey: string, identity: string, nickname: string })
+    // Event: onQuit ({ nicknameKey: string, identity: string, nickname: string })
     // Event: onChannelMode ({ channelKey: string, modes: bitarray, action: vga.irc.roleAction })
+    // Event: onRole ({ channelKey: string, nicknameKey: string, identity: string, nickname: string, action: vga.irc.roleAction, roles: bitarray })
     // Event: onAccessDenied()
     // Event: onKicked ({ identity: string, nicknameKey: string, channelKey: string })
     // Event: onBanned ({ identity: string, nicknameKey: string, channelKey: string })
@@ -154,7 +156,6 @@ $(function(){
         return getChannelTab(channelName).find('.channel-window');
     }
 
-    //Generic icon functions.
     function updateIcon(roles) {
         let roleName = getRoleName(roles);
         return `<div class="icon role ${roleName}" title="${roleName}"></div>`;
@@ -166,66 +167,50 @@ $(function(){
         $channelWindow.append(`<div class="informative"><span class="message">${vga.util.encodeHTML(message)}</span></div>`);
     };
 
-    function writeToChannelWindow(channelName, message, user, me, type) {
-        //Encode all HTML characters.
-        message = vga.util.encodeHTML(message);
-
-        let optionBody = '';
-        if (me && hasModCapabilities(me.roles)) {
-            optionBody = '<span class="timeout"><i class="fa fa-clock-o" role="button" title="Timeout Chatter!"></i></span>'
-        }
-
-        let userName = (user !== undefined) ? user.nickname : 'undefined';
-        let messageBody = '';
-        if (type === 'action') {
-            messageBody = `<div class="username action">${userName}</div><div class="message action">${message}</div>`;
-        }
-        else {
-            messageBody = `<div class="username">${userName}</div>:&nbsp<div class="message">${message}</div>`;
-        }
-
-        let userRoles = (user !== undefined) ? user.roles : vga.irc.roles.shadow; 
-        let $channelWindow = getChannelWindow(channelName);
-        $channelWindow.append(`<div class="user-entry" data-nickname="${userName}">${updateIcon(userRoles)}${optionBody}${messageBody}</div>`);
-    };
-
     function updateDisplay(channelName, user) {
         let $channelWindow = getChannelWindow(channelName);
-        $channelWindow.find(`.user-entry[data-nickname=${user.nickname}] > .role`).replaceWith(updateIcon(user.roles));
+        $channelWindow.find(`.user-entry[data-nickname=${user.identity}] > .role`).replaceWith(updateIcon(user.roles));
     };
 
-    //User list functions
-
-    function writeUser($userList, user) {
-
+    //Userlist functions
+    function buildUserListEntry(user) {
         let nicknames = '';
         user.nicknames.forEach((nickname) => {
             nicknames += `${(nicknames.length > 0 ? ',' : '')}${nickname}`;
         });
 
-        $userList.append(`<div id="user-list-${user.nickname}" class='user-entry'>`
+        return (`<div id="user-list-${user.identity}" class='user-entry'>`
             + updateIcon(user.roles)
-            + `<div class="username" title="Nicknames: ${nicknames}">${user.nickname}</div>`
+            + `<div class="username" title="Nicknames: ${nicknames}">${user.identity}</div>`
             + '</div>');
+    }
+
+    function updateUserInList(channelName, user) {
+        let $userList = getChannelTab(channelName).find('.user-list-wrapper .user-list');
+        let $userEntry = $userList.find(`#user-list-${user.identity}`);
+        if (user.nicknames.length > 0) {
+            if ($userEntry.length === 0) {
+                $userList.append(buildUserListEntry(user));
+            }
+            else {
+                $userEntry.replaceWith(buildUserListEntry(user)); 
+            }
+        }
+        else {
+            $userEntry.remove();
+        }
     };
 
     function writeUserList(channelName, users) {
         let $userList = getChannelTab(channelName).find('.user-list-wrapper .user-list');
+        $userList.html('');
         //Write a collection of users to the list if there is one.
         if (users) {
             vga.util.forEach(users, (username, user)=>{
-                writeUser($userList, user);
+                $userList.append(buildUserListEntry(user));
             });
             return;
         }
-
-        //Otherwise clear the list.
-        $userList.html('');
-    };
-
-    function updateUserInList(channelName, user) {
-        let $userList = getChannelTab(channelName).find('.user-list-wrapper .user-list');
-        $userList.find(`#user-list-${user.nickname} > .role`).replaceWith(updateIcon(user.roles));
     };
 
     function setStatus(message, timeout) {
@@ -303,6 +288,43 @@ $(function(){
                 listeners: [this]
             });
         }
+
+        //-----------------------------------------------------------------
+        // Presentation methods
+        // These are presentation methods.
+        //-----------------------------------------------------------------
+        writeToChannelWindow(channelName, user, message, type) {
+            let optionBody = '';
+            let channel = this._userChannels[channelName];
+            if (channel) {
+                let me = channel[this.connector.getMyNicknameKey()];
+                if (me && hasModCapabilities(me.roles)) {
+                    optionBody = '<span class="timeout"><i class="fa fa-clock-o" role="button" title="Timeout Chatter!"></i></span>'
+                }
+            }
+
+            //Encode all HTML characters.
+            message = vga.util.encodeHTML(message);
+
+            let userName = (user !== undefined) ? user.identity : 'undefined';
+            let messageBody = '';
+            if (type === 'action') {
+                messageBody = `<div class="username action">${userName}</div><div class="message action">${message}</div>`;
+            }
+            else {
+                messageBody = `<div class="username">${userName}</div>:&nbsp<div class="message">${message}</div>`;
+            }
+
+            let userRoles = (user !== undefined) ? user.roles : vga.irc.roles.shadow; 
+            let $channelWindow = getChannelWindow(channelName);
+            $channelWindow.append(`<div class="user-entry" data-nickname="${userName}">${updateIcon(userRoles)}${optionBody}${messageBody}</div>`);
+        }
+
+        //-----------------------------------------------------------------
+        // Chat events
+        // These are IRC chat events.
+        //-----------------------------------------------------------------
+
         /**
          * Attempts to connect a user to the chat server.
          * @method vga.irc.chat.connect
@@ -332,21 +354,20 @@ $(function(){
             return this;
         }
         /**
-         * Attempts to leave a channel.
-         * @method vga.irc.chat.leave
-         * @param {string} message the message to send to the server when leaving a channel.
-         */   
-        leave(message) {
-            this.connector && this.connector.leave(message, $channel.val());
-            return this;
-        }
-        /**
          * Attempts to join a channel.
          * @method vga.irc.chat.join
          */
         join(channel) {
-            channel = channel || $channel.val();
             this.connector && this.connector.join(channel);
+            return this;
+        }
+        /**
+         * Attempts to leave a channel.
+         * @method vga.irc.chat.leave
+         * @param {string} message the message to send to the server when leaving a channel.
+         */   
+        leave(channel, message) {
+            this.connector && this.connector.leave(channel, message);
             return this;
         }
         /**
@@ -363,12 +384,15 @@ $(function(){
                 else if (message.startsWith("/JOIN")) {
                     this.join(message.substring(6));
                 }
+                else if (message.startsWith("/LEAVE")) {
+                    this.leave(channelName, message.substring(7));
+                }
                 else {
                     this.connector && this.connector.send(message, channelName);
                     let channel = this._userChannels[channelName];
                     if (channel) {
                         let user = channel[this.connector.getMyNicknameKey()];
-                        writeToChannelWindow(channelName, message, user, user);
+                        this.writeToChannelWindow(channelName, user, message);
                     }
                 }
             }
@@ -382,25 +406,24 @@ $(function(){
         /**
          * An event that is triggered on a successful connection to the chat server.
          * @method vga.irc.chat.onConnect
-         * @param {object} connectData information.
+         * @param {object} eventData information.
          */
-        onConnect(connectData) {
+        onConnect(eventData) {
             toggleLoginWindow(false);
             setStatus();
-            createChannelTab(connectData.channelKey);
-            pulseChannelTab(connectData.channelKey, false);
+            createChannelTab(eventData.channelKey);
+            pulseChannelTab(eventData.channelKey, false);
         }
         /**
          * An event that is triggered when a disonnect event happens.
          * @method vga.irc.chat.onDisconnect
-         * @param {object} disonnectData information.
+         * @param {object} eventData information.
          */
-        onDisconnect(disonnectData) {
+        onDisconnect(eventData) {
             let channelName = $channel.val() || '';
             pulseChannelTab(channelName, false);
-            writeUserList(channelName);
             toggleLoginWindow(true);
-            if (disonnectData.closedByServer)
+            if (eventData.closedByServer)
             {
                 setStatus('Unable to reach the server.  Try again later.', 5000);
             }
@@ -422,82 +445,145 @@ $(function(){
         /**
          * An event that is triggered when a topic event occurs.
          * @method vga.irc.chat.onTopic
-         * @param {object} topic information.
+         * @param {object} eventData information.
          */
-        onTopic(topic) {
-            writeInformationalMessage(topic.channelKey, topic.topic);
+        onTopic(eventData) {
+            writeInformationalMessage(eventData.channelKey, eventData.topic);
         }
+        /**
+         * 
+         * @method vga.irc.chat.onChannelMode
+         * @param {object} eventData
+         */
+        onChannelMode(eventData) {
+            let channel = this._userChannels[eventData.channelKey];
+            if (channel) {
+                let me = channel[this.connector.getMyNicknameKey()];
+                let $channelTab = getChannelTab(eventData.channelKey);
+
+                if (eventData.modes == vga.irc.channelmodes.turbo) {
+                    if (eventData.action === vga.irc.roleAction.add) {
+                        writeInformationalMessage(eventData.channelKey, `The room is now in TURBO only mode.`);
+                        $channelTab.find('input.chatbox_input').prop('disabled', vga.irc.getMostSignificantRole(me.roles) === vga.irc.roles.shadow);
+                    }
+                    else {
+                        writeInformationalMessage(eventData.channelKey, `The room is now free for all chatters.`);
+                        $channelTab.find('input.chatbox_input').prop('disabled', false);
+                    }
+                }
+            }
+        } 
         /**
          * An event that is triggered when receiving a message from the chat server.
          * @method vga.irc.chat.onMessage
-         * @param {string} message broadcasted to the channel.
+         * @param {string} eventData broadcasted to the channel.
          */
-        onMessage(message) {
-            if (!this._wallRegEx.test(message.message) || !this._theaterMode) {
-                let channel = this._userChannels[message.target];
+        onMessage(eventData) {
+            if (!this._wallRegEx.test(eventData.message) || !this._theaterMode) {
+                let channel = this._userChannels[eventData.target];
                 let user, me;
                 if (channel) {
-                    user = channel[message.nicknameKey];
+                    user = channel[eventData.nicknameKey];
                     me = channel[this.connector.getMyNicknameKey()];
                 }
-                writeToChannelWindow(message.target, message.message, user, me, message.type);
+                this.writeToChannelWindow(eventData.target, user, eventData.message, eventData.type);
             }
         }
         /**
          * An event that is triggered when a user list is provided.
          * @method vga.irc.chat.onUserlist
-         * @param {object} userListByChannel An object that contains the channel and the users associated with that channel.
+         * @param {object} eventData An object that contains the channel and the users associated with that channel.
          */ 
-        onUserlist (userListByChannel) {
-            this._userChannels[userListByChannel.channelKey] = userListByChannel.users;
-            writeUserList(userListByChannel.channelKey, userListByChannel.users);
+        onUserlist(eventData) {
+            this._userChannels[eventData.channelKey] = eventData.users;
+            writeUserList(eventData.channelKey, eventData.users);
         }
         /**
          * An event that is triggered when the authenticated user has joined a channel.
          * @method vga.irc.chat.onJoin
-         * @param {object} joinEventByChannel
+         * @param {object} eventData
          */
-        onJoin(joinEventByChannel) {
-            //TODO: Channel management.
-            writeInformationalMessage(joinEventByChannel.channelKey, `Joined ${joinEventByChannel.channelKey} channel`);
+        onJoin(eventData) {
+            writeInformationalMessage(eventData.channelKey, `Joined ${eventData.channelKey} channel`);
         }
         /**
          * An event that is triggered when another user has joined the channel.
          * @method vga.irc.chat.onOtherUserJoin
-         * @param {object} joinEventByChannel
+         * @param {object} eventData
          */
-        onOtherUserJoin(joinEventByChannel) {
-            let channel = this._userChannels[joinEventByChannel.channelKey];
+        onOtherUserJoin(eventData) {
+            let channel = this._userChannels[eventData.channelKey];
             if (channel) {
-                let user = channel[joinEventByChannel.nicknameKey];
+                //Retrieve the user entity if he or she already exists in the userlist.
+                let user = channel[eventData.nicknameKey];
+                let me = channel[this.connector.getMyNicknameKey()];
+                //If the user is new then add him or her to the userlist and channel information block.
+                if (!user) {
+                    user = new vga.irc.userEntity(eventData.identity, eventData.nickname);
+                    channel[eventData.nicknameKey] = user;
+                    if (!this._theaterMode) {
+                        this.writeToChannelWindow(eventData.channelKey, user, `has joined.`, 'action');
+                    }
+                }
+
+                //Add any new nicknames to the user entity and update the userlist.
+                user.addNickname(eventData.nickname);
+                updateUserInList(eventData.channelKey, user);
+            }
+        }
+       /**
+         * An event that is triggered when another user has left the channel.
+         * @method vga.irc.chat.onOtherUserLeave
+         * @param {object} eventData
+         */
+        onOtherUserLeave(eventData) {
+            let channel = this._userChannels[eventData.channelKey];
+            if (channel) {
+                //If the user exists then remove this nickname from the user entity, otherwise ignore the event.
+                let user = channel[eventData.nicknameKey];
+                let me = channel[this.connector.getMyNicknameKey()];
                 if (user) {
-                    user.nicknames.push(joinEventByChannel.nickname);
+                    user.removeNickname(eventData.nickname);
+                    //If we have exhasted the number of nicknames then we need to remove the user entity from the channel information block.
+                    if (user.nicknames.length === 0) {
+                        channel[eventData.nicknameKey] = undefined;
+                        if (!this._theaterMode) {
+                            this.writeToChannelWindow(eventData.channelKey, user, `has left.`, 'action');
+                        }
+                    }
+
+                    updateUserInList(eventData.channelKey, user);
                 }
             }
         }
         /**
-         * 
-         * @method vga.irc.chat.onChannelMode
-         * @param {object} channelMode
-         */
-        onChannelMode(channelMode) {
-
+         * An event that is triggered when the authenticated user has joined a channel.
+         * @method vga.irc.chat.onJoin
+         * @param {object} eventData
+         */        
+        onQuit(eventData) {
+            //Reuse the leave logic but apply it to all channels.
+            vga.util.forEach(this._userChannels, (channelKey, users) => {
+                this.onOtherUserLeave({
+                    channelKey: channelKey,
+                    nicknameKey: eventData.nicknameKey,
+                    nickname: eventData.nickname
+                })
+            });
         }
         /**
          * An event that is triggered on a role assignment either with the authenticated user or another user in chat.
          * @method vga.irc.chat.onRole
-         * @param {object} userRoleByChannel contains the role information for the specific channel per user.
+         * @param {object} eventData contains the role information for the specific channel per user.
          */          
-        onRole (userRoleByChannel) {
-            let channel = this._userChannels[userRoleByChannel.channelKey];
+        onRole (eventData) {
+            let channel = this._userChannels[eventData.channelKey];
             if (channel) {
-                let user = channel[userRoleByChannel.userNameKey];
+                let user = channel[eventData.nicknameKey];
                 if (user) {
-                    user.roles = (userRoleByChannel.action === vga.irc.roleAction.add) 
-                        ? vga.irc.addRole(user.roles, userRoleByChannel.roles) 
-                        : vga.irc.removeRole(user.roles, userRoleByChannel.roles);
-                    updateUserInList(userRoleByChannel.channelKey, user);
-                    updateDisplay(userRoleByChannel.channelKey, user);
+                    user.applyRoles(eventData.action, eventData.roles);
+                    updateUserInList(eventData.channelKey, user);
+                    updateDisplay(eventData.channelKey, user);
                 }
             }
         }
@@ -511,9 +597,9 @@ $(function(){
         /**
          * An event that is triggered when the user was kicked from the channel.
          * @method vga.irc.chat.onKicked
-         * @param {object} kickedInfo additional kick information.
+         * @param {object} eventData additional kick information.
          */
-        onKicked(kickedInfo) {
+        onKicked(eventData) {
             //TODO: Close channel window.
             //For now, disconnect the user if he or she is kicked from the channel.
             this.close();
@@ -522,9 +608,9 @@ $(function(){
         /**
          * An event that is triggered when the user is banned from the channel.
          * @method vga.irc.chat.onBanned
-         * @param {object} bannedInfo additional banned information.
+         * @param {object} eventData additional banned information.
          */
-        onBanned(bannedInfo) {
+        onBanned(eventData) {
             //TODO: Close channel window.
             //For now, disconnect the user if he or she is kicked from the channel.
             //this.close();
@@ -532,15 +618,15 @@ $(function(){
         }
         /**
          * An event that is triggered when the user is banned from the channel.
-         * @method vga.irc.chat.errorInfo
-         * @param {object} errorInfo additional error information.
+         * @method vga.irc.chat.onError
+         * @param {object} eventData additional error information.
          */
-        onError(errorInfo) {
+        onError(eventData) {
             //TODO: Close channel window.
             //For now, disconnect the user if he or she is kicked from the channel.
             this.close();
             setStatus('Sorry, an unknown error has occured.');
-            vga.util.debuglog.error(errorInfo.reason);
+            vga.util.debuglog.error(eventData.reason);
         }
     }
 

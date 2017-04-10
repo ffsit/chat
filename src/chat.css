@@ -268,7 +268,7 @@ User classes
 .user-entry {
 	display: block;
 	padding: 2px 4px;
-	font-size: 1.2rem;
+	/*font-size: 1.2rem;*/
 }
 
 .user-entry .message {
