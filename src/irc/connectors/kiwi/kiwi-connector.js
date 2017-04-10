@@ -522,7 +522,6 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 identity: this.normalizeNickname(eventData.nick),
                 nickname: eventData.nick
             });
-            //4{"method":"irc","params":[{"command":"quit","data":{"nick":"cafftest_1","ident":"cafftest","hostname":"2001:470:1f13:83d::20","message":"Quit:","connection_id":0}},null]}
         }
         /**
          * This event is triggered when a mode event has occured.
