@@ -168,17 +168,18 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //User Identity information.
             this._nickname = this._identity = '';
 
-            //We can disable the nicknames normalization and allow the mutated nicknames to be an individual entity.
+            //We can disable the nicknames consolidation (normalization) and allow the mutated nicknames to be an individual entity.
             //This means that all events meant for one person will now only target individual nicknames.
             //For Example: The message meant for cafftest_1 will not longer be sent to cafftest.
-            this._normalizeNicknames = (options.normalizeNicknames !== undefined) ? options.normalizeNicknames : false;
+            this._consolidateNicknames = (options.consolidateNicknames !== undefined) ? options.consolidateNicknames : false;
 
             //Autojoin logic.  If this is set we will try to autojoin a channel.
             this._autoJoinChannel = (options.autoJoinChannel !== undefined) ? options.autoJoinChannel : true;
             this._autoJoinChannelComplete = false;
 
             //Supports the option of having the same user join the same channel multiple times.
-            //This voids the nickname in use error.
+            //This voids the 'nickname in use' error.
+            //This feature is used in conjunction with the normalizedNicknames feature.
             this._supportConcurrentChannelJoins = (options.supportConcurrentChannelJoins !== undefined) ? options.supportConcurrentChannelJoins : true;
 
             //Determine if the connection was closed by the user or the protocol.
@@ -235,13 +236,13 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 || this._identity.toLocaleLowerCase() === entityName.toLocaleLowerCase();
         }
         /**
-         * Normalizes a nickname that has been passed.
+         * Normalizes a nickname based on whether the option to consolidate nicknames has been enabled or not.
          * @method normalizeNickname
          * @param {string} nickname to normalized.
          * @return {string} normalized nickname.
          */
         normalizeNickname(nickname) {
-            return this._normalizeNicknames ? sanitizeNickname(nickname) : nickname;
+            return this._consolidateNicknames ? sanitizeNickname(nickname) : nickname;
         }        
         /**
          * Generates a nickname key.
@@ -380,7 +381,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         onConnect(eventData) {
             let channelKey = '';
             this._numberOfReconnectsAttempted = 0;
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onConnect]: AutoJoinChannel: ${this._autoJoinChannel !== '' ? this._autoJoinChannel : 'none' })`, eventData);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onConnect]: AutoJoinChannel: ${this._autoJoinChannel !== '' ? this._autoJoinChannel : 'none' } Nick: ${eventData.nick}`);
             if (this._autoJoinChannel !== '') {
                 this.join(this._autoJoinChannel);
                 channelKey = this._autoJoinChannel;
@@ -394,6 +395,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          */
         onDisconnect(eventData) {
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Reason: ${eventData.reason} closedByServer: ${eventData.closedByServer} existingConnection: ${eventData.existingConnection}`);
+            //Determine if we are going to trigger the reconnect logic.
+            //The feature must be enabled, the close event triggered by the server only, and an existing connection must have been established.
             if (this._attemptReconnect && eventData.closedByServer && eventData.existingConnection) {
                 if (this._numberOfReconnectsAttempted < this._maxNumberOfReconnectAttempts) {
                     this._numberOfReconnectsAttempted++;
@@ -631,7 +634,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * This event is triggered when the userlist_end has been sent by the server.
          * @method vga.irc.connector.kiwi.connector.onUserlistEnd
          * @param {object} eventData event data associated with userlist_end sent by the server.
-         */         
+         */
         onUserlistEnd(eventData) {
             let channelKey = this.generateChannelKey(eventData.channel);
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onUserListEnd]: Channel: ${channelKey}`, eventData);

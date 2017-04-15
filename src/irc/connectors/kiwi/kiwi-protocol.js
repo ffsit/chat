@@ -190,15 +190,16 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //Normalize.
             options = options || {};
 
-            //All of our connection information and timeout intervals.
+            //Maintain our connection state and additional info.
             this._url = url || '';
             this._state = vga.irc.connector.kiwi.STATES.CLOSED;
             this._connectionInfo = {};
 
+            //Timer Ids that regulate the heartbeat nad ping intervals.
             this._heartbeatId = null;
             this._pingId = null;
 
-            //Our listeners and internal settings.
+            //Our listeners and socket adapters.
             this._listener = new vga.util.listener(methodMap, options.listeners);
             this._socket = new vga.util.websocket(this._url, {listeners: [this]});
         }
@@ -226,7 +227,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {bool} blockLogging blocks logging when instructed.
          */
         sendRawData(data, status, blockLogging) {
-            status = status || vga.irc.connector.kiwi.PACKET_STATUS.MESSAGE;
+            //We'll default to status of message if no status is provided.
+            status = (status !== undefined) ? status : vga.irc.connector.kiwi.PACKET_STATUS.MESSAGE;
             if (this._socket) {
                 let message = (data) ? (status + (typeof(data) === 'object' ? JSON.stringify(data) : data)) : status;
                 this._socket.send(message, blockLogging);
@@ -312,7 +314,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          */
         onProxyOpened(proxyInfo) {
             proxyInfo = proxyInfo || {};
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onProxyOpened]: Proxy Connection Opened (sid: ${proxyInfo.sid}, pingInterval: ${proxyInfo.pingInterval}, pingTimeout: ${proxyInfo.pingTimeout}).`, proxyInfo);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onProxyOpened]: Proxy Connection Opened (sid: ${proxyInfo.sid}, pingInterval: ${proxyInfo.pingInterval}, pingTimeout: ${proxyInfo.pingTimeout}).`);
             this._state = vga.irc.connector.kiwi.STATES.PROXY_OPENED;
             
             this._connectionInfo = {
@@ -329,9 +331,9 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         onProxyConnected(proxyInfo) {
             proxyInfo = proxyInfo || {};
             this._state = vga.irc.connector.kiwi.STATES.PROXY_CONNECTED;
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onProxyConnected]: Proxy Connected', proxyInfo);
+            vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onProxyConnected]: Proxy Connected');
 
-            //Create the heartbeat timer.
+            //Create the heartbeat interval.
             if (!this._heartbeatId)
             {
                 let heartBeatInterval = (this._connectionInfo.pingTimeout || vga.irc.connector.kiwi.DEFAULT_HEARTBEAT_INTERVAL);
@@ -344,7 +346,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 heartbeat();
             }
 
-            //Create the ping timer.
+            //Create the ping interval.
             if (!this._pingId)
             {
                 let pingInterval = (this._connectionInfo.pingInterval || vga.irc.connector.kiwi.DEFAULT_PING_INTERVAL);

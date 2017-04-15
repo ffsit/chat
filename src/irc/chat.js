@@ -284,7 +284,7 @@ $(function(){
                 supportConcurrentChannelJoins: options.supportConcurrentChannelJoins,
                 autoJoinChannel: options.autoJoinChannel,
                 attemptReconnect: true, //options.attemptReconnect,
-                normalizeNicknames: true, //Normalized nicknames into one.
+                consolidateNicknames: true, //Normalized nicknames into one.
                 listeners: [this]
             });
         }
