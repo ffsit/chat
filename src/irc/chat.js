@@ -118,7 +118,7 @@ $(function(){
     //-----------------------------------------------------------------
     // jQuery presentation logic.
     //-----------------------------------------------------------------
-    var $channelContainer = $('#channel-container');
+    var $channelContainer = $('.channel-container');
     var $channel = $('#channel');
     var $nickname = $('#nickname');
     var $password = $('#password');
@@ -271,9 +271,17 @@ $(function(){
             this._port = options.port;
             this._ssl = (options.ssl === undefined ? false : options.ssl);
             this._debug = (options.debug == undefined ? false : options.debug);
-            this._defaultChannel = options.defaultChannel || '#ffstv';
             this._wallRegEx = options.wallRegEx || /^%! [^\r\n]*/;
             this._theaterMode = (options.theaterMode !== undefined ? options.theaterMode : false);
+            this._defaultChannel = options.defaultChannel;
+
+            let consolidateNicknames = (options.consolidateNicknames !== undefined) ? options.consolidateNicknames : false;
+            let enableReconnect = (options.enableReconnect !== undefined) ? options.enableReconnect : true;
+            let autoJoinChannel = (!this._defaultChannel);
+
+            if (this._debug) {
+                vga.util.enableDebug();
+            }
 
             //User's channel information.
             this._userChannels = {};
@@ -282,9 +290,9 @@ $(function(){
             //If we switch to another IRC type, a new connector can be written to handle this without rewriting all of chat.
             this.connector = new vga.irc.connector.kiwi.connector(options.url, {
                 supportConcurrentChannelJoins: options.supportConcurrentChannelJoins,
-                autoJoinChannel: options.autoJoinChannel,
-                attemptReconnect: true, //options.attemptReconnect,
-                consolidateNicknames: true, //Normalized nicknames into one.
+                autoJoinChannel: autoJoinChannel,
+                attemptReconnect: enableReconnect,
+                consolidateNicknames: consolidateNicknames,
                 listeners: [this]
             });
         }
@@ -460,7 +468,7 @@ $(function(){
             if (channel) {
                 let $channelTab = getChannelTab(eventData.channelKey);
 
-                if (eventData.modes == vga.irc.channelmodes.turbo) {
+                if (eventData.modes === vga.irc.channelmodes.turbo) {
                     if (eventData.action === vga.irc.roleAction.add) {
                         writeInformationalMessage(eventData.channelKey, `The room is now in TURBO only mode.`);
                         $channelTab.find('input.chatbox_input').prop('disabled', vga.irc.getMostSignificantRole(me.roles) === vga.irc.roles.shadow);

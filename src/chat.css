@@ -64,11 +64,6 @@ Global classes
 	margin: 0 auto;
 }
 
-.wrapper2 {
-	display: block;
-	width: 100%;
-}
-
 #upper_ui {
 	display: block;
 	height: 34em;
@@ -177,7 +172,7 @@ form.debug #showdebug {
 	min-width: 300px;
 }
 
-#settings_wrapper {
+#settings-container {
 	padding: 0;
 	background-color: #e6e6e6;
 	max-width: 28em;
@@ -191,7 +186,6 @@ form.debug #showdebug {
 	box-shadow: 1px 1px 20px #000000;
 	border-color: rgba(112, 112, 112, .6);
 	z-index: 40;
-    display: none;
 	overflow-x: hidden;
 	overflow-y: scroll;
 }
@@ -491,9 +485,14 @@ User List classes
 
 /*
 ---------------------------
-Channel window classes
+Channel classes
 ---------------------------
 */
+
+.channel-container {
+	display: block;
+	width: 100%;
+}
 
 .channel-window {
 	background-color: #e6e6e6;
