@@ -79,12 +79,20 @@ $(function(){
             chat.send(channelName, value);
             $(this).val('');
         }
-    }).on('click', '.userlist', function(e){
+    }).on('click', '.user-list-button', function(e){
         let $userListWrapper = $(this).parents('.channel-tab').find('.user-list-wrapper');
         $userListWrapper.toggleClass('hidden', !$userListWrapper.hasClass('hidden'));
         e.preventDefault();
-    }).on('click', '.user-settings', function(e) {
+    }).on('click', '.user-settings-button', function(e) {
         let $container = $('#settings-container');
         $container.toggleClass('hidden', !$container.hasClass('hidden'));
+        e.preventDefault();
+    }).on('click', '#settings-enable-theater-mode', function(e){
+        let $icon = $(this).find('i');
+        let toggleOn = !$icon.hasClass('fa-toggle-on');
+        chat.enableTheaterMode(toggleOn);
+        $icon.toggleClass('fa-toggle-on', toggleOn);
+        $icon.toggleClass('fa-toggle-off', !toggleOn);
+        e.preventDefault();
     });
 });

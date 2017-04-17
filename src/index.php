@@ -14,58 +14,83 @@
 	<![endif]-->
 </head>
 <body>
-
-	<div class="center_helper">
-		<div id="settings-container" class="hidden">
-			<h2>Settings</h2>
-			<div id="settings">
-				<a href="" id="toggle_smoothscroll">Disable Smooth Scroll</a>
-				<a href="" id="toggle_modem">Enable Turbo Only</a>
-			</div>
-		</div>
-	</div>
-
-	<div class="center_helper">
-		<div id="debug_wrapper">
-			<p id="debugoutput"></p>
-			<form class="debug" id="vgairc_debugform" method="post" action="/debug.php">
-					<input type="submit" value="Send debug output">
-			</form>
-		</div>
-	</div>
-
-	<div class="center_helper">
-		<div id="login-wrapper">
-			<div id="slide_message" class="hidden"></div>
-			<div id="slide_login" class="slide_page">
-				<h1>Login</h1>
-				<div>Please read &amp; follow the <a href="http://videogamesawesome.com/the-rule-compendium/">chat rules</a>.</div>
-				<img class="spinner" src="/img/spinner<?php print(strval(rand(1,5))); ?>.gif" alt="One moment">
-				<form action="#" name="vgairc_loginform" id="vgairc_loginform">
-					<label for="nickname">Name:</label>
-					<input type="text" id="nickname" maxlength="32" value="<?php if(isset($_GET['nick'])) { print(htmlspecialchars($_GET['nick'])); } ?>">
-					<label for="password">Password:</label>
-					<input type="password" id="password" maxlength="128" value="">
-					<label for="channel">Channel:</label>
-					<input type="text" id="channel" maxlength="128" list="channels" placeholder="#ffstv">
-						<datalist id="channels">
-							<option value="#ffstv">
-							<option value="#spoilers">
-							<option value="#support">
-						</datalist>
-					<button id="Login" type="button">Login</button>
+	<div id="wrapper1">
+		<div class="center_helper hidden">
+			<div id="debug_wrapper" class="center-floating-container">
+				<p id="debugoutput"></p>
+				<form class="debug" id="vgairc_debugform" method="post" action="/debug.php">
+						<input type="submit" value="Send debug output">
 				</form>
 			</div>
 		</div>
-	</div>
-	<div id="wrapper1">
+
+		<div class="center_helper">
+			<div id="login-wrapper">
+				<div id="slide_message" class="hidden"></div>
+				<div id="slide_login" class="slide_page">
+					<h1>Login</h1>
+					<div>Please read &amp; follow the <a href="http://videogamesawesome.com/the-rule-compendium/">chat rules</a>.</div>
+					<img class="spinner" src="/img/spinner<?php print(strval(rand(1,5))); ?>.gif" alt="One moment">
+					<form action="#" name="vgairc_loginform" id="vgairc_loginform">
+						<label for="nickname">Name:</label>
+						<input type="text" id="nickname" maxlength="32" value="<?php if(isset($_GET['nick'])) { print(htmlspecialchars($_GET['nick'])); } ?>">
+						<label for="password">Password:</label>
+						<input type="password" id="password" maxlength="128" value="">
+						<label for="channel">Channel:</label>
+						<input type="text" id="channel" maxlength="128" list="channels" placeholder="#ffstv">
+							<datalist id="channels">
+								<option value="#ffstv">
+								<option value="#spoilers">
+								<option value="#support">
+							</datalist>
+						<button id="Login" type="button">Login</button>
+					</form>
+				</div>
+			</div>
+		</div>
 		<div class="channel-container">
+			<div class="center_helper">
+				<div id="settings-container" class="center-floating-container hidden">
+					<h2>Settings</h2>
+					<div class="settings-body">
+						<div id="settings-smooth-scroll" class="settings-item">
+							<i class="fa fa-2x fa-toggle-on" aria-hidden="true" role="button"></i>
+							<span>Disable Smooth Scroll</span>
+						</div>
+						<div id="settings-enable-turbo" class="settings-item" data-channels="ffstv">
+							<i class="fa fa-2x fa-toggle-on" aria-hidden="true" role="button"></i>
+							<span>Enable Turbo Only</span>
+						</div>
+						<div id="settings-enable-theater-mode" class="settings-item">
+							<i class="fa fa-2x fa-toggle-off" aria-hidden="true" role="button"></i>
+							<span>Theater Mode</span>
+						</div>
+						<div id="settings-enable-join-messages" class="settings-item">
+							<i class="fa fa-2x fa-toggle-off" aria-hidden="true" role="button"></i>
+							<span>Show Join/Leave</span>
+						</div>
+					</div>
+				</div>
+			</div>
 			<!-- Serves as a template to create other channels. -->
 			<div id="channel-tab-template" class="channel-tab">
 				<div class="center_helper">
-					<div class="user-list-wrapper hidden">
+					<div class="user-list-wrapper center-floating-container hidden">
 						<h2>User List</h2>
-						<div class="user-list mid-size"></div>
+						<div class="user-list mid-size">
+							<div class="mod-section hidden">
+								<h3>Mods</h3>
+								<div class="mod-section-body"></div>
+							</div>
+							<div class="guest-section hidden">
+								<h3>Guests</h3>
+								<div class="guest-section-body"></div>
+							</div>
+							<div class="regular-section hidden">
+								<h3>Regulars</h3>
+								<div class="regular-section-body"></div>
+							</div>
+						</div>
 					</div>
 				</div>
 				<!-- Chat messages and events go here. -->
@@ -73,19 +98,19 @@
 				<!-- Adaptive chat buttons -->
 				<div class="lower-ui">
 					<div class="right">
-						<span class="button-container userlist">
-							<i class="fa fa-users fa-inverse button" aria-hidden="true" title="Show or hide user list" alt="?" role="button"></i>
+						<span class="button-container user-list-button">
+							<i class="fa fa-users fa-inverse button" aria-hidden="true" title="Show Users" alt="?" role="button"></i>
 						</span>
-						<span class="button-container user-settings">
-							<i class="fa fa-cog fa-inverse button" aria-hidden="true" title="Show or hide settings" alt="?" role="button"></i>
+						<span class="button-container user-settings-button">
+							<i class="fa fa-cog fa-inverse button" aria-hidden="true" title="Show My Settings" alt="?" role="button"></i>
 						</span>
-						<span class="button-container user-support">
-							<i class="fa fa-exclamation-circle  fa-inverse button" aria-hidden="true" title="Support" alt="!" role="button"></i>
+						<span class="button-container user-support-button">
+							<i class="fa fa-exclamation-circle fa-inverse button" aria-hidden="true" title="Support" alt="!" role="button"></i>
 						</span>
 					</div>
 					<!-- Input here to chat. -->
 					<div class="left">
-						<input type="text" class="chatbox_input" maxlength="300">
+						<input type="text" class="chatbox_input" maxlength="300" placeholder="Troll Here!">
 					</div>
 				</div>
 			</div>

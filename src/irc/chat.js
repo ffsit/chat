@@ -75,7 +75,7 @@ $(function(){
     // Event: onError ({ reason: string })
 
     //-----------------------------------------------------------------
-    // Intenral helper methods.
+    // Role helper methods.
     //-----------------------------------------------------------------
 
     /**
@@ -108,11 +108,21 @@ $(function(){
     /**
      * Determines if the roles provided have mod capabilities, which is any role above mod.
      * @method hasModRoles
-     * @param {*} roles 
+     * @param {int} roles bitArray of roles
      * @return {bool} true if the roles contain mod capabilities.
      */
     function hasModCapabilities(roles) {
         return vga.irc.getMostSignificantRole(roles) >= vga.irc.roles.mod;
+    }
+
+    /**
+     * Determines if the roles provided have guest capabilities.
+     * @method hasModRoles
+     * @param {int} roles bitArray of roles
+     * @return {bool} true if the roles contain guest capabilities.
+     */
+    function hasGuestCapabilities(roles) {
+        return vga.irc.getMostSignificantRole(roles) === vga.irc.roles.guest;
     }
 
     //-----------------------------------------------------------------
@@ -124,15 +134,15 @@ $(function(){
     var $password = $('#password');
 
     //-----------------------------------------------------------------
-    // Helper functions
+    // Channel Helper functions
     //-----------------------------------------------------------------
 
     /**
      * Creates a channel tab and returns a reference to it.
      * This function is idempotent and will have no side effects if called multiple times.
      * @method getRoleName
-     * @param {string} channelName the name of the channel tab to create.
-     * @return {string} the CSS class assigned to the most significant role.
+     * @param {string} channelName the name of the channel tab object to create.
+     * @return {object} a jQuery channel tab object.
      */
     function createChannelTab(channelName) {
         //Create a tab if one does not already exist.
@@ -148,31 +158,84 @@ $(function(){
         return $channelTab;
     }
 
+    /**
+     * Returns a jQuery channel tab object.
+     * @method getChannelTab
+     * @param {string} channelName the name of the channel tab object to return.
+     * @return {object} a jQuery channel tab object.
+     */
     function getChannelTab(channelName) {
         return $channelContainer.find(`#channel-tab-${channelName.replace('#', '')}`);
     }
 
+    /**
+     * Pulses a channel tab.
+     * @method pulseChannelTab
+     * @param {string} channelName the name of the channel tab to pulsate.
+     * @param {bool} enable is true to pulsate channel tab.
+     */
+    function pulseChannelTab(channelName, enable) {
+        let $channelWindow = getChannelWindow(channelName);
+        $channelWindow.toggleClass('pulse', enable);
+    };
+
+    /**
+     * Returns a jQuery channel tab, window object.
+     * @method getChannelWindow
+     * @param {string} channelName the name of the channel tab, window object to return.
+     * @return {object} a jQuery channel tab object.
+     */
     function getChannelWindow(channelName) {
         return getChannelTab(channelName).find('.channel-window');
     }
 
+    /**
+     * Returns an HTML icon element.
+     * @method updateIcon
+     * @param {number} roles a bitarray of roles.
+     * @return {string} an HTML element in string form.
+     */
     function updateIcon(roles) {
         let roleName = getRoleName(roles);
         return `<div class="icon role ${roleName}" title="${roleName}"></div>`;
     };
 
-    //Chat history functions
+    //-----------------------------------------------------------------
+    // Channel Window Helper functions
+    //-----------------------------------------------------------------
+
+    /**
+     * Writes an informative message to the channel window.
+     * @method writeInformationalMessage
+     * @param {string} channelName of the channel to write the message.
+     * @param {string} message to write.
+     */
     function writeInformationalMessage(channelName, message) {
         let $channelWindow = getChannelWindow(channelName);
         $channelWindow.append(`<div class="informative"><span class="message">${vga.util.encodeHTML(message)}</span></div>`);
     };
 
+    /**
+     * Updates the channel window with the proper user information.
+     * @method updateDisplay
+     * @param {string} channelName of the channel to update the user in.
+     * @param {object} user to update.
+     */
     function updateDisplay(channelName, user) {
         let $channelWindow = getChannelWindow(channelName);
         $channelWindow.find(`.user-entry[data-nickname=${user.identity}] > .role`).replaceWith(updateIcon(user.roles));
     };
 
-    //Userlist functions
+    //-----------------------------------------------------------------
+    // User List Helper functions
+    //-----------------------------------------------------------------
+
+    /**
+     * Constructs an HTML entity element for the user list.
+     * @method buildUserListEntry
+     * @param {object} user to build an entity element for.
+     * @return {string} an HTML element in string form.
+     */
     function buildUserListEntry(user) {
         let nicknames = '';
         user.nicknames.forEach((nickname) => {
@@ -185,33 +248,101 @@ $(function(){
             + '</div>');
     }
 
-    function updateUserInList(channelName, user) {
+    /**
+     * Updates the user entity in the user list.
+     * @method updateUserEntityInList
+     * @param {string} channelName of the channel's user list to update.
+     * @param {object} user to add, remove, or update from the user list in this specific channel.
+     */
+    function updateUserEntityInList(channelName, user) {
+
+        //Find the user list and user entity for this channel.
         let $userList = getChannelTab(channelName).find('.user-list-wrapper .user-list');
         let $userEntry = $userList.find(`#user-list-${user.identity}`);
-        if (user.nicknames.length > 0) {
-            if ($userEntry.length === 0) {
-                $userList.append(buildUserListEntry(user));
-            }
-            else {
-                $userEntry.replaceWith(buildUserListEntry(user)); 
-            }
-        }
-        else {
+        
+        //Get all the sections.
+        let $modSection = $userList.find('.mod-section-body');
+        let $guestSection = $userList.find('.guest-section-body');
+        let $regularSection = $userList.find('.regular-section-body');
+
+        //If the user no longer has any registered nicknames then remove him or her from the user list.
+        if (user.nicknames.length === 0) {
             $userEntry.remove();
+            return;
         }
+        //Otherwise add or update the user entity to the appropriate user list section.
+        else {
+            //Determine which section to add a new user.
+            let $userListSection = $regularSection;
+            if (hasModCapabilities(user.roles)) {
+                $userListSection = $modSection;
+            }
+            else if (hasGuestCapabilities(user.roles)) {
+                $userListSection = $guestSection;
+            }
+
+            //If the user entity already exists then remove it.
+            if ($userEntry.length !== 0) {
+                $userEntry.remove();
+            }
+
+            //Add the new or updated user to the appropriate user list section.
+            $userListSection.append(buildUserListEntry(user));
+        }
+
+        //Toggle the hidden status of each section depending on whether users have shifted into and out of these sections.
+        $modSection.parent().toggleClass('hidden', $modSection.find('div').length == 0);
+        $guestSection.parent().toggleClass('hidden', $guestSection.find('div').length == 0);
+        $regularSection.parent().toggleClass('hidden', $regularSection.find('div').length == 0);
     };
 
-    function writeUserList(channelName, users) {
+    /**
+     * Creates the user list for this specific channel.
+     * @method createUserList
+     * @param {string} channelName of the channel's user list to create.
+     * @param {array} users to construct the user list for this specific channel.
+     */
+    function createUserList(channelName, users) {
+        //Find the user list object.
         let $userList = getChannelTab(channelName).find('.user-list-wrapper .user-list');
-        $userList.html('');
+        
+        //Find each of the 3 sections.
+        let $modSection = $userList.find('.mod-section-body');
+        let $guestSection = $userList.find('.guest-section-body');
+        let $regularSection = $userList.find('.regular-section-body');
+        
+        //Clear the sections.
+        $modSection.html('');
+        $guestSection.html('');
+        $regularSection.html('');
+
         //Write a collection of users to the list if there is one.
         if (users) {
             vga.util.forEach(users, (username, user)=>{
-                $userList.append(buildUserListEntry(user));
+                
+                //Determine which section to add a new user.
+                let $userListSection = $regularSection;
+                if (hasModCapabilities(user.roles)) {
+                    $userListSection = $modSection;
+                }
+                else if (hasGuestCapabilities(user.roles)) {
+                    $userListSection = $guestSection;
+                }
+                
+                //Add the new user.
+                $userListSection.removeClass('hidden').append(buildUserListEntry(user));
             });
-            return;
+
+            //Toggle the hidden status of each section depending on whether users have shifted into and out of these sections.
+            $modSection.parent().toggleClass('hidden', $modSection.find('div').length == 0);
+            $guestSection.parent().toggleClass('hidden', $guestSection.find('div').length == 0);
+            $regularSection.parent().toggleClass('hidden', $regularSection.find('div').length == 0);
         }
     };
+
+    //-----------------------------------------------------------------
+    // Misc Chat Helper functions
+    //-----------------------------------------------------------------
 
     function setStatus(message, timeout) {
         let $slideMessage = $('#slide_message');
@@ -229,11 +360,6 @@ $(function(){
     function toggleLoginWindow(show) {
         $('#login-wrapper').toggleClass('hidden', !show);
     }
-
-    function pulseChannelTab(channelName, enable) {
-        let $channelWindow = getChannelWindow(channelName);
-        $channelWindow.toggleClass('pulse', enable);
-    };
 
     //-----------------------------------------------------------------
     // Main chat class.
@@ -266,7 +392,6 @@ $(function(){
             vga.irc.chat.CLIENT_VERSION = new vga.util.version(0, 1, 0);
 
             //Chat settings.
-            this._theaterMode = options.theaterMode;
             this._hostname = options.hostname;
             this._port = options.port;
             this._ssl = (options.ssl === undefined ? false : options.ssl);
@@ -326,6 +451,12 @@ $(function(){
             let userRoles = (user !== undefined) ? user.roles : vga.irc.roles.shadow; 
             let $channelWindow = getChannelWindow(channelName);
             $channelWindow.append(`<div class="user-entry" data-nickname="${userName}">${updateIcon(userRoles)}${optionBody}${messageBody}</div>`);
+        }
+
+        enableTheaterMode(theaterMode) {
+            this._theaterMode = theaterMode;
+            $('html').toggleClass('theater-mode', theaterMode);
+            $('body').toggleClass('theater-mode', theaterMode);
         }
 
         //-----------------------------------------------------------------
@@ -501,7 +632,7 @@ $(function(){
          */ 
         onUserlist(eventData) {
             this._userChannels[eventData.channelKey] = eventData.users;
-            writeUserList(eventData.channelKey, eventData.users);
+            createUserList(eventData.channelKey, eventData.users);
         }
         /**
          * An event that is triggered when the authenticated user has joined a channel.
@@ -532,7 +663,7 @@ $(function(){
 
                 //Add any new nicknames to the user entity and update the userlist.
                 user.addNickname(eventData.nickname);
-                updateUserInList(eventData.channelKey, user);
+                updateUserEntityInList(eventData.channelKey, user);
             }
         }
        /**
@@ -555,7 +686,7 @@ $(function(){
                         }
                     }
 
-                    updateUserInList(eventData.channelKey, user);
+                    updateUserEntityInList(eventData.channelKey, user);
                 }
             }
         }
@@ -585,7 +716,7 @@ $(function(){
                 let user = channel[eventData.nicknameKey];
                 if (user) {
                     user.applyRoles(eventData.action, eventData.roles);
-                    updateUserInList(eventData.channelKey, user);
+                    updateUserEntityInList(eventData.channelKey, user);
                     updateDisplay(eventData.channelKey, user);
                 }
             }
