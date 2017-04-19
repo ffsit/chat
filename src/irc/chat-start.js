@@ -59,7 +59,7 @@ $(function(){
         port: "6667",
         defaultChannel: '#ffstv',
         wallRegEx: /^%! [^\r\n]*/,
-        theaterMode: (document.location.href.toLowerCase().indexOf("farshar") !== -1),
+        frashShowMode: (document.location.href.toLowerCase().indexOf("farshar") !== -1),
         enableReconnect: true,
         debug: true
     });
@@ -87,12 +87,17 @@ $(function(){
         let $container = $('#settings-container');
         $container.toggleClass('hidden', !$container.hasClass('hidden'));
         e.preventDefault();
-    }).on('click', '#settings-enable-theater-mode', function(e){
-        let $icon = $(this).find('i');
-        let toggleOn = !$icon.hasClass('fa-toggle-on');
-        chat.enableTheaterMode(toggleOn);
-        $icon.toggleClass('fa-toggle-on', toggleOn);
-        $icon.toggleClass('fa-toggle-off', !toggleOn);
+    }).on('click', '.settings-item-enable-frash-show-mode', function(e){
+        let toggleOn = !$(this).hasClass('fa-toggle-on');
+        chat.enableFrashShowMode(toggleOn);
+        $(this).toggleClass('fa-toggle-on', toggleOn);
+        $(this).toggleClass('fa-toggle-off', !toggleOn);
         e.preventDefault();
-    });
+    }).on('click', '.settings-item-enable-turbo-mode', function(e){
+        let toggleOn = !$(this).hasClass('fa-toggle-on');
+        //chat.enableFrashShowMode(toggleOn);
+        $(this).toggleClass('fa-toggle-on', toggleOn);
+        $(this).toggleClass('fa-toggle-off', !toggleOn);
+        e.preventDefault();
+    })
 });

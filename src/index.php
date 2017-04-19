@@ -53,20 +53,20 @@
 				<div id="settings-container" class="center-floating-container hidden">
 					<h2>Settings</h2>
 					<div class="settings-body">
-						<div id="settings-smooth-scroll" class="settings-item">
-							<i class="fa fa-2x fa-toggle-on" aria-hidden="true" role="button"></i>
+						<div id="settings-smooth-scroll" class="settings-item" title="Toggles the smooth scroll feature.">
+							<i class="fa fa-2x fa-toggle-on settings-item-smooth-scroll" aria-hidden="true" role="button"></i>
 							<span>Disable Smooth Scroll</span>
 						</div>
-						<div id="settings-enable-turbo" class="settings-item" data-channels="ffstv">
-							<i class="fa fa-2x fa-toggle-on" aria-hidden="true" role="button"></i>
+						<div class="settings-item" data-channels="ffstv" title="Enables T-t-turbo mode!">
+							<i class="fa fa-2x fa-toggle-on settings-item-enable-turbo-mode" aria-hidden="true" role="button"></i>
 							<span>Enable Turbo Only</span>
 						</div>
-						<div id="settings-enable-theater-mode" class="settings-item">
-							<i class="fa fa-2x fa-toggle-off" aria-hidden="true" role="button"></i>
-							<span>Theater Mode</span>
+						<div class="settings-item" title="Toggles Fraser's special show mode">
+							<i class="fa fa-2x fa-toggle-off settings-item-enable-frash-show-mode" aria-hidden="true" role="button"></i>
+							<span>Frash Show Mode</span>
 						</div>
-						<div id="settings-enable-join-messages" class="settings-item">
-							<i class="fa fa-2x fa-toggle-off" aria-hidden="true" role="button"></i>
+						<div id="settings-enable-join-messages" class="settings-item" title="Shows you when a user joins or leaves the chat.">
+							<i class="fa fa-2x fa-toggle-off settings-item-enable-join-messages" aria-hidden="true" role="button"></i>
 							<span>Show Join/Leave</span>
 						</div>
 					</div>

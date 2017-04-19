@@ -11,22 +11,22 @@ html, body {
     margin: 0;
 }
 
-html.theater-mode, body.theater-mode {
+html.frash-show-mode, body.frash-show-mode {
     background-color: #E6E6E6;
 }
 
-body.theater-mode {
+body.frash-show-mode {
     margin-top: 200px;
     background-color: #E6E6E6;
 }
 
-.theater-mode #chatbox_input {
+.frash-show-mode #chatbox_input {
     margin-top: 50px;
     border-color: #E6E6E6;
     border-bottom-color: #E6E6E6;
 }
 
-.theater-mode .channel-window {
+.frash-show-mode .channel-window {
     width: 354px;
     border-color: #E6E6E6;
 }

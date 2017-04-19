@@ -396,14 +396,16 @@ $(function(){
             this._ssl = (options.ssl === undefined ? false : options.ssl);
             this._debug = (options.debug == undefined ? false : options.debug);
             this._wallRegEx = options.wallRegEx || /^%! [^\r\n]*/;
-            this._theaterMode = (options.theaterMode !== undefined ? options.theaterMode : false);
+            this._frashShowMode = (options.frashShowMode !== undefined ? options.frashShowMode : false);
             this._defaultChannel = options.defaultChannel;
+            this._enableThemes = options.enableThemes;
+            this._showUserJoinLeaveMessage = (options.showUserJoinLeaveMessage !== undefined) ? options.showUserJoinLeaveMessage : false;
 
             let consolidateNicknames = (options.consolidateNicknames !== undefined) ? options.consolidateNicknames : false;
             let enableReconnect = (options.enableReconnect !== undefined) ? options.enableReconnect : true;
             let autoJoinChannel = (!this._defaultChannel);
 
-            this.enableTheaterMode(this._theaterMode);
+            this.enableFrashShowMode(this._frashShowMode);
 
             if (this._debug) {
                 vga.util.enableDebug();
@@ -454,10 +456,10 @@ $(function(){
             $channelWindow.append(`<div class="user-entry" data-nickname="${userName}">${updateIcon(userRoles)}${optionBody}${messageBody}</div>`);
         }
 
-        enableTheaterMode(theaterMode) {
-            this._theaterMode = theaterMode;
-            $('html').toggleClass('theater-mode', theaterMode);
-            $('body').toggleClass('theater-mode', theaterMode);
+        enableFrashShowMode(frashShowMode) {
+            this._frashShowMode = frashShowMode;
+            $('html').toggleClass('frash-show-mode', frashShowMode);
+            $('body').toggleClass('frash-show-mode', frashShowMode);
         }
 
         //-----------------------------------------------------------------
@@ -537,6 +539,9 @@ $(function(){
                 }
             }
             return this;
+        }
+        mode(channelName, mode) {
+            
         }
 
         //-----------------------------------------------------------------
@@ -618,7 +623,7 @@ $(function(){
          * @param {string} eventData broadcasted to the channel.
          */
         onMessage(eventData) {
-            if (!this._wallRegEx.test(eventData.message) || !this._theaterMode) {
+            if (!this._wallRegEx.test(eventData.message) || !this._frashShowMode) {
                 let channel = this._userChannels[eventData.target];
                 if (channel) {
                     let user = channel[eventData.nicknameKey];
@@ -657,7 +662,7 @@ $(function(){
                 if (!user) {
                     user = new vga.irc.userEntity(eventData.identity, eventData.nickname);
                     channel[eventData.nicknameKey] = user;
-                    if (!this._theaterMode) {
+                    if (!this._frashShowMode && this._showUserJoinLeaveMessage) {
                         this.writeToChannelWindow(eventData.channelKey, user, `has joined.`, 'action');
                     }
                 }
@@ -682,7 +687,7 @@ $(function(){
                     //If we have exhasted the number of nicknames then we need to remove the user entity from the channel information block.
                     if (user.nicknames.length === 0) {
                         channel[eventData.nicknameKey] = undefined;
-                        if (!this._theaterMode) {
+                        if (!this._frashShowMode && this._showUserJoinLeaveMessage) {
                             this.writeToChannelWindow(eventData.channelKey, user, `has left.`, 'action');
                         }
                     }
