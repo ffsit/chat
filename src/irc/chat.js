@@ -268,7 +268,6 @@ $(function(){
         //If the user no longer has any registered nicknames then remove him or her from the user list.
         if (user.nicknames.length === 0) {
             $userEntry.remove();
-            return;
         }
         //Otherwise add or update the user entity to the appropriate user list section.
         else {
@@ -403,6 +402,8 @@ $(function(){
             let consolidateNicknames = (options.consolidateNicknames !== undefined) ? options.consolidateNicknames : false;
             let enableReconnect = (options.enableReconnect !== undefined) ? options.enableReconnect : true;
             let autoJoinChannel = (!this._defaultChannel);
+
+            this.enableTheaterMode(this._theaterMode);
 
             if (this._debug) {
                 vga.util.enableDebug();

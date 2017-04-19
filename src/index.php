@@ -75,6 +75,7 @@
 			<!-- Serves as a template to create other channels. -->
 			<div id="channel-tab-template" class="channel-tab">
 				<div class="center_helper">
+					<!-- Users go into sections within this list. -->
 					<div class="user-list-wrapper center-floating-container hidden">
 						<h2>User List</h2>
 						<div class="user-list mid-size">

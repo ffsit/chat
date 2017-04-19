@@ -59,7 +59,7 @@ $(function(){
         port: "6667",
         defaultChannel: '#ffstv',
         wallRegEx: /^%! [^\r\n]*/,
-        theaterMode: false,
+        theaterMode: (document.location.href.toLowerCase().indexOf("farshar") !== -1),
         enableReconnect: true,
         debug: true
     });
