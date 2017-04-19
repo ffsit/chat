@@ -57,8 +57,8 @@
 							<i class="fa fa-2x fa-toggle-on settings-item-smooth-scroll" aria-hidden="true" role="button"></i>
 							<span>Disable Smooth Scroll</span>
 						</div>
-						<div class="settings-item" data-channels="ffstv" title="Enables T-t-turbo mode!">
-							<i class="fa fa-2x fa-toggle-on settings-item-enable-turbo-mode" aria-hidden="true" role="button"></i>
+						<div class="settings-item" title="Enables T-t-turbo mode!">
+							<i class="fa fa-2x fa-toggle-on settings-item-enable-turbo-mode" data-channels="ffstv" aria-hidden="true" role="button"></i>
 							<span>Enable Turbo Only</span>
 						</div>
 						<div class="settings-item" title="Toggles Fraser's special show mode">

@@ -83,6 +83,9 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         'm': vga.irc.channelmodes.turbo
     };
 
+    var reverseChannelModeMap =  {};
+    reverseChannelModeMap[vga.irc.channelmodes.turbo] = 'm';
+
     //-----------------------------------------------------------------
     // IRC Method Map
     //-----------------------------------------------------------------
@@ -321,6 +324,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * Attempts to leave the channel specified.
          * @method vga.irc.connector.kiwi.connector.leave
          * @param {string} channel channel to leave.
+         * @param {string} message message to send to the server when leaving a channel.
          */
         leave(channel, message) {
             if (channel) {
@@ -329,6 +333,23 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 return this;
             }
             vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.leave]: Invalid channel.', channel);
+            return this;
+        }
+        /**
+         * Sets the mode for the channel.
+         * @method vga.irc.connector.kiwi.connector.setMode
+         * @param {string} channel to set the mode.
+         * @param {number} mode type to set (vga.irc.channelmodes).
+         * @param {number} action type of action (vga.irc.roleAction) to apply.
+         */
+        setMode(channel, mode, action) {
+            if (channel) {
+                let convertedMode = reverseChannelModeMap[mode];
+                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.setMode]: Attempting to ${action == vga.irc.roleAction.add ? "add" : "remove"} the mode ${convertedMode} on channel: ${channel}.`);
+                this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${channel} ${(action == vga.irc.roleAction.add ? "+" : "-")}${convertedMode}`});
+                return this;
+            }
+            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.setMode]: Invalid channel.', channel);
             return this;
         }
         /**
@@ -683,6 +704,10 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                         nicknameKey: this.getMyNicknameKey(),
                         channelKey: this.generateChannelKey(eventData.channel)
                     });
+                    return;
+
+                //Ignore this error for now.
+                case 'chanop_privs_needed':
                     return;
 
                 case 'channel_is_full':

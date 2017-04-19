@@ -94,8 +94,9 @@ $(function(){
         $(this).toggleClass('fa-toggle-off', !toggleOn);
         e.preventDefault();
     }).on('click', '.settings-item-enable-turbo-mode', function(e){
+        let channel = $(this).data('channels');
         let toggleOn = !$(this).hasClass('fa-toggle-on');
-        //chat.enableFrashShowMode(toggleOn);
+        chat.toggleTurboMode(channel, toggleOn);
         $(this).toggleClass('fa-toggle-on', toggleOn);
         $(this).toggleClass('fa-toggle-off', !toggleOn);
         e.preventDefault();

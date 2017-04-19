@@ -498,18 +498,20 @@ $(function(){
         /**
          * Attempts to join a channel.
          * @method vga.irc.chat.join
+         * @param {string} channelName to join after connecting.
          */
-        join(channel) {
-            this.connector && this.connector.join(channel);
+        join(channelName) {
+            this.connector && this.connector.join(channelName);
             return this;
         }
         /**
          * Attempts to leave a channel.
          * @method vga.irc.chat.leave
+         * @param {string} channelName to leave.
          * @param {string} message the message to send to the server when leaving a channel.
          */   
-        leave(channel, message) {
-            this.connector && this.connector.leave(channel, message);
+        leave(channelName, message) {
+            this.connector && this.connector.leave(channelName, message);
             return this;
         }
         /**
@@ -517,7 +519,7 @@ $(function(){
          * @method vga.irc.chat.send
          * @param {string} channelName to send the message to.
          * @param {string} message the message to send to the chat with the specific channel.
-         */      
+         */
         send(channelName, message) {
             if (channelName) {
                 if (message.startsWith("/QUIT")) {
@@ -540,8 +542,15 @@ $(function(){
             }
             return this;
         }
-        mode(channelName, mode) {
-            
+        /**
+         * Attempts to set turbo mode on the channel.
+         * @method vga.irc.chat.toggleTurboMode
+         * @param {string} channelName to apply turbo mode.
+         * @param {boolean} enable or disables the turbo mode, toggling.
+         */        
+        toggleTurboMode(channelName, enable) {
+            this.connector && this.connector.setMode(`#${channelName}`, vga.irc.channelmodes.turbo, (enable ? vga.irc.roleAction.add : vga.irc.roleAction.remove));
+            return this;
         }
 
         //-----------------------------------------------------------------
@@ -606,6 +615,7 @@ $(function(){
                 let $channelTab = getChannelTab(eventData.channelKey);
 
                 if (eventData.modes === vga.irc.channelmodes.turbo) {
+                    let me = channel[this.connector.getMyNicknameKey()];
                     if (eventData.action === vga.irc.roleAction.add) {
                         writeInformationalMessage(eventData.channelKey, `The room is now in TURBO only mode.`);
                         $channelTab.find('input.chatbox_input').prop('disabled', vga.irc.getMostSignificantRole(me.roles) === vga.irc.roles.shadow);
