@@ -94,6 +94,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         'message': 'onMessage',
         'userlist': 'onUserlist',
         'userlist_end': 'onUserlistEnd',
+        'channel_info': 'onChannelInfo',
         'nick': 'onNick',
         'mode': 'onMode',
         'topic': 'onTopic',

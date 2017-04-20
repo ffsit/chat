@@ -519,6 +519,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 && channelKey === this._autoJoinChannel
                 && this.isMe(nickname));
 
+            //Once we join, ask the channel for it's mode information.
+            if (eventData.type === 'join') {
+                this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${this._autoJoinChannel}`});
+            }
+
             //Determine if it is the current user joining or another user.
             //We cannot use the identity since IRC works off nicknames and every nickname can be an independent session for a single ident.
             //So we need to send event notifications on nicknames not the identity; however, we will create a psuedo-identity based on a normalized nickname.
@@ -533,6 +538,17 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 identity: this.normalizeNickname(nickname),
                 nickname: nickname
             });
+        }
+        /**
+         * This event is triggered when queried channel information arrives.
+         * @method vga.irc.connector.kiwi.connector.onChannelInfo
+         * @param {object} eventData event data associated the channel information event.
+         */
+        onChannelInfo(eventData) {
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onChannelInfo]: Channel: ${eventData.channel}.`);
+
+            //TODO: Parse the modes -- All we need in the case of VGA is to determine if the channel is in mute (+m) mode.
+            //"modes":[{"mode":"+P","param":null},{"mode":"+c","param":null},{"mode":"+m","param":null},{"mode":"+n","param":null},{"mode":"+r","param":null},{"mode":"+s","param":null},{"mode":"+t","param":null}
         }
         /**
          * This event is triggered for everyone, the authenticated user and everyone in and out of the channel.
