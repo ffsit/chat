@@ -51,6 +51,8 @@ vga.irc = vga.irc || {};
 ///////////////////////////////////////////////////////////
 $(function(){
 
+    let frashModeBegin = vga.util.inUrl('farshar');
+
     //Create the chat object.
     //Set the configuration options here.
     var chat = new vga.irc.chat({
@@ -59,7 +61,10 @@ $(function(){
         port: "6667",
         defaultChannel: '#ffstv',
         wallRegEx: /^%! [^\r\n]*/,
-        frashShowMode: (document.location.href.toLowerCase().indexOf("farshar") !== -1),
+        //This determines when this setting shows up.
+        showFrashShowMode: frashModeBegin,
+        //This determines if the setting is enabled by default.
+        frashShowMode: frashModeBegin,
         enableReconnect: true,
         debug: true
     });
@@ -87,11 +92,20 @@ $(function(){
         let $container = $('#settings-container');
         $container.toggleClass('hidden', !$container.hasClass('hidden'));
         e.preventDefault();
-    }).on('click', '.settings-item-enable-frash-show-mode', function(e){
-        let toggleOn = !$(this).hasClass('fa-toggle-on');
-        chat.enableFrashShowMode(toggleOn);
+    }).on('click', '.settings-item', function(e){
+
+        /*
         $(this).toggleClass('fa-toggle-on', toggleOn);
         $(this).toggleClass('fa-toggle-off', !toggleOn);
+        */
+
+        //TODO: Move all the settings options here...
+        let toggleOn = !$(this).find('i').hasClass('fa-toggle-on');
+        let settingsType = $(this).data('settings-type');
+        if (settingsType === 'enable-frash-show-mode') {
+            chat.enableFrashShowMode(toggleOn);
+        }
+
         e.preventDefault();
     }).on('click', '.settings-item-enable-turbo-mode', function(e){
         let channel = $(this).data('channels');

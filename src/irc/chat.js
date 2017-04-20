@@ -129,6 +129,7 @@ $(function(){
     // jQuery presentation logic.
     //-----------------------------------------------------------------
     var $channelContainer = $('.channel-container');
+    var $settingsContainer = $('#settings-container');
     var $channel = $('#channel');
     var $nickname = $('#nickname');
     var $password = $('#password');
@@ -396,16 +397,19 @@ $(function(){
             this._ssl = (options.ssl === undefined ? false : options.ssl);
             this._debug = (options.debug == undefined ? false : options.debug);
             this._wallRegEx = options.wallRegEx || /^%! [^\r\n]*/;
-            this._frashShowMode = (options.frashShowMode !== undefined ? options.frashShowMode : false);
             this._defaultChannel = options.defaultChannel;
             this._enableThemes = options.enableThemes;
             this._showUserJoinLeaveMessage = (options.showUserJoinLeaveMessage !== undefined) ? options.showUserJoinLeaveMessage : false;
+
+            let showFrashShowMode = (options.showFrashShowMode !== undefined ? options.showFrashShowMode : false);
+            let frashShowMode = (options.frashShowMode !== undefined ? options.frashShowMode : false);
 
             let consolidateNicknames = (options.consolidateNicknames !== undefined) ? options.consolidateNicknames : false;
             let enableReconnect = (options.enableReconnect !== undefined) ? options.enableReconnect : true;
             let autoJoinChannel = (!this._defaultChannel);
 
-            this.enableFrashShowMode(this._frashShowMode);
+            this.showSetting('enable-frash-show-mode', showFrashShowMode);
+            this.enableFrashShowMode(frashShowMode);
 
             if (this._debug) {
                 vga.util.enableDebug();
@@ -460,6 +464,17 @@ $(function(){
             this._frashShowMode = frashShowMode;
             $('html').toggleClass('frash-show-mode', frashShowMode);
             $('body').toggleClass('frash-show-mode', frashShowMode);
+            this.toggleSetting('enable-frash-show-mode', frashShowMode);
+        }
+
+        //Shows or hides a setting.
+        showSetting(settingsName, visible) {
+            $settingsContainer.find(`.settings-item[data-settings-type='${settingsName}']`).toggleClass('hidden', !visible);
+        }
+
+        //Toggles a setting depending on if it needs to be on or off.
+        toggleSetting(settingsName, activate) {
+            $settingsContainer.find(`.settings-item[data-settings-type='${settingsName}'] > i`).toggleClass('fa-toggle-off', !activate).toggleClass('fa-toggle-on', activate);
         }
 
         //-----------------------------------------------------------------
@@ -710,7 +725,7 @@ $(function(){
          * An event that is triggered when the authenticated user has joined a channel.
          * @method vga.irc.chat.onJoin
          * @param {object} eventData
-         */        
+         */
         onQuit(eventData) {
             //Reuse the leave logic but apply it to all channels.
             vga.util.forEach(this._userChannels, (channelKey, users) => {
@@ -725,7 +740,7 @@ $(function(){
          * An event that is triggered on a role assignment either with the authenticated user or another user in chat.
          * @method vga.irc.chat.onRole
          * @param {object} eventData contains the role information for the specific channel per user.
-         */          
+         */
         onRole (eventData) {
             let channel = this._userChannels[eventData.channelKey];
             if (channel) {
