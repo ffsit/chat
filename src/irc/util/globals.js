@@ -156,6 +156,17 @@ vga.util.forEach = (object, evaluatorFunction) => {
     }
 }
 
+/**
+ * A helper utility that returns true if the key is found within the url.
+ * @method vga.util.forEach
+ * @param {object} key object to evaluate.
+ * @return {bool} true if key is found within the URL.
+ * @api public
+ */
+vga.util.inUrl = (key) => {
+    return document.location.href.toLowerCase().indexOf(key) > -1;
+}
+
 //-----------------------------------------------------------------
 // Version object
 //-----------------------------------------------------------------
