@@ -315,7 +315,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          */
         onProxyOpened(proxyInfo) {
             proxyInfo = proxyInfo || {};
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onProxyOpened]: Proxy Connection Opened (sid: ${proxyInfo.sid}, pingInterval: ${proxyInfo.pingInterval}, pingTimeout: ${proxyInfo.pingTimeout}).`);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onProxyOpened]: Proxy Connection Opened (Sid: ${proxyInfo.sid}, PingInterval: ${proxyInfo.pingInterval}, PingTimeout: ${proxyInfo.pingTimeout}).`);
             this._state = vga.irc.connector.kiwi.STATES.PROXY_OPENED;
             
             this._connectionInfo = {
@@ -332,7 +332,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         onProxyConnected(proxyInfo) {
             proxyInfo = proxyInfo || {};
             this._state = vga.irc.connector.kiwi.STATES.PROXY_CONNECTED;
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onProxyConnected]: Proxy Connected');
+            vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onProxyConnected]: Proxy Connected.');
 
             //Create the heartbeat interval.
             if (!this._heartbeatId)
@@ -417,7 +417,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} event socket event data. 
          */
         onClose(event) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onClose]: State before close: ${this._state}.`, event);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onClose]: (State before close: ${this._state}).`);
             
             //Determine if the client closed the socket or the server did.
             //If the state is closing then the user initiated the close action, otherwise the server closed the connection.
@@ -459,7 +459,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                         let serverMessage = parsedMessage.packet;
                         let eventData = serverMessage.params[0].data || {};
                         let command = serverMessage.params[0].command.toLowerCase() || '';
-                        vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onMessage]: EventData: ${eventData} Command: ${command}.`, eventData);
+                        vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onMessage]: (EventData: ${eventData}, Command: ${command}).`, eventData);
 
                         if (serverMessage.method === vga.irc.connector.kiwi.PROXY_PREFIX) {
                             this.onProxyConnected(eventData);
@@ -471,19 +471,19 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                             this._listener.invokeListeners(command, eventData);
                         }
                         else {
-                            vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onMessage]: Unknown method: ${serverMessage.method}.`);
+                            vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onMessage]: (Unknown method: ${serverMessage.method}).`);
                         }
                     }
                     break;
                 case vga.irc.connector.kiwi.PACKET_STATUS.PONG:
-                    vga.util.debuglog.info("[vga.irc.connector.kiwi.protocolwrapper.onMessage]: Server Pong");
+                    vga.util.debuglog.info("[vga.irc.connector.kiwi.protocolwrapper.onMessage]: Server Pong.");
                     break;
                 case vga.irc.connector.kiwi.PACKET_STATUS.PING:
-                    vga.util.debuglog.info("[vga.irc.connector.kiwi.protocolwrapper.onMessage]: Server Ping responding with Pong");
+                    vga.util.debuglog.info("[vga.irc.connector.kiwi.protocolwrapper.onMessage]: Server Ping responding with Pong.");
                     this.sendRawData(vga.irc.connector.kiwi.PACKET_STATUS.PONG);
                     break;
                 default:
-                    vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onMessage]: Unhandled status: ${parsedMessage.status}.`);
+                    vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onMessage]: (Unhandled status: ${parsedMessage.status}).`);
                     break;
             }
         }

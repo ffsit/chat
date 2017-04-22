@@ -345,11 +345,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         setMode(channel, mode, action) {
             if (channel) {
                 let convertedMode = reverseChannelModeMap[mode];
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.setMode]: Attempting to ${action == vga.irc.roleAction.add ? "add" : "remove"} the mode ${convertedMode} on channel: ${channel}.`);
+                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.setMode]: (Attempting to ${action == vga.irc.roleAction.add ? "add" : "remove"} the mode ${convertedMode} on channel: ${channel}).`);
                 this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${channel} ${(action == vga.irc.roleAction.add ? "+" : "-")}${convertedMode}`});
                 return this;
             }
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.setMode]: Invalid channel.', channel);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.setMode]: (Invalid channel ${channel}).`);
             return this;
         }
         /**
@@ -360,7 +360,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         setNickname(nickname) {
             if (nickname) {
                 this._nickname = nickname;
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.nick]: Attempting to change nickname to: ${nickname}.`);
+                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.nick]: (Attempting to change nickname to: ${nickname}).`);
                 this._protocol && this._protocol.sendIRCData('nick', {nick: nickname});
             }
             return this;
@@ -375,7 +375,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             this._nickname = this._identity = '';
             //this._numberOfReconnectsAttempted = 0;
             if (this._protocol) {
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.disconnect]: Attempting to disconnect with message: ${message || 'undefined'}.`);
+                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.disconnect]: (Attempting to disconnect with message: ${message || 'undefined'}).`);
                 this._protocol.sendIRCData('quit', {message: message});
                 this._protocol.close(message);
             }
@@ -402,7 +402,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         onConnect(eventData) {
             let channelKey = '';
             this._numberOfReconnectsAttempted = 0;
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onConnect]: AutoJoinChannel: ${this._autoJoinChannel !== '' ? this._autoJoinChannel : 'none' } Nick: ${eventData.nick}`);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onConnect]: (AutoJoinChannel: ${this._autoJoinChannel !== '' ? this._autoJoinChannel : 'none' }, Nick: ${eventData.nick}).`);
             if (this._autoJoinChannel !== '') {
                 this.join(this._autoJoinChannel);
                 channelKey = this._autoJoinChannel;
@@ -415,18 +415,18 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with a disconnect event.
          */
         onDisconnect(eventData) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Reason: ${eventData.reason} closedByServer: ${eventData.closedByServer} existingConnection: ${eventData.existingConnection}`);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: (Reason: ${eventData.reason}, closedByServer: ${eventData.closedByServer}, existingConnection: ${eventData.existingConnection}).`);
             //Determine if we are going to trigger the reconnect logic.
             //The feature must be enabled, the close event triggered by the server only, and an existing connection must have been established.
             if (this._attemptReconnect && eventData.closedByServer && eventData.existingConnection) {
                 if (this._numberOfReconnectsAttempted < this._maxNumberOfReconnectAttempts) {
                     this._numberOfReconnectsAttempted++;
-                    vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Attempt to reconnect is enabled, attempting try: ${this._numberOfReconnectsAttempted}.`);
+                    vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: (Attempt to reconnect is enabled, attempting try: ${this._numberOfReconnectsAttempted}).`);
                     this._listener.invokeListeners('reconnect');
                     return;
                 }
 
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: Exceeded the number of retry event: ${this._maxNumberOfReconnectAttempts}. Giving up.`);
+                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: (Exceeded the number of retry event: ${this._maxNumberOfReconnectAttempts}). Giving up.`);
             }
 
             //this._numberOfReconnectsAttempted = 0;
@@ -439,7 +439,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated irc server.
          */
         onOptions(eventData) {
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onOptions].', eventData);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onOptions].`);
 
             //If we don't have prefix map, create one.
             if (vga.util.propertyCount(this._prefixMap) === 0) {
@@ -470,7 +470,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with a message from the server.
          */
         onMessage(eventData) {
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onMessage]', eventData);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onMessage]: (Target: ${eventData.target}, Type: ${eventData.type}, Nickname: ${eventData.nick}, Message: ${eventData.msg}).`);
             
             //Determine if we are dealing with a channel as a target and if so we need to normalize it.
             //We have to make all channel names lowercase.
@@ -494,7 +494,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          */
         onTopic(eventData) {
             let channelKey = this.generateChannelKey(eventData.channel);
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onTopic]: Topic: ${eventData.topic} Channel: ${channelKey}.`, eventData);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onTopic]: (Topic: ${eventData.topic}, Channel: ${channelKey}).`);
             this._listener.invokeListeners('topic', {
                 topic: eventData.topic,
                 channelKey: channelKey
@@ -507,7 +507,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          */
         onChannel(eventData) {
             let channelKey = this.generateChannelKey(eventData.channel);
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onChannel]: Channel: ${channelKey} Identity: ${eventData.ident} Type: ${eventData.type}.`, eventData);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onChannel]: (Channel: ${channelKey}, Identity: ${eventData.ident}, Type: ${eventData.type}).`);
 
             //The nickname will vary based on the action.
             //A kick type action will only hold the nickname of the kickee in the kicked property, with the kicker in the nick property.
@@ -545,7 +545,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated the channel information event.
          */
         onChannelInfo(eventData) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onChannelInfo]: Channel: ${eventData.channel}.`);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onChannelInfo]: (Channel: ${eventData.channel}).`);
 
             //TODO: Parse the modes -- All we need in the case of VGA is to determine if the channel is in mute (+m) mode.
             //"modes":[{"mode":"+P","param":null},{"mode":"+c","param":null},{"mode":"+m","param":null},{"mode":"+n","param":null},{"mode":"+r","param":null},{"mode":"+s","param":null},{"mode":"+t","param":null}
@@ -556,7 +556,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with channel quit event.
          */        
         onQuit(eventData){
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onQuit]: Nick: ${eventData.nick} Identity: ${eventData.ident} Message: ${eventData.message}.`);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onQuit]: (Nick: ${eventData.nick}, Identity: ${eventData.ident}, Message: ${eventData.message}).`);
             this._listener.invokeListeners(`quit`,{
                 nicknameKey: this.generateNicknameKey(eventData.nick),
                 identity: this.normalizeNickname(eventData.nick),
@@ -569,7 +569,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with mode event sent by the server.
          */
         onMode(eventData) {
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onMode].', eventData);
+            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onMode].');
 
             //Ignore any events that have no mode information.
             if (eventData.modes.length === 0) {
@@ -621,7 +621,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with userlist sent by the server.
          */
         onUserlist(eventData) {
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onUserlist].', eventData);
+            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onUserlist].');
             
             let prefixMap = vga.util.propertyCount(this._prefixMap) > 0 ? this._prefixMap : defaultPrefixMap;
             let userInfoMap = {};
@@ -674,11 +674,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          */
         onUserlistEnd(eventData) {
             let channelKey = this.generateChannelKey(eventData.channel);
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onUserListEnd]: Channel: ${channelKey}`, eventData);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onUserListEnd]: Channel: ${channelKey}`);
 
             //NOTE: There is no RPL_USERSSTART event as defined by the IRC Protocol, so we'll just wait for the RPL_ENDOFUSERS event.
             if (this._userListByChannel && channelKey && this._userListByChannel.hasOwnProperty(channelKey)) { 
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onUserListEnd]:  UserList: ${this._userListByChannel[channelKey].users}.`, eventData);
+                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onUserListEnd]: (UserList: ${this._userListByChannel[channelKey].users}).`);
                 this._listener.invokeListeners('userlist', {
                     users: this._userListByChannel[channelKey],
                     channelKey: channelKey
@@ -691,7 +691,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with an error event from the server.
          */
         onError(eventData) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onError]: Error: ${eventData.error}, Reason: ${eventData.reason}.`);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onError]: (Error: ${eventData.error}, Reason: ${eventData.reason}).`);
 
             //Return to complete logic.
             //Break to invoke the unknown error logic.
