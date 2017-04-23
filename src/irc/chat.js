@@ -173,11 +173,11 @@ $(function(){
      * Pulses a channel tab.
      * @method pulseChannelTab
      * @param {string} channelName the name of the channel tab to pulsate.
-     * @param {bool} enable is true to pulsate channel tab.
+     * @param {bool} activate to pulsate channel tab.
      */
-    function pulseChannelTab(channelName, enable) {
+    function pulseChannelTab(channelName, activate) {
         let $channelWindow = getChannelWindow(channelName);
-        $channelWindow.toggleClass('pulse', enable);
+        $channelWindow.toggleClass('pulse', activate);
     };
 
     /**
@@ -391,6 +391,10 @@ $(function(){
             //-----------------------------------------------------------------
             vga.irc.chat.CLIENT_VERSION = new vga.util.version(0, 1, 0);
 
+            //User's channel information.
+            this._userChannels = {};
+            this._globalSettings = {};
+
             //Chat settings.
             this._hostname = options.hostname;
             this._port = options.port;
@@ -401,22 +405,15 @@ $(function(){
             this._enableThemes = options.enableThemes;
             this._showUserJoinLeaveMessage = (options.showUserJoinLeaveMessage !== undefined) ? options.showUserJoinLeaveMessage : false;
 
-            let showFrashShowMode = (options.showFrashShowMode !== undefined ? options.showFrashShowMode : false);
-            let frashShowMode = (options.frashShowMode !== undefined ? options.frashShowMode : false);
-
             let consolidateNicknames = (options.consolidateNicknames !== undefined) ? options.consolidateNicknames : false;
             let enableReconnect = (options.enableReconnect !== undefined) ? options.enableReconnect : true;
             let autoJoinChannel = (!this._defaultChannel);
 
-            this.showSetting('enable-frash-show-mode', showFrashShowMode);
-            this.enableFrashShowMode(frashShowMode);
+            this.setFrashShowMode((options.enableFrashShowMode !== undefined ? options.enableFrashShowMode : false));
 
             if (this._debug) {
                 vga.util.enableDebug();
             }
-
-            //User's channel information.
-            this._userChannels = {};
 
             //The connector.  This guy has abstracted all the IRC & Kiwi IRC logic away.
             //If we switch to another IRC type, a new connector can be written to handle this without rewriting all of chat.
@@ -433,6 +430,7 @@ $(function(){
         // Presentation methods
         // These are presentation methods.
         //-----------------------------------------------------------------
+        
         writeToChannelWindow(channelName, user, message, type) {
             let optionBody = '';
             let channel = this._userChannels[channelName];
@@ -442,6 +440,9 @@ $(function(){
                     optionBody = '<span class="timeout"><i class="fa fa-clock-o" role="button" title="Timeout Chatter!"></i></span>'
                 }
             }
+
+            //let isWall = this._wallRegEx.test(message);
+            //'modbroadcast';
 
             //Encode all HTML characters.
             message = vga.util.encodeHTML(message);
@@ -460,26 +461,76 @@ $(function(){
             $channelWindow.append(`<div class="user-entry" data-nickname="${userName}">${updateIcon(userRoles)}${optionBody}${messageBody}</div>`);
         }
 
-        enableFrashShowMode(frashShowMode) {
-            this._frashShowMode = frashShowMode;
-            $('html').toggleClass('frash-show-mode', frashShowMode);
-            $('body').toggleClass('frash-show-mode', frashShowMode);
-            this.toggleSetting('enable-frash-show-mode', frashShowMode);
+        /**
+         * This is a helper method to handle all the little details of turning Frash Show Mode on and off.
+         * @method vga.irc.chat.setFrashShowMode
+         * @param {bool} activate or deactivate frash show mode.
+         */
+        setFrashShowMode(activate) {
+            this._frashShowMode = activate;
+
+            //Hide Join/Show modes when frash show mode is active.
+            //NOTE: This feature is disabled through out the chat logic if frash show mode is enabled.
+            this.showToggleSetting('join-mode', !activate);
+            
+            //Show this option always once it has been turned on.
+            this.showToggleSetting('frash-show-mode', true);
+            this.toggleSettingItem('frash-show-mode', activate);
+
+            //Toggle the styles for frash show mode.
+            $('html').toggleClass('frash-show-mode', activate);
+            $('body').toggleClass('frash-show-mode', activate);
         }
 
         //Shows or hides a setting.
-        showSetting(settingsName, visible) {
+        showToggleSetting(settingsName, visible) {
             $settingsContainer.find(`.settings-item[data-settings-type='${settingsName}']`).toggleClass('hidden', !visible);
         }
 
-        //Toggles a setting depending on if it needs to be on or off.
-        toggleSetting(settingsName, activate) {
+        toggleSettingItem(settingsName, activate) {
             $settingsContainer.find(`.settings-item[data-settings-type='${settingsName}'] > i`).toggleClass('fa-toggle-off', !activate).toggleClass('fa-toggle-on', activate);
         }
 
         //-----------------------------------------------------------------
-        // Chat events
-        // These are IRC chat events.
+        // Presentation events
+        // These are presentation methods.
+        //-----------------------------------------------------------------
+
+        onListPanelToggle($this) {
+            //let $container = $('#settings-container');
+            //$container.toggleClass('hidden', !$container.hasClass('hidden'));
+        }
+
+        /**
+         * This event is triggered when a user toggles a setting from the global settings menu.
+         * @method vga.irc.chat.onSettingsItemToggle
+         * @param {object} $this is a jQuery object that triggered the event.
+         */
+        onSettingsItemToggle($this) {
+            let $toggleButton = $this.find('i');
+            let toggledState = !$toggleButton.hasClass('fa-toggle-on');
+            switch($this.data('settings-type'))
+            {
+                case 'frash-show-mode':
+                    this.setFrashShowMode(toggledState);
+                    break;
+
+                case 'turbo-mode':
+                    let channelName = $this.data('channels');
+                    this.setTurboMode(channelName, toggledState);
+                    $toggleButton.toggleClass('fa-toggle-off', !toggledState).toggleClass('fa-toggle-on', toggledState);
+                    break;
+
+                case 'join-mode':
+                    this._showUserJoinLeaveMessage = toggledState;
+                    $toggleButton.toggleClass('fa-toggle-off', !toggledState).toggleClass('fa-toggle-on', toggledState);
+                    break;
+            }
+        }
+
+        //-----------------------------------------------------------------
+        // Chat Methods
+        // These are chat methods to invoke.
         //-----------------------------------------------------------------
 
         /**
@@ -559,19 +610,20 @@ $(function(){
         }
         /**
          * Attempts to set turbo mode on the channel.
-         * @method vga.irc.chat.toggleTurboMode
+         * @method vga.irc.chat.setTurboMode
          * @param {string} channelName to apply turbo mode.
-         * @param {boolean} enable or disables the turbo mode, toggling.
-         */        
-        toggleTurboMode(channelName, enable) {
-            this.connector && this.connector.setMode(`#${channelName}`, vga.irc.channelmodes.turbo, (enable ? vga.irc.roleAction.add : vga.irc.roleAction.remove));
+         * @param {bool} activate or disables the turbo mode.
+         */
+        setTurboMode(channelName, activate) {
+            this.connector && this.connector.setMode(`#${channelName}`, vga.irc.channelmodes.turbo, (activate ? vga.irc.roleAction.add : vga.irc.roleAction.remove));
             return this;
         }
 
         //-----------------------------------------------------------------
         // Chat events
-        // These are IRC chat events.
+        // These are chat events.
         //-----------------------------------------------------------------
+
         /**
          * An event that is triggered on a successful connection to the chat server.
          * @method vga.irc.chat.onConnect

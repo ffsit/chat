@@ -53,20 +53,20 @@
 				<div id="settings-container" class="center-floating-container hidden">
 					<h2>Settings</h2>
 					<div class="settings-body">
-						<div id="settings-smooth-scroll" class="settings-item" title="Toggles the smooth scroll feature.">
-							<i class="fa fa-2x fa-toggle-on settings-item-smooth-scroll" aria-hidden="true" role="button"></i>
+						<div class="settings-item" data-settings-type="smooth-scroll-mode" title="Toggles the smooth scroll feature." role="button">
+							<i class="fa fa-2x fa-toggle-on" aria-hidden="true"></i>
 							<span>Disable Smooth Scroll</span>
 						</div>
-						<div class="settings-item" title="Enables T-t-turbo mode!">
-							<i class="fa fa-2x fa-toggle-on settings-item-enable-turbo-mode" data-channels="ffstv" aria-hidden="true" role="button"></i>
+						<div class="settings-item hidden" data-settings-type="turbo-mode" title="Enables T-t-turbo mode!" data-channels="ffstv" role="button">
+							<i class="fa fa-2x fa-toggle-off" aria-hidden="true"></i>
 							<span>Enable Turbo Only</span>
 						</div>
-						<div class="settings-item hidden" data-settings-type="enable-frash-show-mode" title="Toggles Fraser's special show mode">
-							<i class="fa fa-2x fa-toggle-off" aria-hidden="true" role="button"></i>
+						<div class="settings-item hidden" data-settings-type="frash-show-mode" title="Toggles Fraser's special show mode" role="button">
+							<i class="fa fa-2x fa-toggle-off" aria-hidden="true"></i>
 							<span>Frash Show Mode</span>
 						</div>
-						<div id="settings-enable-join-messages" class="settings-item" title="Shows you when a user joins or leaves the chat.">
-							<i class="fa fa-2x fa-toggle-off settings-item-enable-join-messages" aria-hidden="true" role="button"></i>
+						<div class="settings-item" data-settings-type="join-mode" title="Shows you when a user joins or leaves the chat." role="button">
+							<i class="fa fa-2x fa-toggle-off" aria-hidden="true"></i>
 							<span>Show Join/Leave</span>
 						</div>
 					</div>

@@ -62,9 +62,7 @@ $(function(){
         defaultChannel: '#ffstv',
         wallRegEx: /^%! [^\r\n]*/,
         //This determines when this setting shows up.
-        showFrashShowMode: frashModeBegin,
-        //This determines if the setting is enabled by default.
-        frashShowMode: frashModeBegin,
+        enableFrashShowMode: frashModeBegin,
         enableReconnect: true,
         debug: true
     });
@@ -92,27 +90,5 @@ $(function(){
         let $container = $('#settings-container');
         $container.toggleClass('hidden', !$container.hasClass('hidden'));
         e.preventDefault();
-    }).on('click', '.settings-item', function(e){
-
-        /*
-        $(this).toggleClass('fa-toggle-on', toggleOn);
-        $(this).toggleClass('fa-toggle-off', !toggleOn);
-        */
-
-        //TODO: Move all the settings options here...
-        let toggleOn = !$(this).find('i').hasClass('fa-toggle-on');
-        let settingsType = $(this).data('settings-type');
-        if (settingsType === 'enable-frash-show-mode') {
-            chat.enableFrashShowMode(toggleOn);
-        }
-
-        e.preventDefault();
-    }).on('click', '.settings-item-enable-turbo-mode', function(e){
-        let channel = $(this).data('channels');
-        let toggleOn = !$(this).hasClass('fa-toggle-on');
-        chat.toggleTurboMode(channel, toggleOn);
-        $(this).toggleClass('fa-toggle-on', toggleOn);
-        $(this).toggleClass('fa-toggle-off', !toggleOn);
-        e.preventDefault();
-    })
+    }).on('click', '.settings-item', (e) => { chat.onSettingsItemToggle($(e.currentTarget)); e.preventDefault()});
 });
