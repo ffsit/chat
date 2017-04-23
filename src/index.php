@@ -50,7 +50,7 @@
 		</div>
 		<div class="channel-container">
 			<div class="center_helper">
-				<div id="settings-container" class="center-floating-container hidden">
+				<div id="settings-container" class="center-floating-container hidden fixed-top-centered">
 					<h2>Settings</h2>
 					<div class="settings-body">
 						<div class="settings-item" data-settings-type="smooth-scroll-mode" title="Toggles the smooth scroll feature." role="button">
