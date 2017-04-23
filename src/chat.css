@@ -39,6 +39,10 @@ Global classes
 
 [role=button] {
     cursor: pointer;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .hidden {
@@ -101,6 +105,14 @@ Global classes
     font-style: italic;
     font-weight: 400;
 }
+
+.fixed-top-centered {
+    z-index: 400;
+    position: fixed !important;
+    left: 5%;
+    right: 5%;
+}
+
 /*
 ---
 */
@@ -220,6 +232,7 @@ Settings
 #settings-container {
     z-index: 400;
     position: relative;
+    max-width: 300px;
 }
 
 .settings-item span {
