@@ -476,6 +476,9 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //We have to make all channel names lowercase.
             let isChannel = (eventData.target.length > 0 && eventData.target[0] === '#');
 
+            //Private Message Example Data: {"type":"message","nick":"messager_nick","ident":"messager_ident","hostname":"::1","target":"messagee_nick","msg":"Hi","connection_id":0}
+            //Public Message Example Data: {"type":"message","nick":"messager_nick","ident":"messager_ident","hostname":"::1","target":"#channel","msg":"No worries.","connection_id":0}
+            //Action message Example Data: {"is_request":true,"type":"ACTION","target":"#channel","params":"tests an action"}
             if (eventData.type === 'message' || eventData.type === 'action') {
                 this._listener.invokeListeners('message', {
                     nicknameKey: this.generateNicknameKey(eventData.nick),
@@ -495,6 +498,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         onTopic(eventData) {
             let channelKey = this.generateChannelKey(eventData.channel);
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onTopic]: (Topic: ${eventData.topic}, Channel: ${channelKey}).`);
+            //Example Data: {"channel":"#channel","topic":"Welcome to Chat!","connection_id":0}
             this._listener.invokeListeners('topic', {
                 topic: eventData.topic,
                 channelKey: channelKey
@@ -508,6 +512,9 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         onChannel(eventData) {
             let channelKey = this.generateChannelKey(eventData.channel);
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onChannel]: (Channel: ${channelKey}, Identity: ${eventData.ident}, Type: ${eventData.type}).`);
+
+            //Join Example Data: {"type":"join","channel":"#channel","nick":"joining_user_nick","ident":"joining_user_identity","hostname":"::1","connection_id":0}
+            //Leave Example Data: {"type":"part","channel":"#channel","nick":"joining_user_nick","ident":"joining_user_identity","hostname":"::1","connection_id":0}
 
             //The nickname will vary based on the action.
             //A kick type action will only hold the nickname of the kickee in the kicked property, with the kicker in the nick property.
@@ -547,8 +554,27 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         onChannelInfo(eventData) {
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onChannelInfo]: (Channel: ${eventData.channel}).`);
 
-            //TODO: Parse the modes -- All we need in the case of VGA is to determine if the channel is in mute (+m) mode.
-            //"modes":[{"mode":"+P","param":null},{"mode":"+c","param":null},{"mode":"+m","param":null},{"mode":"+n","param":null},{"mode":"+r","param":null},{"mode":"+s","param":null},{"mode":"+t","param":null}
+            //There maybe multiple channel info events, but we only care about the channel mode one at this time.
+            //If there are no modes then discard this event.
+            //Example Data: {"channel":"#channel","modes":[{"mode":"+P","param":null},{"mode":"+c","param":null}],"connection_id":0}
+            //Example Data2: {"channel":"#channel","created_at":1333071102,"connection_id":0}
+            if (eventData.modes) {
+                //Transform the modes into something
+                let channelModes = vga.irc.channelmodes.none;
+                eventData.modes.forEach((channelModeBlock) => {
+                    if (channelModeBlock) {
+                        if (channelModeBlock.mode.substring(0, 1) === '+') {
+                            channelModes = vga.irc.addRole(channelModes, channelModeMap[channelModeBlock.mode.substring(1, 2)]);
+                        }
+                    }
+                });
+
+                this._listener.invokeListeners(`channelmode`, {
+                    channelKey: this.generateChannelKey(eventData.channel),
+                    action: vga.irc.roleAction.add,
+                    modes: channelModes
+                });
+            }
         }
         /**
          * This event is triggered for everyone, the authenticated user and everyone in and out of the channel.
@@ -557,6 +583,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          */        
         onQuit(eventData){
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onQuit]: (Nick: ${eventData.nick}, Identity: ${eventData.ident}, Message: ${eventData.message}).`);
+            //Example Data: {"nick":"quitting_user_nick","ident":"quitting_user_ident","hostname":"::1","message":"Connection closed","connection_id":0}
             this._listener.invokeListeners(`quit`,{
                 nicknameKey: this.generateNicknameKey(eventData.nick),
                 identity: this.normalizeNickname(eventData.nick),
@@ -576,6 +603,9 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 return;
             }
 
+            //Iterate through each mode per user.
+            //The modes object contains a 1-1 mapping of mode and the user the mode is being applied to.
+            //Example Data: {"target":"#channelName","nick":"userApplyingMode","modes":[{"mode":"+v","param":"userAffected"}],"connection_id":0}
             eventData.modes.forEach((modePerUser) => {
                 let mode = (modePerUser.mode || '').trim();
                 if (mode.length === 0) {
@@ -627,6 +657,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             let userInfoMap = {};
 
             //Iterate through all users and extract the prefix and store it.
+            //Example Data: {"channel":"#channel", "users": [{"nick":"@operator","modes":["o"]},{"nick":"admin","modes":["q"]},{"nick":"scrub","modes":[]},{"nick":"+voiceuser","modes":["v"]}]}
             //let users = eventData.users.map((user) => {
             eventData.users.forEach((user) => {
                 let prefixes = [];
