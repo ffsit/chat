@@ -52,6 +52,7 @@ vga.irc.roles = {
     guest:  4,
     turbo:  2,
     shadow: 1,
+    none: 0
 };
 
 vga.irc.roleAction = {
@@ -60,7 +61,8 @@ vga.irc.roleAction = {
 };
 
 vga.irc.channelmodes = {
-    turbo: 1
+    turbo: 1,
+    none: 0
 };
 
 /**
@@ -144,6 +146,7 @@ vga.irc.compileModes = function(modes, transformFunction){
 vga.irc.userEntity = class  {
     constructor(identity, nickname, roles) {
         this.roles = (roles !== undefined) ? roles : vga.irc.roles.shadow;
+        this.isBanned = false;
         this.identity = identity;
         this.nicknames = (nickname !== undefined) ? (Array.isArray(nickname) ? nickname : [nickname]) : [];
     }
