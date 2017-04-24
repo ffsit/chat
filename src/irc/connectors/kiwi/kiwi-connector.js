@@ -554,15 +554,16 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         onChannelInfo(eventData) {
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onChannelInfo]: (Channel: ${eventData.channel}).`);
 
-            //There maybe multiple channel info events, but we only care about the channel mode one at this time.
+            //There maybe multiple channel info events, but we only care about the one that contains channel modes one at this time.
             //If there are no modes then discard this event.
             //Example Data: {"channel":"#channel","modes":[{"mode":"+P","param":null},{"mode":"+c","param":null}],"connection_id":0}
             //Example Data2: {"channel":"#channel","created_at":1333071102,"connection_id":0}
             if (eventData.modes) {
-                //Transform the modes into something
+                //Transform the irc channel modes into chat channel modes.
                 let channelModes = vga.irc.channelmodes.none;
                 eventData.modes.forEach((channelModeBlock) => {
                     if (channelModeBlock) {
+                        //Only transform positive (additive) channel modes, as channel modes that are removed will generate their own event.
                         if (channelModeBlock.mode.substring(0, 1) === '+') {
                             channelModes = vga.irc.addRole(channelModes, channelModeMap[channelModeBlock.mode.substring(1, 2)]);
                         }
