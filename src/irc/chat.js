@@ -214,6 +214,7 @@ $(function(){
     function writeInformationalMessage(channelName, message) {
         let $channelWindow = getChannelWindow(channelName);
         $channelWindow.append(`<div class="informative"><span class="message">${vga.util.encodeHTML(message)}</span></div>`);
+        $channelWindow.scrollTop($channelWindow.prop('scrollHeight'));
     };
 
     /**
@@ -259,7 +260,6 @@ $(function(){
 
         //Find the user list and user entity for this channel.
         let $userList = getChannelTab(channelName).find('.user-list-wrapper .user-list');
-        let $userEntry = $userList.find(`#user-list-${user.identity}`);
         
         //Get all the sections.
         let $modSection = $userList.find('.mod-section-body');
@@ -267,6 +267,7 @@ $(function(){
         let $regularSection = $userList.find('.regular-section-body');
 
         //If the user no longer has any registered nicknames then remove him or her from the user list.
+        let $userEntry = $userList.find(`#user-list-${user.identity}`);
         if (user.nicknames.length === 0) {
             $userEntry.remove();
         }
@@ -334,9 +335,9 @@ $(function(){
             });
 
             //Toggle the hidden status of each section depending on whether users have shifted into and out of these sections.
-            $modSection.parent().toggleClass('hidden', $modSection.find('div').length == 0);
-            $guestSection.parent().toggleClass('hidden', $guestSection.find('div').length == 0);
-            $regularSection.parent().toggleClass('hidden', $regularSection.find('div').length == 0);
+            $modSection.parent().toggleClass('hidden', $modSection.find('div').length === 0);
+            $guestSection.parent().toggleClass('hidden', $guestSection.find('div').length === 0);
+            $regularSection.parent().toggleClass('hidden', $regularSection.find('div').length === 0);
         }
     };
 
@@ -406,10 +407,15 @@ $(function(){
             this._showUserJoinLeaveMessage = (options.showUserJoinLeaveMessage !== undefined) ? options.showUserJoinLeaveMessage : false;
 
             let consolidateNicknames = (options.consolidateNicknames !== undefined) ? options.consolidateNicknames : false;
+            let enableFrashShowMode = (options.enableFrashShowMode !== undefined ? options.enableFrashShowMode : false);
             let enableReconnect = (options.enableReconnect !== undefined) ? options.enableReconnect : true;
             let autoJoinChannel = (!this._defaultChannel);
 
-            this.setFrashShowMode((options.enableFrashShowMode !== undefined ? options.enableFrashShowMode : false));
+            //If Frash Show Mode is enabled then set Frash Show Mode to true, and make the option visible.
+            //By making the option visible it can be toggled in that a user may want to turn the feature off.
+            if (enableFrashShowMode) {
+                this.setFrashShowMode(true);
+            }
 
             if (this._debug) {
                 vga.util.enableDebug();
@@ -459,6 +465,27 @@ $(function(){
             let userRoles = (user !== undefined) ? user.roles : vga.irc.roles.shadow; 
             let $channelWindow = getChannelWindow(channelName);
             $channelWindow.append(`<div class="user-entry" data-nickname="${userName}">${updateIcon(userRoles)}${optionBody}${messageBody}</div>`);
+            $channelWindow.scrollTop($channelWindow.prop('scrollHeight'));
+        }
+
+        /**
+         * This is a helper method that will show or hide a setting.
+         * @method vga.irc.chat.showToggleSetting
+         * @param {string} settingsName to show or hide.
+         * @param {bool} visible is true to show the setting feature.
+         */
+        showToggleSetting(settingsName, visible) {
+            $settingsContainer.find(`.settings-item[data-settings-type='${settingsName}']`).toggleClass('hidden', !visible);
+        }
+
+        /**
+         * This is a helper method that will perform toggle the setting icon.
+         * @method vga.irc.chat.toggleSettingItem
+         * @param {string} settingsName to toggle on or off.
+         * @param {bool} activate or deactivate this specific setting item.
+         */
+        toggleSettingItem(settingsName, activate) {
+            $settingsContainer.find(`.settings-item[data-settings-type='${settingsName}'] > i`).toggleClass('fa-toggle-off', !activate).toggleClass('fa-toggle-on', activate);
         }
 
         /**
@@ -473,22 +500,12 @@ $(function(){
             //NOTE: This feature is disabled through out the chat logic if frash show mode is enabled.
             this.showToggleSetting('join-mode', !activate);
             
-            //Show this option always once it has been turned on.
+            //Show this option always once it has been turned on (or enabled).
             this.showToggleSetting('frash-show-mode', true);
             this.toggleSettingItem('frash-show-mode', activate);
 
             //Toggle the styles for frash show mode.
-            $('html').toggleClass('frash-show-mode', activate);
-            $('body').toggleClass('frash-show-mode', activate);
-        }
-
-        //Shows or hides a setting.
-        showToggleSetting(settingsName, visible) {
-            $settingsContainer.find(`.settings-item[data-settings-type='${settingsName}']`).toggleClass('hidden', !visible);
-        }
-
-        toggleSettingItem(settingsName, activate) {
-            $settingsContainer.find(`.settings-item[data-settings-type='${settingsName}'] > i`).toggleClass('fa-toggle-off', !activate).toggleClass('fa-toggle-on', activate);
+            $('html, body').toggleClass('frash-show-mode', activate);
         }
 
         //-----------------------------------------------------------------
@@ -518,7 +535,6 @@ $(function(){
                 case 'turbo-mode':
                     let channelName = $this.data('channels');
                     this.setTurboMode(channelName, toggledState);
-                    $toggleButton.toggleClass('fa-toggle-off', !toggledState).toggleClass('fa-toggle-on', toggledState);
                     break;
 
                 case 'join-mode':
@@ -615,7 +631,10 @@ $(function(){
          * @param {bool} activate or disables the turbo mode.
          */
         setTurboMode(channelName, activate) {
-            this.connector && this.connector.setMode(`#${channelName}`, vga.irc.channelmodes.turbo, (activate ? vga.irc.roleAction.add : vga.irc.roleAction.remove));
+            if (this.connector) {
+                this.connector.setMode(`#${channelName}`, vga.irc.channelmodes.turbo, (activate ? vga.irc.roleAction.add : vga.irc.roleAction.remove));
+                this.toggleSettingItem('turbo-mode', activate);
+            }
             return this;
         }
 
@@ -681,10 +700,18 @@ $(function(){
             if (channel) {
                 let $channelTab = getChannelTab(eventData.channelKey);
 
+                //Handle the turbo mode events.
                 if (eventData.modes === vga.irc.channelmodes.turbo) {
-                    let me = channel[this.connector.getMyNicknameKey()];
+                    
+                    //Toggle the turbo mode setting.
+                    this.toggleSettingItem('turbo-mode', eventData.action === vga.irc.roleAction.add);
+
+                    //Determine if turbo mode has been turned on or off.
                     if (eventData.action === vga.irc.roleAction.add) {
                         writeInformationalMessage(eventData.channelKey, `The room is now in TURBO only mode.`);
+                        
+                        //Disable the chatbox if the user is a shadow when turbo mode is on.
+                        let me = channel[this.connector.getMyNicknameKey()];
                         $channelTab.find('input.chatbox_input').prop('disabled', vga.irc.getMostSignificantRole(me.roles) === vga.irc.roles.shadow);
                     }
                     else {
@@ -749,7 +776,7 @@ $(function(){
                 updateUserEntityInList(eventData.channelKey, user);
             }
         }
-       /**
+        /**
          * An event that is triggered when another user has left the channel.
          * @method vga.irc.chat.onOtherUserLeave
          * @param {object} eventData
@@ -801,6 +828,12 @@ $(function(){
                     user.applyRoles(eventData.action, eventData.roles);
                     updateUserEntityInList(eventData.channelKey, user);
                     updateDisplay(eventData.channelKey, user);
+
+                    //If the user is me and I have been granted mode capabilities then show the mode toggle option.
+                    if (this.connector.isMe(eventData.nicknameKey)) {
+                        let me = channel[this.connector.getMyNicknameKey()];
+                        this.showToggleSetting('turbo-mode', (me && hasModCapabilities(me.roles)));
+                    }
                 }
             }
         }
