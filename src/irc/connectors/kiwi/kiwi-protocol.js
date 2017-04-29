@@ -465,9 +465,14 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                             this.onProxyConnected(eventData);
                         }
                         else if (serverMessage.method === vga.irc.connector.kiwi.IRC_PREFIX) {
+                            //Special messages.
                             if (command === 'connect') {
                                 this.onConnect();
                             }
+                            else if (command == 'disconnect') {
+                                eventData['closedByServer'] = true;
+                            }
+
                             this._listener.invokeListeners(command, eventData);
                         }
                         else {
