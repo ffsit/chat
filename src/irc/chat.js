@@ -51,6 +51,12 @@ vga.irc = vga.irc || {};
 ///////////////////////////////////////////////////////////
 $(function(){
 
+    vga.irc.smoothScrollState = {
+        stopped: 0,
+        started: 1,
+        paused: 2,
+    }
+
     //-----------------------------------------------------------------
     // Expected structures note.
     //-----------------------------------------------------------------
@@ -170,17 +176,6 @@ $(function(){
     }
 
     /**
-     * Pulses a channel tab.
-     * @method pulseChannelTab
-     * @param {string} channelName the name of the channel tab to pulsate.
-     * @param {bool} activate to pulsate channel tab.
-     */
-    function pulseChannelTab(channelName, activate) {
-        let $channelWindow = getChannelWindow(channelName);
-        $channelWindow.toggleClass('pulse', activate);
-    };
-
-    /**
      * Returns a jQuery channel tab, window object.
      * @method getChannelWindow
      * @param {string} channelName the name of the channel tab, window object to return.
@@ -189,6 +184,17 @@ $(function(){
     function getChannelWindow(channelName) {
         return getChannelTab(channelName).find('.channel-window');
     }
+
+    /**
+     * Pulses a channel window.
+     * @method pulseChannelWindow
+     * @param {string} channelName the name of the channel tab to pulsate.
+     * @param {bool} activate to pulsate channel tab.
+     */
+    function pulseChannelWindow(channelName, activate) {
+        let $channelWindow = getChannelWindow(channelName);
+        $channelWindow.toggleClass('pulse', activate);
+    };
 
     /**
      * Returns an HTML icon element.
@@ -214,7 +220,6 @@ $(function(){
     function writeInformationalMessage(channelName, message) {
         let $channelWindow = getChannelWindow(channelName);
         $channelWindow.append(`<div class="informative"><span class="message">${vga.util.encodeHTML(message)}</span></div>`);
-        $channelWindow.scrollTop($channelWindow.prop('scrollHeight'));
     };
 
     /**
@@ -334,7 +339,7 @@ $(function(){
                 $userListSection.removeClass('hidden').append(buildUserListEntry(user));
             });
 
-            //Toggle the hidden status of each section depending on whether users have shifted into and out of these sections.
+            //Toggle the hidden status of each section depending on whether users have shifted in to or out of these sections.
             $modSection.parent().toggleClass('hidden', $modSection.find('div').length === 0);
             $guestSection.parent().toggleClass('hidden', $guestSection.find('div').length === 0);
             $regularSection.parent().toggleClass('hidden', $regularSection.find('div').length === 0);
@@ -394,7 +399,7 @@ $(function(){
 
             //User's channel information.
             this._userChannels = {};
-            this._globalSettings = {};
+            this._smoothScrollState = vga.irc.smoothScrollState.stopped;
 
             //Chat settings.
             this._hostname = options.hostname;
@@ -405,6 +410,7 @@ $(function(){
             this._defaultChannel = options.defaultChannel;
             this._enableThemes = options.enableThemes;
             this._showUserJoinLeaveMessage = (options.showUserJoinLeaveMessage !== undefined) ? options.showUserJoinLeaveMessage : false;
+            this._smoothScroll = (options.smoothScroll !== undefined) ? options.smoothScroll : true;
 
             let consolidateNicknames = (options.consolidateNicknames !== undefined) ? options.consolidateNicknames : false;
             let enableFrashShowMode = (options.enableFrashShowMode !== undefined ? options.enableFrashShowMode : false);
@@ -443,9 +449,17 @@ $(function(){
             if (channel) {
                 let me = channel[this.connector.getMyNicknameKey()];
                 if (me && hasModCapabilities(me.roles)) {
-                    optionBody = '<span class="timeout"><i class="fa fa-clock-o" role="button" title="Timeout Chatter!"></i></span>'
+                    optionBody = '<span class="timeout"><i class="fa fa-ban" role="button" title="Timeout Chatter!"></i></span>'
                 }
             }
+
+            /*
+            var color = 0;
+            for (var i = 0; i < user.nicknameKey.length; i++) {
+                color += user.nicknameKey.charCodeAt(i);
+            }
+            color = (color % 7) + 1;
+            */
 
             //let isWall = this._wallRegEx.test(message);
             //'modbroadcast';
@@ -456,7 +470,7 @@ $(function(){
             let userName = (user !== undefined) ? user.identity : 'undefined';
             let messageBody = '';
             if (type === 'action') {
-                messageBody = `<div class="username action">${userName}</div><div class="message action">${message}</div>`;
+                messageBody = `<div class="username">${userName}</div><div class="message action">${message}</div>`;
             }
             else {
                 messageBody = `<div class="username">${userName}</div>:&nbsp<div class="message">${message}</div>`;
@@ -465,7 +479,6 @@ $(function(){
             let userRoles = (user !== undefined) ? user.roles : vga.irc.roles.shadow; 
             let $channelWindow = getChannelWindow(channelName);
             $channelWindow.append(`<div class="user-entry" data-nickname="${userName}">${updateIcon(userRoles)}${optionBody}${messageBody}</div>`);
-            $channelWindow.scrollTop($channelWindow.prop('scrollHeight'));
         }
 
         /**
@@ -508,14 +521,88 @@ $(function(){
             $('html, body').toggleClass('frash-show-mode', activate);
         }
 
+        /**
+         * This is a helper method that starts and handles the Kshade smooth scroll logic.
+         * @method vga.irc.chat.startSmoothScrolling
+         */
+        startSmoothScrolling() {
+            let smoothScroll = () => {
+                //If scrolling is stopped prevent recursive calls to this function to continue.
+                if (this._smoothScrollState === vga.irc.smoothScrollState.stopped) {
+                    return;
+                }
+                this._smoothScrollIntervalId = setTimeout(() => {
+                    //Prevent any scrolling if scrolling is paused.
+                    if (this._smoothScrollState === vga.irc.smoothScrollState.started) {
+                        //Find all available windows except the template.
+                        let $windows = $channelContainer.find(':not(#channel-tab-template)').find('.channel-window');
+                        $.each($windows, (index, e) => {
+                            //Begin Kshade's smooth, smoooooth scrolling, awwww yeah.
+                            let scrollHeight = $(e).prop("scrollHeight");
+                            if (this._smoothScroll) {
+                                let scrollTop = $(e).prop("scrollTop");
+                                let scrollBottom =scrollTop + $(e).height();
+                                let scrollDownRate = 1;
+                                if (scrollBottom < scrollHeight - 140) {
+                                    scrollDownRate = Math.round(1 + ((scrollHeight - scrollBottom) / 50));
+                                }
+                                scrollHeight = scrollTop + scrollDownRate;
+                            }
+
+                            $(e).scrollTop(scrollHeight);
+                        });
+                    }
+                    //Recursively invoke the smooth scroll logic until it is terminated.
+                    smoothScroll();
+                }, 33);
+            }
+            this._smoothScrollState = vga.irc.smoothScrollState.started;
+            smoothScroll();
+        }
+
+        /**
+         * This is a helper method that stops the smooth scrolling.
+         * @method vga.irc.chat.stopSmoothScrolling
+         */
+        stopSmoothScrolling() {
+            this._smoothScrollState = vga.irc.smoothScrollState.stopped;
+            clearTimeout(this._smoothScrollIntervalId);
+        }
+
+        /**
+         * This is a helper method that pauses the smooth scrolling.
+         * @method vga.irc.chat.pauseSmoothScrolling
+         * @param {bool} activate or deactivate the pause logic 
+         */
+        pauseSmoothScrolling(activate) {
+            if (this._smoothScrollState !== vga.irc.smoothScrollState.stopped) {
+                this._smoothScrollState = activate ? vga.irc.smoothScrollState.paused : vga.irc.smoothScrollState.started;
+            }
+        }
+
         //-----------------------------------------------------------------
         // Presentation events
         // These are presentation methods.
         //-----------------------------------------------------------------
 
-        onListPanelToggle($this) {
-            //let $container = $('#settings-container');
-            //$container.toggleClass('hidden', !$container.hasClass('hidden'));
+        /**
+         * This event is triggered when a user toggles the user list for a specific channel.
+         * @method vga.irc.chat.onUserListToggle
+         * @param {object} $this is a jQuery object that triggered the event.
+         */
+        onUserListToggle($this) {
+            let $userListWrapper = $this.parents('.channel-tab').find('.user-list-wrapper');
+            $userListWrapper.toggleClass('hidden', !$userListWrapper.hasClass('hidden'));
+        }
+
+        /**
+         * This event is triggered when a user toggles the global settings menu.
+         * @method vga.irc.chat.onGlobalSettingsMenu
+         * @param {object} $this is a jQuery object that triggered the event.
+         */
+        onGlobalSettingsMenu($this) {
+            let $container = $('#settings-container');
+            $container.toggleClass('hidden', !$container.hasClass('hidden'));
         }
 
         /**
@@ -541,6 +628,34 @@ $(function(){
                     this._showUserJoinLeaveMessage = toggledState;
                     $toggleButton.toggleClass('fa-toggle-off', !toggledState).toggleClass('fa-toggle-on', toggledState);
                     break;
+
+                case 'smooth-scroll-mode':
+                    this._smoothScroll = toggledState;
+                    $toggleButton.toggleClass('fa-toggle-off', !toggledState).toggleClass('fa-toggle-on', toggledState);
+                    break;
+            }
+        }
+
+        /**
+         * This event is triggered when a user hovers over the current channel window.
+         * @method vga.irc.chat.onChannelWindowHover
+         * @param {object} $this is a jQuery object that triggered the event.
+         */
+        onChannelWindowHover(isHovering) {
+            this.pauseSmoothScrolling(isHovering);
+        }
+
+        /**
+         * This event is triggered when a user sends a command or message to the chat.
+         * @method vga.irc.chat.onSendCommandMessage
+         * @param {object} $this is a jQuery object that triggered the event.
+         */
+        onSendCommandMessage($this, key) {
+            let value = $this.val();
+            if (key === 13 && value !== '') {
+                let channelName = $this.parents('.channel-tab').data('channel');
+                this.send(channelName, value);
+                $this.val('');
             }
         }
 
@@ -604,14 +719,38 @@ $(function(){
          */
         send(channelName, message) {
             if (channelName) {
-                if (message.startsWith("/QUIT")) {
+                let messageCommand = message.toLowerCase();
+                if (messageCommand.startsWith("/quit")) {
                     this.close(message.substring(6));
                 }
-                else if (message.startsWith("/JOIN")) {
+                else if (messageCommand.startsWith("/join")) {
                     this.join(message.substring(6));
                 }
-                else if (message.startsWith("/LEAVE")) {
+                else if (messageCommand.startsWith("/leave")) {
                     this.leave(channelName, message.substring(7));
+                }
+                else if (messageCommand.startsWith("/r")) {
+                    let name = channelName;
+                    let messageIndex = message.indexOf(' ', 3);
+                    if (messageIndex > -1) {
+                        name = message.substring(3, messageIndex);
+                        message = message.substring(messageIndex + 1);
+                    }
+                    this.connector && this.connector.send(message, name);
+                    let channel = this._userChannels[channelName];
+                    if (channel) {
+                        let user = channel[this.connector.getMyNicknameKey()];
+                        this.writeToChannelWindow(channelName, user, message);
+                    }
+                }
+                else if (messageCommand.startsWith("/e")) {
+                    let emote = message.substring(3);
+                    this.connector.emote(channelName, emote);
+                    let channel = this._userChannels[channelName];
+                    if (channel) {
+                        let user = channel[this.connector.getMyNicknameKey()];
+                        this.writeToChannelWindow(channelName, user, emote, 'action');
+                    }
                 }
                 else {
                     this.connector && this.connector.send(message, channelName);
@@ -652,7 +791,8 @@ $(function(){
             toggleLoginWindow(false);
             setStatus();
             createChannelTab(eventData.channelKey);
-            pulseChannelTab(eventData.channelKey, false);
+            pulseChannelWindow(eventData.channelKey, false);
+            this.startSmoothScrolling();
         }
         /**
          * An event that is triggered when a disonnect event happens.
@@ -660,13 +800,18 @@ $(function(){
          * @param {object} eventData information.
          */
         onDisconnect(eventData) {
-            let channelName = $channel.val() || '';
-            pulseChannelTab(channelName, false);
+            this.stopSmoothScrolling();
             toggleLoginWindow(true);
+
             if (eventData.closedByServer)
             {
                 setStatus('Unable to reach the server.  Try again later.', 5000);
             }
+
+            vga.util.forEach(this._userChannels, (channelName, channelData)=>{
+                pulseChannelWindow(channelName, false);
+                writeInformationalMessage(channelName, eventData.closedByServer ? 'Disconnected by the server.' : 'You have quit.');
+            });
         }
         ///TODO: Temporary Reconnect logic, merge with the connect logic currently in the index.php.
         /**
@@ -677,7 +822,7 @@ $(function(){
             let nickname = $nickname.val() || '';
             let password = $password.val() || '';
             let channelName = $channel.val() || '';
-            pulseChannelTab(channelName, true);
+            pulseChannelWindow(channelName, true);
             //writeInformationalMessage(channelName, 'The server stopped responding...retrying.')
             setStatus('The server stopped responding...retrying.', 5000);
             this.connect(nickname, password, channelName);
@@ -874,7 +1019,6 @@ $(function(){
         onError(eventData) {
             //TODO: Close channel window.
             //For now, disconnect the user if he or she is kicked from the channel.
-            this.close();
             setStatus('Sorry, an unknown error has occured.');
             vga.util.debuglog.error(eventData.reason);
         }

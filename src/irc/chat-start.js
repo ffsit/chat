@@ -63,6 +63,7 @@ $(function(){
         wallRegEx: /^%! [^\r\n]*/,
         //This determines when this setting shows up.
         enableFrashShowMode: frashModeBegin,
+        consolidateNicknames: true,
         enableReconnect: true,
         debug: true
     });
@@ -75,20 +76,18 @@ $(function(){
         e.preventDefault();
     });
 
-    $('.channel-container').on('keyup', 'input', function(e){
-        let value = $(this).val();
-        if (e.which === 13 && value !== '') {
-            let channelName = $(this).parents('.channel-tab').data('channel');
-            chat.send(channelName, value);
-            $(this).val('');
-        }
-    }).on('click', '.user-list-button', function(e){
-        let $userListWrapper = $(this).parents('.channel-tab').find('.user-list-wrapper');
-        $userListWrapper.toggleClass('hidden', !$userListWrapper.hasClass('hidden'));
+    $('.channel-container').on('keyup', 'input', (e) => {
+        chat.onSendCommandMessage($(e.currentTarget), e.which);
+    }).on('click', '.user-list-button', (e) => {
+        chat.onUserListToggle($(e.currentTarget));
         e.preventDefault();
-    }).on('click', '.user-settings-button', function(e) {
-        let $container = $('#settings-container');
-        $container.toggleClass('hidden', !$container.hasClass('hidden'));
+    }).on('click', '.user-settings-button', (e) => {
+        chat.onGlobalSettingsMenu($(e.currentTarget));
         e.preventDefault();
-    }).on('click', '.settings-item', (e) => { chat.onSettingsItemToggle($(e.currentTarget)); e.preventDefault()});
+    }).on('click', '.settings-item', (e) => {
+        chat.onSettingsItemToggle($(e.currentTarget));
+        e.preventDefault()
+    }).on('mouseenter mouseleave', '.channel-window', (e) => {
+        chat.onChannelWindowHover(e.type === "mouseenter")
+    });
 });
