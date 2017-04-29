@@ -297,12 +297,26 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         /**
          * Attemps to sends a message to the specific target.
          * @method vga.irc.connector.kiwi.connector.send
-         * @param {string} message a temporary message to send when closing the socket.
+         * @param {string} message to send to the specific target.
+         * @param {string} target to send the message.
          */
         send(message, target) {
             if (target && message) {
                 vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.send]: Sending to (${target}): ${message}.`);
                 this._protocol && this._protocol.sendIRCData('privmsg', {target: target, msg: message });
+            }
+            return this;
+        }
+        /**
+         * Attemps to sends a user emote action
+         * @method vga.irc.connector.kiwi.connector.emote
+         * @param {string} target to send the emote action.
+         * @param {string} emoteAction to send to the specific target.
+         */
+        emote(target, emoteAction) {
+            if (target && emoteAction) {
+                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.emote]: Sending to (${target}): ${emoteAction}.`);
+                this._protocol && this._protocol.sendIRCData('ctcp', {is_request: true, type: 'ACTION', target: target, params: emoteAction });
             }
             return this;
         }
@@ -429,7 +443,6 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: (Exceeded the number of retry event: ${this._maxNumberOfReconnectAttempts}). Giving up.`);
             }
 
-            //this._numberOfReconnectsAttempted = 0;
             this._protocol && this._protocol.close();
             this._listener.invokeListeners('disconnect', {closedByServer: eventData.closedByServer});
         }
@@ -778,7 +791,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
             //Unknown error.
             this._listener.invokeListeners('error', {reason: eventData.reason});
-        }        
+        }
     }
     //END OF vga.irc.connector.kiwi.connector.prototype = {...
 }());
