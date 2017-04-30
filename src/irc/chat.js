@@ -430,7 +430,7 @@ $(function(){
             }
 
             //Load additional settings from cookies if they exist.
-            this.onLoadCookieSettings();
+            this.onLoadSettings();
 
             //The connector.  This guy has abstracted all the IRC & Kiwi IRC logic away.
             //If we switch to another IRC type, a new connector can be written to handle this without rewriting all of chat.
@@ -615,6 +615,17 @@ $(function(){
         }
 
         /**
+         * This event is triggered when a the load cookie setting event is triggered.
+         * @method vga.irc.chat.onLoadSettings
+         */
+        onLoadSettings() {
+            let joinMode = (vga.util.readCookie(joinModeId, 'false') === 'true');
+            let smoothScroll = (vga.util.readCookie(smoothScrollModeId, 'true') === 'true');
+            this.toggleSettingItem(joinModeId, joinMode);
+            this.toggleSettingItem(smoothScrollModeId, smoothScroll);
+        }
+
+        /**
          * This event is triggered when a user toggles a setting from the global settings menu.
          * @method vga.irc.chat.onSettingsItemToggle
          * @param {object} $this is a jQuery object that triggered the event.
@@ -636,26 +647,15 @@ $(function(){
                 case joinModeId:
                     this._showUserJoinLeaveMessage = toggledState;
                     $toggleButton.toggleClass('fa-toggle-off', !toggledState).toggleClass('fa-toggle-on', toggledState);
-                    vga.util.setCookie('joinMode', toggledState);
+                    vga.util.setCookie(joinModeId, toggledState);
                     break;
 
                 case smoothScrollModeId:
                     this._smoothScroll = toggledState;
                     $toggleButton.toggleClass('fa-toggle-off', !toggledState).toggleClass('fa-toggle-on', toggledState);
-                    vga.util.setCookie('smoothScroll', toggledState);
+                    vga.util.setCookie(smoothScrollModeId, toggledState);
                     break;
             }
-        }
-
-        /**
-         * This event is triggered when a the load cookie setting event is triggered.
-         * @method vga.irc.chat.onLoadCookieSettings
-         */
-        onLoadCookieSettings() {
-            let joinMode = (vga.util.readCookie('joinMode', 'false') === 'true');
-            let smoothScroll = (vga.util.readCookie('smoothScroll', 'true') === 'true');
-            this.toggleSettingItem(joinModeId, joinMode);
-            this.toggleSettingItem(smoothScrollModeId, smoothScroll);
         }
 
         /**
