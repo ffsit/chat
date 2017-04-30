@@ -55,7 +55,7 @@ vga.irc.roles = {
     none: 0
 };
 
-vga.irc.roleAction = {
+vga.irc.roleModeAction = {
     remove: 0,
     add: 1
 };
@@ -68,7 +68,7 @@ vga.irc.channelmodes = {
 vga.irc.smoothScrollState = {
     stopped: 0,
     started: 1,
-    paused: 2,
+    paused: 2
 }
 
 //-----------------------------------------------------------------
@@ -167,12 +167,12 @@ vga.irc.userEntity = class  {
     /**
      * Applies a role based on the action to the current user entity.
      * @method vga.irc.applyRoles
-     * @param {number} roleAction type of action (vga.irc.roleAction) to apply.
+     * @param {number} roleAction type of action (vga.irc.roleModeAction) to apply.
      * @param {number} rolesToApply bitarray of roles to apply.
      * @api public
      */
     applyRoles(roleAction, rolesToApply) {
-        this.roles = (roleAction === vga.irc.roleAction.add)
+        this.roles = (roleAction === vga.irc.roleModeAction.add)
             ? this.addRoles(rolesToApply)
             : this.removeRoles(rolesToApply);
     }

@@ -354,13 +354,13 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @method vga.irc.connector.kiwi.connector.setMode
          * @param {string} channel to set the mode.
          * @param {number} mode type to set (vga.irc.channelmodes).
-         * @param {number} action type of action (vga.irc.roleAction) to apply.
+         * @param {number} action type of action (vga.irc.roleModeAction) to apply.
          */
         setMode(channel, mode, action) {
             if (channel) {
                 let convertedMode = reverseChannelModeMap[mode];
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.setMode]: (Attempting to ${action == vga.irc.roleAction.add ? "add" : "remove"} the mode ${convertedMode} on channel: ${channel}).`);
-                this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${channel} ${(action == vga.irc.roleAction.add ? "+" : "-")}${convertedMode}`});
+                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.setMode]: (Attempting to ${action == vga.irc.roleModeAction.add ? "add" : "remove"} the mode ${convertedMode} on channel: ${channel}).`);
+                this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${channel} ${(action == vga.irc.roleModeAction.add ? "+" : "-")}${convertedMode}`});
                 return this;
             }
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.setMode]: (Invalid channel ${channel}).`);
@@ -585,7 +585,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
                 this._listener.invokeListeners(`channelmode`, {
                     channelKey: this.generateChannelKey(eventData.channel),
-                    action: vga.irc.roleAction.add,
+                    action: vga.irc.roleModeAction.add,
                     modes: channelModes
                 });
             }
@@ -627,9 +627,9 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 }
 
                 //Parse the mode into an action and mode.
-                let action = vga.irc.roleAction.add;
+                let action = vga.irc.roleModeAction.add;
                 if (mode.length > 1) {
-                    action = (mode.substring(0, 1) === '-') ? vga.irc.roleAction.remove : vga.irc.roleAction.add;
+                    action = (mode.substring(0, 1) === '-') ? vga.irc.roleModeAction.remove : vga.irc.roleModeAction.add;
                     mode = mode.substring(1, 2);
                 }
 

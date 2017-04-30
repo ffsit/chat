@@ -67,8 +67,8 @@ $(function(){
     // Event: onOtherUserJoin ({ channelKey: string, nicknameKey: string, identity: string, nickname: string })
     // Event: onOtherUserLeave ({ channelKey: string, nicknameKey: string, identity: string, nickname: string })
     // Event: onQuit ({ nicknameKey: string, identity: string, nickname: string })
-    // Event: onChannelMode ({ channelKey: string, modes: bitarray, action: vga.irc.roleAction })
-    // Event: onRole ({ channelKey: string, nicknameKey: string, identity: string, nickname: string, action: vga.irc.roleAction, roles: bitarray })
+    // Event: onChannelMode ({ channelKey: string, modes: bitarray, action: vga.irc.roleModeAction })
+    // Event: onRole ({ channelKey: string, nicknameKey: string, identity: string, nickname: string, action: vga.irc.roleModeAction, roles: bitarray })
     // Event: onAccessDenied()
     // Event: onKicked ({ identity: string, nicknameKey: string, channelKey: string })
     // Event: onBanned ({ identity: string, nicknameKey: string, channelKey: string })
@@ -793,7 +793,7 @@ $(function(){
          */
         setTurboMode(channelName, activate) {
             if (this.connector) {
-                this.connector.setMode(`#${channelName}`, vga.irc.channelmodes.turbo, (activate ? vga.irc.roleAction.add : vga.irc.roleAction.remove));
+                this.connector.setMode(`#${channelName}`, vga.irc.channelmodes.turbo, (activate ? vga.irc.roleModeAction.add : vga.irc.roleModeAction.remove));
                 this.toggleSettingItem(turboModeId, activate);
             }
             return this;
@@ -871,10 +871,10 @@ $(function(){
                 if (eventData.modes === vga.irc.channelmodes.turbo) {
                     
                     //Toggle the turbo mode setting.
-                    this.toggleSettingItem(turboModeId, eventData.action === vga.irc.roleAction.add);
+                    this.toggleSettingItem(turboModeId, eventData.action === vga.irc.roleModeAction.add);
 
                     //Determine if turbo mode has been turned on or off.
-                    if (eventData.action === vga.irc.roleAction.add) {
+                    if (eventData.action === vga.irc.roleModeAction.add) {
                         writeInformationalMessage(eventData.channelKey, `The room is now in TURBO only mode.`);
                         
                         //Disable the chatbox if the user is a shadow when turbo mode is on.
