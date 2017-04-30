@@ -167,6 +167,41 @@ vga.util.inUrl = (key) => {
     return document.location.href.toLowerCase().indexOf(key) > -1;
 }
 
+/**
+ * A helper utility for setting cookie values.
+ * @method vga.util.setCookie
+ * @param {string} name of the cookie to find.
+ * @param {string} value of the cookie to set.
+ * @api public
+ */
+vga.util.setCookie = (name, value) => {
+    let date = new Date();
+    date.setTime(date.getTime() + (30*24*60*60*1000));
+    document.cookie = `${name}=${value};expires=${date.toUTCString()};`;
+}
+
+/**
+ * A helper utility for reading cookie values.
+ * @method vga.util.readCookie
+ * @param {string} name of the cookie to find.
+ * @param {string} defaultValue to return if no cookie value was found (optional).
+ * @return {string} value of the cookie found, (defaultValue) empty string if nothing was found.
+ * @api public
+ */
+vga.util.readCookie = (name, defaultValue) => {
+    if (document.cookie) {
+        let cookieName = name.toLowerCase() + '=';
+        let cookieItems = document.cookie.split(';');
+        for(let i = 0; i < cookieItems.length; i++) {
+            let index = cookieItems[i].trim().toLowerCase().indexOf(cookieName);
+            if (index > -1) {
+                return cookieItems[i].substring(cookieName.length+1);
+            }
+        }
+    }
+    return (defaultValue || '');
+}
+
 //-----------------------------------------------------------------
 // Version object
 //-----------------------------------------------------------------

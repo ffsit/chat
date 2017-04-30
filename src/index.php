@@ -55,11 +55,11 @@
 					<div class="settings-body">
 						<div class="settings-item" data-settings-type="smooth-scroll-mode" title="Toggles the smooth scroll feature." role="button">
 							<i class="fa fa-2x fa-toggle-on" aria-hidden="true"></i>
-							<span>Disable Smooth Scroll</span>
+							<span>Smooth Scroll</span>
 						</div>
 						<div class="settings-item hidden" data-settings-type="turbo-mode" title="Enables T-t-turbo mode!" data-channels="ffstv" role="button">
 							<i class="fa fa-2x fa-toggle-off" aria-hidden="true"></i>
-							<span>Enable Turbo Only</span>
+							<span>Turbo Only</span>
 						</div>
 						<div class="settings-item hidden" data-settings-type="frash-show-mode" title="Toggles Fraser's special show mode" role="button">
 							<i class="fa fa-2x fa-toggle-off" aria-hidden="true"></i>

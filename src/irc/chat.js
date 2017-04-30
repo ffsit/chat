@@ -51,12 +51,6 @@ vga.irc = vga.irc || {};
 ///////////////////////////////////////////////////////////
 $(function(){
 
-    vga.irc.smoothScrollState = {
-        stopped: 0,
-        started: 1,
-        paused: 2,
-    }
-
     //-----------------------------------------------------------------
     // Expected structures note.
     //-----------------------------------------------------------------
@@ -79,6 +73,14 @@ $(function(){
     // Event: onKicked ({ identity: string, nicknameKey: string, channelKey: string })
     // Event: onBanned ({ identity: string, nicknameKey: string, channelKey: string })
     // Event: onError ({ reason: string })
+
+    //-----------------------------------------------------------------
+    // Chat defines.
+    //-----------------------------------------------------------------
+    const frashShowModeId = 'frash-show-mode';
+    const turboModeId = 'turbo-mode';
+    const joinModeId = 'join-mode';
+    const smoothScrollModeId = 'smooth-scroll-mode';
 
     //-----------------------------------------------------------------
     // Role helper methods.
@@ -397,7 +399,7 @@ $(function(){
             //-----------------------------------------------------------------
             vga.irc.chat.CLIENT_VERSION = new vga.util.version(0, 1, 0);
 
-            //User's channel information.
+            //Internal variables.
             this._userChannels = {};
             this._smoothScrollState = vga.irc.smoothScrollState.stopped;
 
@@ -426,6 +428,9 @@ $(function(){
             if (this._debug) {
                 vga.util.enableDebug();
             }
+
+            //Load additional settings from cookies if they exist.
+            this.onLoadCookieSettings();
 
             //The connector.  This guy has abstracted all the IRC & Kiwi IRC logic away.
             //If we switch to another IRC type, a new connector can be written to handle this without rewriting all of chat.
@@ -511,15 +516,19 @@ $(function(){
 
             //Hide Join/Show modes when frash show mode is active.
             //NOTE: This feature is disabled through out the chat logic if frash show mode is enabled.
-            this.showToggleSetting('join-mode', !activate);
+            this.showToggleSetting(joinModeId, !activate);
             
             //Show this option always once it has been turned on (or enabled).
-            this.showToggleSetting('frash-show-mode', true);
-            this.toggleSettingItem('frash-show-mode', activate);
+            this.showToggleSetting(frashShowModeId, true);
+            this.toggleSettingItem(frashShowModeId, activate);
 
             //Toggle the styles for frash show mode.
-            $('html, body').toggleClass('frash-show-mode', activate);
+            $('html, body').toggleClass(frashShowModeId, activate);
         }
+
+        //----------------------
+        // Smooth Scroll methods
+        //----------------------
 
         /**
          * This is a helper method that starts and handles the Kshade smooth scroll logic.
@@ -615,25 +624,38 @@ $(function(){
             let toggledState = !$toggleButton.hasClass('fa-toggle-on');
             switch($this.data('settings-type'))
             {
-                case 'frash-show-mode':
+                case frashShowModeId:
                     this.setFrashShowMode(toggledState);
                     break;
 
-                case 'turbo-mode':
+                case turboModeId:
                     let channelName = $this.data('channels');
                     this.setTurboMode(channelName, toggledState);
                     break;
 
-                case 'join-mode':
+                case joinModeId:
                     this._showUserJoinLeaveMessage = toggledState;
                     $toggleButton.toggleClass('fa-toggle-off', !toggledState).toggleClass('fa-toggle-on', toggledState);
+                    vga.util.setCookie('joinMode', toggledState);
                     break;
 
-                case 'smooth-scroll-mode':
+                case smoothScrollModeId:
                     this._smoothScroll = toggledState;
                     $toggleButton.toggleClass('fa-toggle-off', !toggledState).toggleClass('fa-toggle-on', toggledState);
+                    vga.util.setCookie('smoothScroll', toggledState);
                     break;
             }
+        }
+
+        /**
+         * This event is triggered when a the load cookie setting event is triggered.
+         * @method vga.irc.chat.onLoadCookieSettings
+         */
+        onLoadCookieSettings() {
+            let joinMode = (vga.util.readCookie('joinMode', 'false') === 'true');
+            let smoothScroll = (vga.util.readCookie('smoothScroll', 'true') === 'true');
+            this.toggleSettingItem(joinModeId, joinMode);
+            this.toggleSettingItem(smoothScrollModeId, smoothScroll);
         }
 
         /**
@@ -772,10 +794,10 @@ $(function(){
         setTurboMode(channelName, activate) {
             if (this.connector) {
                 this.connector.setMode(`#${channelName}`, vga.irc.channelmodes.turbo, (activate ? vga.irc.roleAction.add : vga.irc.roleAction.remove));
-                this.toggleSettingItem('turbo-mode', activate);
+                this.toggleSettingItem(turboModeId, activate);
             }
             return this;
-        }
+        }      
 
         //-----------------------------------------------------------------
         // Chat events
@@ -849,7 +871,7 @@ $(function(){
                 if (eventData.modes === vga.irc.channelmodes.turbo) {
                     
                     //Toggle the turbo mode setting.
-                    this.toggleSettingItem('turbo-mode', eventData.action === vga.irc.roleAction.add);
+                    this.toggleSettingItem(turboModeId, eventData.action === vga.irc.roleAction.add);
 
                     //Determine if turbo mode has been turned on or off.
                     if (eventData.action === vga.irc.roleAction.add) {
@@ -977,7 +999,7 @@ $(function(){
                     //If the user is me and I have been granted mode capabilities then show the mode toggle option.
                     if (this.connector.isMe(eventData.nicknameKey)) {
                         let me = channel[this.connector.getMyNicknameKey()];
-                        this.showToggleSetting('turbo-mode', (me && hasModCapabilities(me.roles)));
+                        this.showToggleSetting(turboModeId, (me && hasModCapabilities(me.roles)));
                     }
                 }
             }

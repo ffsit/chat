@@ -65,6 +65,16 @@ vga.irc.channelmodes = {
     none: 0
 };
 
+vga.irc.smoothScrollState = {
+    stopped: 0,
+    started: 1,
+    paused: 2,
+}
+
+//-----------------------------------------------------------------
+// Role methods.
+//-----------------------------------------------------------------
+
 /**
  * Finds the most significant role based on the bit weight.
  * @method vga.irc.getMostSignificantRole
@@ -138,6 +148,10 @@ vga.irc.compileModes = function(modes, transformFunction){
         }, roles);
     }
 };
+
+//-----------------------------------------------------------------
+// User Entity class
+//-----------------------------------------------------------------
 
 /**
  * Common user entity class used to maintain consistency and normalize the user entity object.
