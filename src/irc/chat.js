@@ -621,6 +621,10 @@ $(function(){
         onLoadSettings() {
             let joinMode = (vga.util.readCookie(joinModeId, 'false') === 'true');
             let smoothScroll = (vga.util.readCookie(smoothScrollModeId, 'true') === 'true');
+            
+            this._showUserJoinLeaveMessage = joinMode;
+            this._smoothScroll = smoothScroll;
+
             this.toggleSettingItem(joinModeId, joinMode);
             this.toggleSettingItem(smoothScrollModeId, smoothScroll);
         }
@@ -762,7 +766,7 @@ $(function(){
                     let channel = this._userChannels[channelName];
                     if (channel) {
                         let user = channel[this.connector.getMyNicknameKey()];
-                        this.writeToChannelWindow(channelName, user, message);
+                        this.writeToChannelWindow(channelName, user, ` whispers to ${name}: '${message}'`, 'action');
                     }
                 }
                 else if (messageCommand.startsWith("/e")) {
