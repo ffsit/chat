@@ -114,6 +114,21 @@ $(function(){
     };
 
     /**
+     * Returns a nickColor class based on Kshade's initial algorithm.
+     * @method getNickColorClass
+     * @param {string} name to evaluate and calculate a color.
+     * @param {number} seed an optional seed value.
+     * @return {string} the CSS nickColor generated.
+     */
+    function getNickColorClass(name, seed) {
+        let color = 0 + (seed || 0);
+        for (var i = 0; i < name.length; i++) {
+            color += name.charCodeAt(i);
+        }
+        return `${(color % 7) + 1}`;
+    };
+
+    /**
      * Determines if the roles provided have mod capabilities, which is any role above mod.
      * @method hasModRoles
      * @param {int} roles bitArray of roles
@@ -204,9 +219,10 @@ $(function(){
      * @param {number} roles a bitarray of roles.
      * @return {string} an HTML element in string form.
      */
-    function updateIcon(roles) {
-        let roleName = getRoleName(roles);
-        return `<div class="icon role ${roleName}" title="${roleName}"></div>`;
+    function updateIcon(roleName) {
+        //let roleName = getRoleName(roles);
+        //return `<div class="icon role ${roleName}" title="${roleName}"></div>`;
+        return `<div class="icon" title="${roleName}"></div>`;
     };
 
     //-----------------------------------------------------------------
@@ -232,7 +248,11 @@ $(function(){
      */
     function updateDisplay(channelName, user) {
         let $channelWindow = getChannelWindow(channelName);
-        $channelWindow.find(`.user-entry[data-nickname=${user.identity}] > .role`).replaceWith(updateIcon(user.roles));
+        //$channelWindow.find(`.user-entry[data-nickname=${user.identity}] > .role`).replaceWith(updateIcon(user.roles));
+        let roleName = getRoleName(user.roles);
+        let $userEntry = $channelWindow.find(`.user-entry[data-nickname=${user.identity}] > .role`);
+        $userEntry.removeClass().addClass(`role ${roleName}`);
+        let $userIcon = $userEntry.find('.icon').attr('title', roleName);
     };
 
     //-----------------------------------------------------------------
@@ -251,10 +271,13 @@ $(function(){
             nicknames += `${(nicknames.length > 0 ? ',' : '')}${nickname}`;
         });
 
-        return (`<div id="user-list-${user.identity}" class='user-entry'>`
-            + updateIcon(user.roles)
-            + `<div class="username" title="Nicknames: ${nicknames}">${user.identity}</div>`
-            + '</div>');
+        //TODO: This will cause issues with multiple channels as the ID will not be unique per user.
+        let roleName = getRoleName(user.roles);
+        return (`<div id='user-list-${user.identity}' class='user-entry'><div class='role ${roleName}'>`
+            //+ updateIcon(user.roles)
+            + updateIcon(roleName)
+            + `<div class='username' title="Nicknames: ${nicknames}">${user.identity}</div>`
+            + '</div></div>');
     }
 
     /**
@@ -458,13 +481,7 @@ $(function(){
                 }
             }
 
-            /*
-            var color = 0;
-            for (var i = 0; i < user.nicknameKey.length; i++) {
-                color += user.nicknameKey.charCodeAt(i);
-            }
-            color = (color % 7) + 1;
-            */
+            let color = getNickColorClass(user.identity, 5);
 
             //let isWall = this._wallRegEx.test(message);
             //'modbroadcast';
@@ -475,15 +492,16 @@ $(function(){
             let userName = (user !== undefined) ? user.identity : 'undefined';
             let messageBody = '';
             if (type === 'action') {
-                messageBody = `<div class="username">${userName}</div><div class="message action">${message}</div>`;
+                messageBody = `<div class='username nickColor${color}'>${userName}</div><div class='message action'>${message}</div>`;
             }
             else {
-                messageBody = `<div class="username">${userName}</div>:&nbsp<div class="message">${message}</div>`;
+                messageBody = `<div class='username nickColor${color}'>${userName}</div>:&nbsp<div class='message'>${message}</div>`;
             }
 
-            let userRoles = (user !== undefined) ? user.roles : vga.irc.roles.shadow; 
+            let userRoles = (user !== undefined) ? user.roles : vga.irc.roles.shadow;
+            let roleName = getRoleName(userRoles);
             let $channelWindow = getChannelWindow(channelName);
-            $channelWindow.append(`<div class="user-entry" data-nickname="${userName}">${updateIcon(userRoles)}${optionBody}${messageBody}</div>`);
+            $channelWindow.append(`<div class='user-entry' data-nickname='${userName}'><div class='role ${roleName}'>${updateIcon(roleName)}${optionBody}${messageBody}</div></div>`);
         }
 
         /**

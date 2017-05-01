@@ -357,7 +357,7 @@ Username classes
 Icon classes
 ---------------------------
 */
-div.icon.role {
+.role .icon {
     vertical-align: middle;
     background-image: url(/img/chat_spritesheet_128.png);
     display: inline-block;
@@ -367,32 +367,32 @@ div.icon.role {
 Large Icons
 */
 
-.large .user-entry .icon.role {
+.large .user-entry .role .icon {
     width: 32px;
     height: 32px;
 }
 
-.large .user-entry .icon.role.crew {
+.large .user-entry .role.crew .icon {
     background-position: 0px 0px;
 }
 
-.large .user-entry .icon.role.mod {
+.large .user-entry .role.mod .icon {
     background-position: -32px 0px;
 }
 
-.large .user-entry .icon.role.guest {
+.large .user-entry .role.guest .icon {
     background-position: -64px 0px;
 }
 
-.large .user-entry .icon.role.turbo {
+.large .user-entry .role.turbo .icon {
     background-position: -96px 0px;
 }
 
-.large .user-entry .icon.role.shadow {
+.large .user-entry .role.shadow .icon {
     background-position: -0px -32px;
 }
 
-.large .user-entry .icon.role.banned {
+.large .user-entry .role.banned .icon {
     background-position: -32px -32px;
 }
 
@@ -400,32 +400,32 @@ Large Icons
 Mid-size Icons
 */
 
-.mid-size .user-entry .icon.role {
+.mid-size .user-entry .role .icon {
     width: 24px;
     height: 24px;
 }
 
-.mid-size .user-entry .icon.role.crew {
+.mid-size .user-entry .role.crew .icon {
     background-position: 0px -64px;
 }
 
-.mid-size .user-entry .icon.role.mod {
+.mid-size .user-entry .role.mod .icon {
     background-position: -24px -64px;
 }
 
-.mid-size .user-entry .icon.role.guest {
+.mid-size .user-entry .role.guest .icon {
     background-position: -48px -64px;
 }
 
-.mid-size .user-entry .icon.role.turbo {
+.mid-size .user-entry .role.turbo .icon {
     background-position: -72px -64px;
 }
 
-.mid-size .user-entry .icon.role.shadow {
+.mid-size .user-entry .role.shadow .icon {
     background-position: -0px -88px;
 }
 
-.mid-size .user-entry .icon.role.banned {
+.mid-size .user-entry .role.banned .icon {
     background-position: -24px -88px;
 }
 
@@ -433,32 +433,32 @@ Mid-size Icons
 Small Icons
 */
 
-.small .user-entry .icon.role {
+.small .user-entry .role .icon {
     width: 16px;
     height: 16px;
 }
 
-.small .user-entry .icon.role.crew {
+.small .user-entry .role.crew .icon {
     background-position: -64px -32px;
 }
 
-.small .user-entry .icon.role.mod {
+.small .user-entry .role.mod .icon {
     background-position: -80px -32px;
 }
 
-.small .user-entry .icon.role.guest {
+.small .user-entry .role.guest .icon {
     background-position: -96px -32px;
 }
 
-.small .user-entry .icon.role.turbo {
+.small .user-entry .role.turbo .icon {
     background-position: -112px -32px;
 }
 
-.small .user-entry .icon.role.shadow {
+.small .user-entry .role.shadow .icon {
     background-position: -64px -48px;
 }
 
-.small .user-entry .icon.role.banned {
+.small .user-entry .role.banned .icon {
     background-position: -80px -48px;
 }
 
@@ -556,69 +556,102 @@ Channel classes
 ----
 */
 
-/* Colors for users */
-div.regular.nickColor1 div.username {
+/*
+.user-entry > div.icon.role.shadow ~ div.username {
+    color: red;
+}*/
+
+/*
+---------------------------
+Username classes
+---------------------------
+*/
+
+/*
+Shadows
+*/
+.channel-window .user-entry .role.shadow .username.nickColor1 {
     color: #ab6060;
 }
-div.regular.nickColor2 div.username {
+.channel-window .user-entry .role.shadow .username.nickColor2 {
     color: #6db05d;
 }
-div.regular.nickColor3 div.username {
+.channel-window .user-entry .role.shadow .username.nickColor3 {
     color: #75b3ae;
 }
-div.regular.nickColor4 div.username {
+.channel-window .user-entry .role.shadow .username.nickColor4 {
     color: #72a2b8;
 }
-div.regular.nickColor5 div.username {
+.channel-window .user-entry .role.shadow .username.nickColor5 {
     color: #8369a0;
 }
-div.regular.nickColor6 div.username {
+.channel-window .user-entry .role.shadow .username.nickColor6 {
     color: #a866a0;
 }
-div.regular.nickColor7 div.username {
+.channel-window .user-entry .role.shadow .username.nickColor7 {
     color: #bfa05d;
 }
 
-div.voice.nickColor1 div.username {
+/*
+Turbos
+*/
+.channel-window .user-entry .role.turbo .username.nickColor1 {
     color: #ac4b4b;
 }
-div.voice.nickColor2 div.username {
+.channel-window .user-entry .role.turbo .username.nickColor2 {
     color: #51b03b;
 }
-div.voice.nickColor3 div.username {
+.channel-window .user-entry .role.turbo .username.nickColor3 {
     color: #3bb0a8;
 }
-div.voice.nickColor4 div.username {
+.channel-window .user-entry .role.turbo .username.nickColor4 {
     color: #3b8db0;
 }
-div.voice.nickColor5 div.username {
+.channel-window .user-entry .role.turbo .username.nickColor5 {
     color: #713bb0;
 }
-div.voice.nickColor6 div.username {
+.channel-window .user-entry .role.turbo .username.nickColor6 {
     color: #b03ba0;
 }
-div.voice.nickColor7 div.username {
+.channel-window .user-entry .role.turbo .username.nickColor7 {
     color: #d1991a;
 }
 
-div.halfop.nickColor1 div.username, div.op.nickColor1 div.username, div.crew.nickColor1 div.username {
+/*
+Guests, Mods, Crew
+*/
+.channel-window .user-entry .role.guest .username.nickColor1,
+.channel-window .user-entry .role.mod   .username.nickColor1,
+.channel-window .user-entry .role.crew  .username.nickColor1 {
     color: #b03b3b;
 }
-div.halfop.nickColor2 div.username, div.op.nickColor2 div.username, div.crew.nickColor2 div.username {
+.channel-window .user-entry .role.guest .username.nickColor2,
+.channel-window .user-entry .role.mod   .username.nickColor2,
+.channel-window .user-entry .role.crew  .username.nickColor2 {
     color: #51b03b;
 }
-div.halfop.nickColor3 div.username, div.op.nickColor3 div.username, div.crew.nickColor3 div.username {
+.channel-window .user-entry .role.guest .username.nickColor3,
+.channel-window .user-entry .role.mod   .username.nickColor3,
+.channel-window .user-entry .role.crew  .username.nickColor3 {
     color: #3bb0a8;
 }
-div.halfop.nickColor4 div.username, div.op.nickColor4 div.username, div.crew.nickColor4 div.username {
+.channel-window .user-entry .role.guest .username.nickColor4,
+.channel-window .user-entry .role.mod   .username.nickColor4,
+.channel-window .user-entry .role.crew  .username.nickColor4 {
     color: #3b8db0;
 }
-div.halfop.nickColor5 div.username, div.op.nickColor5 div.username, div.crew.nickColor5 div.username {
+.channel-window .user-entry .role.guest .username.nickColor5,
+.channel-window .user-entry .role.mod   .username.nickColor5,
+.channel-window .user-entry .role.crew  .username.nickColor5 {
     color: #713bb0;
 }
-div.halfop.nickColor6 div.username, div.op.nickColor6 div.username, div.crew.nickColor6 div.username {
+.channel-window .user-entry .role.guest .username.nickColor6,
+.channel-window .user-entry .role.mod   .username.nickColor6,
+.channel-window .user-entry .role.crew  .username.nickColor6 {
     color: #b03ba0;
 }
-div.halfop.nickColor7 div.username, div.op.nickColor7 div.username, div.crew.nickColor7 div.username {
+.channel-window .user-entry .role.guest .username.nickColor7,
+.channel-window .user-entry .role.mod   .username.nickColor7,
+.channel-window .user-entry .role.crew  .username.nickColor7 {
     color: #d1991a;
 }
