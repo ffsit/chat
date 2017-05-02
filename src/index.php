@@ -20,7 +20,7 @@
 			<div id="debug_wrapper" class="center-floating-container">
 				<p id="debugoutput"></p>
 				<form class="debug" id="vgairc_debugform" method="post" action="/debug.php">
-						<input type="submit" value="Send debug output">
+					<input type="submit" value="Send debug output">
 				</form>
 			</div>
 		</div>
@@ -31,21 +31,21 @@
 				<div id="slide_login" class="slide_page">
 					<h1>Login</h1>
 					<div>Please read &amp; follow the <a href="http://videogamesawesome.com/the-rule-compendium/">chat rules</a>.</div>
-					<img class="spinner" src="/img/spinner<?php print(strval(rand(1,5))); ?>.gif" alt="One moment">
-					<form action="#" name="vgairc_loginform" id="vgairc_loginform">
+					<img class="spinner hidden" src="/img/spinner<?php print(strval(rand(1,5))); ?>.gif" alt="One moment">
+					<div id="vgairc_loginform">
 						<label for="nickname">Name:</label>
-						<input type="text" id="nickname" maxlength="32" value="<?php if(isset($_GET['nick'])) { print(htmlspecialchars($_GET['nick'])); } ?>">
+						<input type="text" id="nickname" maxlength="32" value="<?php if(isset($_GET['nick'])) { print(htmlspecialchars($_GET['nick'])); } ?>" placeholder="Nickname"/>
 						<label for="password">Password:</label>
-						<input type="password" id="password" maxlength="128" value="">
+						<input type="password" id="password" maxlength="128" value="" placeholder="Password"/>
 						<label for="channel">Channel:</label>
-						<input type="text" id="channel" maxlength="128" list="channels" placeholder="#ffstv">
+						<input type="text" id="channel" maxlength="128" list="channels" placeholder="#ffstv"/>
 							<datalist id="channels">
 								<option value="#ffstv">
 								<option value="#spoilers">
 								<option value="#support">
 							</datalist>
 						<button id="Login" type="button">Login</button>
-					</form>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -100,19 +100,19 @@
 				<!-- Adaptive chat buttons -->
 				<div class="lower-ui">
 					<div class="right">
-						<span class="button-container user-list-button">
+						<span class="button-container user-list-button disabled">
 							<i class="fa fa-users fa-inverse button" aria-hidden="true" title="Show Users" alt="?" role="button"></i>
 						</span>
 						<span class="button-container user-settings-button">
 							<i class="fa fa-cog fa-inverse button" aria-hidden="true" title="Show My Settings" alt="?" role="button"></i>
 						</span>
-						<span class="button-container user-support-button">
+						<span class="button-container user-support-button disabled">
 							<i class="fa fa-exclamation-circle fa-inverse button" aria-hidden="true" title="Support" alt="!" role="button"></i>
 						</span>
 					</div>
 					<!-- Input here to chat. -->
 					<div class="left">
-						<input type="text" class="chatbox_input" maxlength="300" placeholder="Troll Here!">
+						<input type="text" class="chatbox_input" maxlength="300" placeholder="Troll Here!" disabled>
 					</div>
 				</div>
 			</div>

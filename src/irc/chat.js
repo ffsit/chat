@@ -75,7 +75,7 @@ $(function(){
     // Event: onError ({ reason: string })
 
     //-----------------------------------------------------------------
-    // Chat defines.
+    // Chat constants.
     //-----------------------------------------------------------------
     const frashShowModeId = 'frash-show-mode';
     const turboModeId = 'turbo-mode';
@@ -224,6 +224,18 @@ $(function(){
         //return `<div class="icon role ${roleName}" title="${roleName}"></div>`;
         return `<div class="icon" title="${roleName}"></div>`;
     };
+
+    /**
+     * Enables or disables the lower ui for the specific channel.
+     * @method toggleLowerUI
+     * @param {string} channelName the name of the channel tab to pulsate.
+     * @param {bool} enable or disable the lower ui for this specific channel.
+     */
+    function enableLowerUI(channelName, enable) {
+        let $channelTab= getChannelTab(channelName);
+        $channelTab.find('.chatbox_input').prop('disabled', !enable).focus();
+        $channelTab.find('.user-list-button,.user-support-button').toggleClass('disabled', !enable);
+    }    
 
     //-----------------------------------------------------------------
     // Channel Window Helper functions
@@ -375,9 +387,20 @@ $(function(){
     // Misc Chat Helper functions
     //-----------------------------------------------------------------
 
+    function toggleLoginWindow(show) {
+        $('#login-wrapper').toggleClass('hidden', !show);
+    }
+
+    function toggleSpinner(show) {
+        $('.spinner').toggleClass('hidden', !show);
+    }
+
     function setStatus(message, timeout) {
         let $slideMessage = $('#slide_message');
-        $slideMessage.text(message || '').toggleClass('hidden', !message)
+        $slideMessage.text(message || '').toggleClass('hidden', !message);
+        
+        //Hide the spinner on a status update.
+        toggleSpinner(false);
         
         if (timeout) {
             setTimeout(() => {
@@ -386,10 +409,6 @@ $(function(){
                 });
             }, timeout);
         }
-    }
-
-    function toggleLoginWindow(show) {
-        $('#login-wrapper').toggleClass('hidden', !show);
     }
 
     //-----------------------------------------------------------------
@@ -420,7 +439,7 @@ $(function(){
             //-----------------------------------------------------------------
             // Versioning
             //-----------------------------------------------------------------
-            vga.irc.chat.CLIENT_VERSION = new vga.util.version(0, 1, 0);
+            vga.irc.chat.CLIENT_VERSION = new vga.util.version(0, 1, 1);
 
             //Internal variables.
             this._userChannels = {};
@@ -453,6 +472,7 @@ $(function(){
             }
 
             //Load additional settings from cookies if they exist.
+            this.bindEvents();
             this.onLoadSettings();
 
             //The connector.  This guy has abstracted all the IRC & Kiwi IRC logic away.
@@ -470,7 +490,7 @@ $(function(){
         // Presentation methods
         // These are presentation methods.
         //-----------------------------------------------------------------
-        
+
         writeToChannelWindow(channelName, user, message, type) {
             let optionBody = '';
             let channel = this._userChannels[channelName];
@@ -503,7 +523,6 @@ $(function(){
             let $channelWindow = getChannelWindow(channelName);
             $channelWindow.append(`<div class='user-entry' data-nickname='${userName}'><div class='role ${roleName}'>${updateIcon(roleName)}${optionBody}${messageBody}</div></div>`);
         }
-
         /**
          * This is a helper method that will show or hide a setting.
          * @method vga.irc.chat.showToggleSetting
@@ -513,7 +532,6 @@ $(function(){
         showToggleSetting(settingsName, visible) {
             $settingsContainer.find(`.settings-item[data-settings-type='${settingsName}']`).toggleClass('hidden', !visible);
         }
-
         /**
          * This is a helper method that will perform toggle the setting icon.
          * @method vga.irc.chat.toggleSettingItem
@@ -523,7 +541,6 @@ $(function(){
         toggleSettingItem(settingsName, activate) {
             $settingsContainer.find(`.settings-item[data-settings-type='${settingsName}'] > i`).toggleClass('fa-toggle-off', !activate).toggleClass('fa-toggle-on', activate);
         }
-
         /**
          * This is a helper method to handle all the little details of turning Frash Show Mode on and off.
          * @method vga.irc.chat.setFrashShowMode
@@ -586,7 +603,6 @@ $(function(){
             this._smoothScrollState = vga.irc.smoothScrollState.started;
             smoothScroll();
         }
-
         /**
          * This is a helper method that stops the smooth scrolling.
          * @method vga.irc.chat.stopSmoothScrolling
@@ -595,7 +611,6 @@ $(function(){
             this._smoothScrollState = vga.irc.smoothScrollState.stopped;
             clearTimeout(this._smoothScrollIntervalId);
         }
-
         /**
          * This is a helper method that pauses the smooth scrolling.
          * @method vga.irc.chat.pauseSmoothScrolling
@@ -613,15 +628,58 @@ $(function(){
         //-----------------------------------------------------------------
 
         /**
+         * This method binds the presentation events.
+         * @method vga.irc.chat.bindEvents
+         */
+        bindEvents() {
+            $('#vgairc_loginform').off().on('click', 'button', (e) => {
+                this.onLogin();
+                e.preventDefault();
+            }).on('keyup', 'input', (e) => {
+                if (e.which === 13) {
+                    this.onLogin();
+                }
+            });
+
+            $channelContainer.off().on('keyup', 'input', (e) => {
+                this.onSendCommandMessage($(e.currentTarget), e.which);
+            }).on('click', '.user-list-button', (e) => {
+                this.onUserListToggle($(e.currentTarget));
+                e.preventDefault();
+            }).on('click', '.user-settings-button', (e) => {
+                this.onGlobalSettingsMenu($(e.currentTarget));
+                e.preventDefault();
+            }).on('click', '.settings-item', (e) => {
+                this.onSettingsItemToggle($(e.currentTarget));
+                e.preventDefault();
+            }).on('mouseenter mouseleave', '.channel-window', (e) => {
+                this.onChannelWindowHover(e.type === "mouseenter")
+            }).on('click', '.timeout', (e) => {
+                //this.onTimeoutUser($(e.currentTarget));
+                e.preventDefault();
+            });
+        }
+        /**
+         * This event is triggered when a user triggers the chat login event.
+         * @method vga.irc.chat.onLogin
+         */
+        onLogin() {
+            let channelName = $channel.val();
+            toggleSpinner(true);
+            pulseChannelWindow(channelName, true);
+            this.connect($nickname.val(), $password.val(), channelName);
+        }
+        /**
          * This event is triggered when a user toggles the user list for a specific channel.
          * @method vga.irc.chat.onUserListToggle
          * @param {object} $this is a jQuery object that triggered the event.
          */
         onUserListToggle($this) {
-            let $userListWrapper = $this.parents('.channel-tab').find('.user-list-wrapper');
-            $userListWrapper.toggleClass('hidden', !$userListWrapper.hasClass('hidden'));
+            if (!$this.hasClass('disabled')) {
+                let $userListWrapper = $this.parents('.channel-tab').find('.user-list-wrapper');
+                $userListWrapper.toggleClass('hidden', !$userListWrapper.hasClass('hidden'));
+            }
         }
-
         /**
          * This event is triggered when a user toggles the global settings menu.
          * @method vga.irc.chat.onGlobalSettingsMenu
@@ -631,7 +689,6 @@ $(function(){
             let $container = $('#settings-container');
             $container.toggleClass('hidden', !$container.hasClass('hidden'));
         }
-
         /**
          * This event is triggered when a the load cookie setting event is triggered.
          * @method vga.irc.chat.onLoadSettings
@@ -646,7 +703,6 @@ $(function(){
             this.toggleSettingItem(joinModeId, joinMode);
             this.toggleSettingItem(smoothScrollModeId, smoothScroll);
         }
-
         /**
          * This event is triggered when a user toggles a setting from the global settings menu.
          * @method vga.irc.chat.onSettingsItemToggle
@@ -679,7 +735,6 @@ $(function(){
                     break;
             }
         }
-
         /**
          * This event is triggered when a user hovers over the current channel window.
          * @method vga.irc.chat.onChannelWindowHover
@@ -688,7 +743,6 @@ $(function(){
         onChannelWindowHover(isHovering) {
             this.pauseSmoothScrolling(isHovering);
         }
-
         /**
          * This event is triggered when a user sends a command or message to the chat.
          * @method vga.irc.chat.onSendCommandMessage
@@ -819,7 +873,7 @@ $(function(){
                 this.toggleSettingItem(turboModeId, activate);
             }
             return this;
-        }      
+        }
 
         //-----------------------------------------------------------------
         // Chat events
@@ -832,12 +886,14 @@ $(function(){
          * @param {object} eventData information.
          */
         onConnect(eventData) {
-            toggleLoginWindow(false);
             setStatus();
             createChannelTab(eventData.channelKey);
             pulseChannelWindow(eventData.channelKey, false);
+            enableLowerUI(eventData.channelKey, true);
+            toggleLoginWindow(false);
             this.startSmoothScrolling();
         }
+
         /**
          * An event that is triggered when a disonnect event happens.
          * @method vga.irc.chat.onDisconnect
@@ -847,30 +903,30 @@ $(function(){
             this.stopSmoothScrolling();
             toggleLoginWindow(true);
 
+            /*
             if (eventData.closedByServer)
             {
-                setStatus('Unable to reach the server.  Try again later.', 5000);
+                setStatus(eventData.disconnectMsg, 5000);
             }
+            */
 
             vga.util.forEach(this._userChannels, (channelName, channelData)=>{
+                enableLowerUI(channelName, false);
                 pulseChannelWindow(channelName, false);
                 writeInformationalMessage(channelName, eventData.closedByServer ? 'Disconnected by the server.' : 'You have quit.');
             });
         }
+
         ///TODO: Temporary Reconnect logic, merge with the connect logic currently in the index.php.
         /**
          * An event that is triggered when a topic event occurs.
          * @method vga.irc.chat.onReconnect
          */
         onReconnect() {
-            let nickname = $nickname.val() || '';
-            let password = $password.val() || '';
-            let channelName = $channel.val() || '';
-            pulseChannelWindow(channelName, true);
-            //writeInformationalMessage(channelName, 'The server stopped responding...retrying.')
             setStatus('The server stopped responding...retrying.', 5000);
-            this.connect(nickname, password, channelName);
+            this.onLogin();
         }
+
         /**
          * An event that is triggered when a topic event occurs.
          * @method vga.irc.chat.onTopic
@@ -879,6 +935,7 @@ $(function(){
         onTopic(eventData) {
             writeInformationalMessage(eventData.channelKey, eventData.topic);
         }
+
         /**
          * 
          * @method vga.irc.chat.onChannelMode
@@ -909,7 +966,7 @@ $(function(){
                     }
                 }
             }
-        } 
+        }
         /**
          * An event that is triggered when receiving a message from the chat server.
          * @method vga.irc.chat.onMessage

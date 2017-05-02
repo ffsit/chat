@@ -47,7 +47,7 @@ vga.irc = vga.irc || {};
 
 ///////////////////////////////////////////////////////////
 // The main VGA chat application entry point.
-// Configuration details and jQuery event bindings go here.
+// Configuration details go here.
 ///////////////////////////////////////////////////////////
 $(function(){
 
@@ -66,28 +66,5 @@ $(function(){
         consolidateNicknames: true,
         enableReconnect: true,
         debug: true
-    });
-
-    $('#Login').click(function(e){
-        let nickname = $('#nickname').val();
-        let password = $('#password').val();
-        let channel = $('#channel').val();
-        chat.connect(nickname, password, channel);
-        e.preventDefault();
-    });
-
-    $('.channel-container').on('keyup', 'input', (e) => {
-        chat.onSendCommandMessage($(e.currentTarget), e.which);
-    }).on('click', '.user-list-button', (e) => {
-        chat.onUserListToggle($(e.currentTarget));
-        e.preventDefault();
-    }).on('click', '.user-settings-button', (e) => {
-        chat.onGlobalSettingsMenu($(e.currentTarget));
-        e.preventDefault();
-    }).on('click', '.settings-item', (e) => {
-        chat.onSettingsItemToggle($(e.currentTarget));
-        e.preventDefault()
-    }).on('mouseenter mouseleave', '.channel-window', (e) => {
-        chat.onChannelWindowHover(e.type === "mouseenter")
     });
 });
