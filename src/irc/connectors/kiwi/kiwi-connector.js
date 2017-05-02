@@ -430,6 +430,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          */
         onDisconnect(eventData) {
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: (Reason: ${eventData.reason}, closedByServer: ${eventData.closedByServer}, existingConnection: ${eventData.existingConnection}).`);
+            
+            let disconnectMsg = 'Unable to reach the server.  Try again later.';
             //Determine if we are going to trigger the reconnect logic.
             //The feature must be enabled, the close event triggered by the server only, and an existing connection must have been established.
             if (this._attemptReconnect && eventData.closedByServer && eventData.existingConnection) {
@@ -440,11 +442,12 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     return;
                 }
 
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: (Exceeded the number of retry event: ${this._maxNumberOfReconnectAttempts}). Giving up.`);
+                disconnectMsg = `(Exceeded the number of retry event: ${this._maxNumberOfReconnectAttempts}). Giving up.`;
+                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: ${disconnectMsg}`);
             }
 
             this._protocol && this._protocol.close();
-            this._listener.invokeListeners('disconnect', {closedByServer: eventData.closedByServer});
+            this._listener.invokeListeners('disconnect', {closedByServer: eventData.closedByServer, disconnectMsg: disconnectMsg});
         }
         /**
          * This event is triggered when the IRC server sends the options information.
