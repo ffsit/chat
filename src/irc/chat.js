@@ -455,6 +455,7 @@ $(function(){
             this._enableThemes = options.enableThemes;
             this._showUserJoinLeaveMessage = (options.showUserJoinLeaveMessage !== undefined) ? options.showUserJoinLeaveMessage : false;
             this._smoothScroll = (options.smoothScroll !== undefined) ? options.smoothScroll : true;
+            this._nicknameColorSeedFunction = options.nicknameColorSeedFunction;
 
             let consolidateNicknames = (options.consolidateNicknames !== undefined) ? options.consolidateNicknames : false;
             let enableFrashShowMode = (options.enableFrashShowMode !== undefined ? options.enableFrashShowMode : false);
@@ -501,7 +502,8 @@ $(function(){
                 }
             }
 
-            let color = getNickColorClass(user.identity, 5);
+            //Generate the nickname color and change it based on the seed function, if defined.
+            let nickColor = getNickColorClass(user.identity, this._nicknameColorSeedFunction && this._nicknameColorSeedFunction());
 
             //let isWall = this._wallRegEx.test(message);
             //'modbroadcast';
@@ -512,10 +514,10 @@ $(function(){
             let userName = (user !== undefined) ? user.identity : 'undefined';
             let messageBody = '';
             if (type === 'action') {
-                messageBody = `<div class='username nickColor${color}'>${userName}</div><div class='message action'>${message}</div>`;
+                messageBody = `<div class='username nickColor${nickColor}'>${userName}</div><div class='message action'>${message}</div>`;
             }
             else {
-                messageBody = `<div class='username nickColor${color}'>${userName}</div>:&nbsp<div class='message'>${message}</div>`;
+                messageBody = `<div class='username nickColor${nickColor}'>${userName}</div>:&nbsp<div class='message'>${message}</div>`;
             }
 
             let userRoles = (user !== undefined) ? user.roles : vga.irc.roles.shadow;
