@@ -112,7 +112,7 @@
 					</div>
 					<!-- Input here to chat. -->
 					<div class="left">
-						<input type="text" class="chatbox_input" maxlength="300" placeholder="Troll Here!" disabled>
+						<input type="text" class="chatbox" maxlength="300" placeholder="Troll Here!" disabled>
 					</div>
 				</div>
 			</div>

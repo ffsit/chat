@@ -11,24 +11,28 @@ html, body {
     margin: 0;
 }
 
-html.frash-show-mode, body.frash-show-mode {
+html.frash-show-mode, .frash-show-mode body {
     background-color: #E6E6E6;
 }
 
-body.frash-show-mode {
-    margin-top: 200px;
-    background-color: #E6E6E6;
+html.frash-show-mode {
+    margin-top: 200px !important;
 }
 
-.frash-show-mode #chatbox_input {
+.frash-show-mode .chatbox {
     margin-top: 50px;
     border-color: #E6E6E6;
     border-bottom-color: #E6E6E6;
 }
 
 .frash-show-mode .channel-window {
-    width: 354px;
+    /*width: 354px;*/
+    width: 287px;
     border-color: #E6E6E6;
+}
+
+.frash-show-mode #wrapper1 {
+    width: 288px;
 }
 
 /*
@@ -305,7 +309,7 @@ User classes
 }
 
 .user-entry .message {
-    display: inline-block;
+    display: inline;
     vertical-align: middle;
     line-height: 16px;	
     word-wrap: break-word;
@@ -546,7 +550,7 @@ Channel classes
 .channel-window div.user-entry {
     line-height: 16px;
     padding: .2em;
-    padding-left: 0.5em;
+    /*padding-left: 0.5em;*/
     word-wrap: break-word;
 }
 

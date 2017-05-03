@@ -114,21 +114,6 @@ $(function(){
     };
 
     /**
-     * Returns a nickColor class based on Kshade's initial algorithm.
-     * @method getNickColorClass
-     * @param {string} name to evaluate and calculate a color.
-     * @param {number} seed an optional seed value.
-     * @return {string} the CSS nickColor generated.
-     */
-    function getNickColorClass(name, seed) {
-        let color = 0 + (seed || 0);
-        for (var i = 0; i < name.length; i++) {
-            color += name.charCodeAt(i);
-        }
-        return `${(color % 7) + 1}`;
-    };
-
-    /**
      * Determines if the roles provided have mod capabilities, which is any role above mod.
      * @method hasModRoles
      * @param {int} roles bitArray of roles
@@ -147,6 +132,49 @@ $(function(){
     function hasGuestCapabilities(roles) {
         return vga.irc.getMostSignificantRole(roles) === vga.irc.roles.guest;
     }
+
+    //-----------------------------------------------------------------
+    // Misc Chat Helper functions
+    //-----------------------------------------------------------------
+
+    function toggleLoginWindow(show) {
+        $('#login-wrapper').toggleClass('hidden', !show);
+    }
+
+    function toggleSpinner(show) {
+        $('.spinner').toggleClass('hidden', !show);
+    }
+
+    function setStatus(message, timeout) {
+        let $slideMessage = $('#slide_message');
+        $slideMessage.text(message || '').toggleClass('hidden', !message);
+        
+        //Hide the spinner on a status update.
+        toggleSpinner(false);
+        
+        if (timeout) {
+            setTimeout(() => {
+                $slideMessage.fadeOut( "slow", () => {
+                    $slideMessage.toggleClass('hidden', true).css('display', '');
+                });
+            }, timeout);
+        }
+    }
+
+    /**
+     * Returns a nickColor class based on Kshade's initial algorithm.
+     * @method getNickColorClass
+     * @param {string} name to evaluate and calculate a color.
+     * @param {number} seed an optional seed value.
+     * @return {string} the CSS nickColor generated.
+     */
+    function getNickColorClass(name, seed) {
+        let color = 0 + (seed || 0);
+        for (var i = 0; i < name.length; i++) {
+            color += name.charCodeAt(i);
+        }
+        return `${(color % 7) + 1}`;
+    };
 
     //-----------------------------------------------------------------
     // jQuery presentation logic.
@@ -226,7 +254,7 @@ $(function(){
         $channelTab.find('.user-list-button,.user-support-button').toggleClass('disabled', !enable);
         
         //Enable the chatbox and give it focus.
-        let $chatBox = $channelTab.find('.chatbox_input');
+        let $chatBox = $channelTab.find('.chatbox');
         $chatBox.prop('disabled', !enable);
         if (enable) {
             $chatBox.focus();
@@ -378,34 +406,6 @@ $(function(){
     };
 
     //-----------------------------------------------------------------
-    // Misc Chat Helper functions
-    //-----------------------------------------------------------------
-
-    function toggleLoginWindow(show) {
-        $('#login-wrapper').toggleClass('hidden', !show);
-    }
-
-    function toggleSpinner(show) {
-        $('.spinner').toggleClass('hidden', !show);
-    }
-
-    function setStatus(message, timeout) {
-        let $slideMessage = $('#slide_message');
-        $slideMessage.text(message || '').toggleClass('hidden', !message);
-        
-        //Hide the spinner on a status update.
-        toggleSpinner(false);
-        
-        if (timeout) {
-            setTimeout(() => {
-                $slideMessage.fadeOut( "slow", () => {
-                    $slideMessage.toggleClass('hidden', true).css('display', '');
-                });
-            }, timeout);
-        }
-    }
-
-    //-----------------------------------------------------------------
     // Main chat class.
     //-----------------------------------------------------------------
 
@@ -496,30 +496,29 @@ $(function(){
                 }
             }
 
-            //Generate the nickname color and change it based on the seed function, if defined.
-            let nickColor = getNickColorClass(user.identity, this._nicknameColorSeedFunction && this._nicknameColorSeedFunction());
-
             //let isWall = this._wallRegEx.test(message);
             //'modbroadcast';
 
             //Encode all HTML characters.
             message = vga.util.encodeHTML(message);
-
-            let userName = (user !== undefined) ? user.identity : 'undefined';
             let messageBody = '';
             if (type === 'action') {
-                messageBody = `<div class='username nickColor${nickColor}'>${userName}</div><div class='message action'>${message}</div>`;
+                messageBody = `<div class='message action'>${message}</div>`;
             }
             else {
-                messageBody = `<div class='username nickColor${nickColor}'>${userName}</div>:&nbsp<div class='message'>${message}</div>`;
+                messageBody = `:&nbsp<div class='message'>${message}</div>`;
             }
 
+            //Generate the nickname color and change it based on the seed function, if defined.
+            let nickColor = getNickColorClass(user.identity, this._nicknameColorSeedFunction && this._nicknameColorSeedFunction());
+
+            let userName = (user !== undefined) ? user.identity : 'undefined';
             let roleName = getRoleName((user !== undefined) ? user.roles : vga.irc.roles.shadow);
+
             let $channelWindow = getChannelWindow(channelName);
             $channelWindow.append(`<div class='user-entry' data-nickname='${userName}'><div class='role ${roleName}'>`
-                + `<div class="icon" title="${roleName}"></div>`
-                + optionBody
-                + messageBody
+                + `<div class="icon" title="${roleName}"></div>${optionBody}`
+                + `<div class='username nickColor${nickColor}'>${userName}</div>${messageBody}`
                 + `</div></div>`);
         }
         /**
@@ -557,7 +556,7 @@ $(function(){
             this.toggleSettingItem(frashShowModeId, activate);
 
             //Toggle the styles for frash show mode.
-            $('html, body').toggleClass(frashShowModeId, activate);
+            $('html').toggleClass(frashShowModeId, activate);
         }
 
         //----------------------
@@ -634,7 +633,6 @@ $(function(){
          * @param {string} channel the channel the user is attempting to autojoin.
          */
         connect(nickname, password, channel) {
-            //setStatus();
             this.connector.connect({ 
                 nick: nickname,
                 hostname: this._hostname,
@@ -822,11 +820,11 @@ $(function(){
                         
                         //Disable the chatbox if the user is a shadow when turbo mode is on.
                         let me = channel[this.connector.getMyNicknameKey()];
-                        $channelTab.find('input.chatbox_input').prop('disabled', vga.irc.getMostSignificantRole(me.roles) === vga.irc.roles.shadow);
+                        $channelTab.find('input.chatbox').prop('disabled', vga.irc.getMostSignificantRole(me.roles) === vga.irc.roles.shadow);
                     }
                     else {
                         writeInformationalMessage(eventData.channelKey, `The room is now free for all chatters.`);
-                        $channelTab.find('input.chatbox_input').prop('disabled', false);
+                        $channelTab.find('input.chatbox').prop('disabled', false);
                     }
                 }
             }
