@@ -214,28 +214,24 @@ $(function(){
     };
 
     /**
-     * Returns an HTML icon element.
-     * @method updateIcon
-     * @param {number} roles a bitarray of roles.
-     * @return {string} an HTML element in string form.
-     */
-    function updateIcon(roleName) {
-        //let roleName = getRoleName(roles);
-        //return `<div class="icon role ${roleName}" title="${roleName}"></div>`;
-        return `<div class="icon" title="${roleName}"></div>`;
-    };
-
-    /**
      * Enables or disables the lower ui for the specific channel.
      * @method toggleLowerUI
      * @param {string} channelName the name of the channel tab to pulsate.
      * @param {bool} enable or disable the lower ui for this specific channel.
      */
     function enableLowerUI(channelName, enable) {
-        let $channelTab= getChannelTab(channelName);
-        $channelTab.find('.chatbox_input').prop('disabled', !enable).focus();
+        let $channelTab = getChannelTab(channelName);
+        
+        //Enable the user list & support buttons.
         $channelTab.find('.user-list-button,.user-support-button').toggleClass('disabled', !enable);
-    }    
+        
+        //Enable the chatbox and give it focus.
+        let $chatBox = $channelTab.find('.chatbox_input');
+        $chatBox.prop('disabled', !enable);
+        if (enable) {
+            $chatBox.focus();
+        }
+    }
 
     //-----------------------------------------------------------------
     // Channel Window Helper functions
@@ -260,11 +256,10 @@ $(function(){
      */
     function updateDisplay(channelName, user) {
         let $channelWindow = getChannelWindow(channelName);
-        //$channelWindow.find(`.user-entry[data-nickname=${user.identity}] > .role`).replaceWith(updateIcon(user.roles));
-        let roleName = getRoleName(user.roles);
         let $userEntry = $channelWindow.find(`.user-entry[data-nickname=${user.identity}] > .role`);
-        $userEntry.removeClass().addClass(`role ${roleName}`);
-        let $userIcon = $userEntry.find('.icon').attr('title', roleName);
+        
+        let roleName = getRoleName(user.roles);
+        $userEntry.removeClass().addClass(`role ${roleName}`).find('.icon').attr('title', roleName);
     };
 
     //-----------------------------------------------------------------
@@ -286,8 +281,7 @@ $(function(){
         //TODO: This will cause issues with multiple channels as the ID will not be unique per user.
         let roleName = getRoleName(user.roles);
         return (`<div id='user-list-${user.identity}' class='user-entry'><div class='role ${roleName}'>`
-            //+ updateIcon(user.roles)
-            + updateIcon(roleName)
+            + `<div class="icon" title="${roleName}"></div>`
             + `<div class='username' title="Nicknames: ${nicknames}">${user.identity}</div>`
             + '</div></div>');
     }
@@ -373,14 +367,14 @@ $(function(){
                 }
                 
                 //Add the new user.
-                $userListSection.removeClass('hidden').append(buildUserListEntry(user));
+                $userListSection.append(buildUserListEntry(user));
             });
-
-            //Toggle the hidden status of each section depending on whether users have shifted in to or out of these sections.
-            $modSection.parent().toggleClass('hidden', $modSection.find('div').length === 0);
-            $guestSection.parent().toggleClass('hidden', $guestSection.find('div').length === 0);
-            $regularSection.parent().toggleClass('hidden', $regularSection.find('div').length === 0);
         }
+
+        //Toggle the hidden status of each section depending on whether users have shifted in to or out of these sections.
+        $modSection.parent().toggleClass('hidden', $modSection.find('div').length === 0);
+        $guestSection.parent().toggleClass('hidden', $guestSection.find('div').length === 0);
+        $regularSection.parent().toggleClass('hidden', $regularSection.find('div').length === 0);
     };
 
     //-----------------------------------------------------------------
@@ -520,10 +514,13 @@ $(function(){
                 messageBody = `<div class='username nickColor${nickColor}'>${userName}</div>:&nbsp<div class='message'>${message}</div>`;
             }
 
-            let userRoles = (user !== undefined) ? user.roles : vga.irc.roles.shadow;
-            let roleName = getRoleName(userRoles);
+            let roleName = getRoleName((user !== undefined) ? user.roles : vga.irc.roles.shadow);
             let $channelWindow = getChannelWindow(channelName);
-            $channelWindow.append(`<div class='user-entry' data-nickname='${userName}'><div class='role ${roleName}'>${updateIcon(roleName)}${optionBody}${messageBody}</div></div>`);
+            $channelWindow.append(`<div class='user-entry' data-nickname='${userName}'><div class='role ${roleName}'>`
+                + `<div class="icon" title="${roleName}"></div>`
+                + optionBody
+                + messageBody
+                + `</div></div>`);
         }
         /**
          * This is a helper method that will show or hide a setting.
@@ -621,141 +618,6 @@ $(function(){
         pauseSmoothScrolling(activate) {
             if (this._smoothScrollState !== vga.irc.smoothScrollState.stopped) {
                 this._smoothScrollState = activate ? vga.irc.smoothScrollState.paused : vga.irc.smoothScrollState.started;
-            }
-        }
-
-        //-----------------------------------------------------------------
-        // Presentation events
-        // These are presentation methods.
-        //-----------------------------------------------------------------
-
-        /**
-         * This method binds the presentation events.
-         * @method vga.irc.chat.bindEvents
-         */
-        bindEvents() {
-            $('#vgairc_loginform').off().on('click', 'button', (e) => {
-                this.onLogin();
-                e.preventDefault();
-            }).on('keyup', 'input', (e) => {
-                if (e.which === 13) {
-                    this.onLogin();
-                }
-            });
-
-            $channelContainer.off().on('keyup', 'input', (e) => {
-                this.onSendCommandMessage($(e.currentTarget), e.which);
-            }).on('click', '.user-list-button', (e) => {
-                this.onUserListToggle($(e.currentTarget));
-                e.preventDefault();
-            }).on('click', '.user-settings-button', (e) => {
-                this.onGlobalSettingsMenu($(e.currentTarget));
-                e.preventDefault();
-            }).on('click', '.settings-item', (e) => {
-                this.onSettingsItemToggle($(e.currentTarget));
-                e.preventDefault();
-            }).on('mouseenter mouseleave', '.channel-window', (e) => {
-                this.onChannelWindowHover(e.type === "mouseenter")
-            }).on('click', '.timeout', (e) => {
-                //this.onTimeoutUser($(e.currentTarget));
-                e.preventDefault();
-            });
-        }
-        /**
-         * This event is triggered when a user triggers the chat login event.
-         * @method vga.irc.chat.onLogin
-         */
-        onLogin() {
-            let channelName = $channel.val();
-            toggleSpinner(true);
-            pulseChannelWindow(channelName, true);
-            this.connect($nickname.val(), $password.val(), channelName);
-        }
-        /**
-         * This event is triggered when a user toggles the user list for a specific channel.
-         * @method vga.irc.chat.onUserListToggle
-         * @param {object} $this is a jQuery object that triggered the event.
-         */
-        onUserListToggle($this) {
-            if (!$this.hasClass('disabled')) {
-                let $userListWrapper = $this.parents('.channel-tab').find('.user-list-wrapper');
-                $userListWrapper.toggleClass('hidden', !$userListWrapper.hasClass('hidden'));
-            }
-        }
-        /**
-         * This event is triggered when a user toggles the global settings menu.
-         * @method vga.irc.chat.onGlobalSettingsMenu
-         * @param {object} $this is a jQuery object that triggered the event.
-         */
-        onGlobalSettingsMenu($this) {
-            let $container = $('#settings-container');
-            $container.toggleClass('hidden', !$container.hasClass('hidden'));
-        }
-        /**
-         * This event is triggered when a the load cookie setting event is triggered.
-         * @method vga.irc.chat.onLoadSettings
-         */
-        onLoadSettings() {
-            let joinMode = (vga.util.readCookie(joinModeId, 'false') === 'true');
-            let smoothScroll = (vga.util.readCookie(smoothScrollModeId, 'true') === 'true');
-            
-            this._showUserJoinLeaveMessage = joinMode;
-            this._smoothScroll = smoothScroll;
-
-            this.toggleSettingItem(joinModeId, joinMode);
-            this.toggleSettingItem(smoothScrollModeId, smoothScroll);
-        }
-        /**
-         * This event is triggered when a user toggles a setting from the global settings menu.
-         * @method vga.irc.chat.onSettingsItemToggle
-         * @param {object} $this is a jQuery object that triggered the event.
-         */
-        onSettingsItemToggle($this) {
-            let $toggleButton = $this.find('i');
-            let toggledState = !$toggleButton.hasClass('fa-toggle-on');
-            switch($this.data('settings-type'))
-            {
-                case frashShowModeId:
-                    this.setFrashShowMode(toggledState);
-                    break;
-
-                case turboModeId:
-                    let channelName = $this.data('channels');
-                    this.setTurboMode(channelName, toggledState);
-                    break;
-
-                case joinModeId:
-                    this._showUserJoinLeaveMessage = toggledState;
-                    $toggleButton.toggleClass('fa-toggle-off', !toggledState).toggleClass('fa-toggle-on', toggledState);
-                    vga.util.setCookie(joinModeId, toggledState);
-                    break;
-
-                case smoothScrollModeId:
-                    this._smoothScroll = toggledState;
-                    $toggleButton.toggleClass('fa-toggle-off', !toggledState).toggleClass('fa-toggle-on', toggledState);
-                    vga.util.setCookie(smoothScrollModeId, toggledState);
-                    break;
-            }
-        }
-        /**
-         * This event is triggered when a user hovers over the current channel window.
-         * @method vga.irc.chat.onChannelWindowHover
-         * @param {object} $this is a jQuery object that triggered the event.
-         */
-        onChannelWindowHover(isHovering) {
-            this.pauseSmoothScrolling(isHovering);
-        }
-        /**
-         * This event is triggered when a user sends a command or message to the chat.
-         * @method vga.irc.chat.onSendCommandMessage
-         * @param {object} $this is a jQuery object that triggered the event.
-         */
-        onSendCommandMessage($this, key) {
-            let value = $this.val();
-            if (key === 13 && value !== '') {
-                let channelName = $this.parents('.channel-tab').data('channel');
-                this.send(channelName, value);
-                $this.val('');
             }
         }
 
@@ -939,7 +801,7 @@ $(function(){
         }
 
         /**
-         * 
+         * An event that is triggered when a channel mode changes.
          * @method vga.irc.chat.onChannelMode
          * @param {object} eventData
          */
@@ -1125,6 +987,141 @@ $(function(){
             setStatus('Sorry, an unknown error has occured.');
             vga.util.debuglog.error(eventData.reason);
         }
+
+        //-----------------------------------------------------------------
+        // Presentation events
+        // These are presentation methods.
+        //-----------------------------------------------------------------
+
+        /**
+         * This method binds the presentation events.
+         * @method vga.irc.chat.bindEvents
+         */
+        bindEvents() {
+            $('#vgairc_loginform').off().on('click', 'button', (e) => {
+                this.onLogin();
+                e.preventDefault();
+            }).on('keyup', 'input', (e) => {
+                if (e.which === 13) {
+                    this.onLogin();
+                }
+            });
+
+            $channelContainer.off().on('keyup', 'input', (e) => {
+                this.onSendCommandMessage($(e.currentTarget), e.which);
+            }).on('click', '.user-list-button', (e) => {
+                this.onUserListToggle($(e.currentTarget));
+                e.preventDefault();
+            }).on('click', '.user-settings-button', (e) => {
+                this.onGlobalSettingsMenu($(e.currentTarget));
+                e.preventDefault();
+            }).on('click', '.settings-item', (e) => {
+                this.onSettingsItemToggle($(e.currentTarget));
+                e.preventDefault();
+            }).on('mouseenter mouseleave', '.channel-window', (e) => {
+                this.onChannelWindowHover(e.type === "mouseenter")
+            }).on('click', '.timeout', (e) => {
+                //this.onTimeoutUser($(e.currentTarget));
+                e.preventDefault();
+            });
+        }
+        /**
+         * This event is triggered when a user triggers the chat login event.
+         * @method vga.irc.chat.onLogin
+         */
+        onLogin() {
+            let channelName = $channel.val();
+            toggleSpinner(true);
+            pulseChannelWindow(channelName, true);
+            this.connect($nickname.val(), $password.val(), channelName);
+        }
+        /**
+         * This event is triggered when a user toggles the user list for a specific channel.
+         * @method vga.irc.chat.onUserListToggle
+         * @param {object} $this is a jQuery object that triggered the event.
+         */
+        onUserListToggle($this) {
+            if (!$this.hasClass('disabled')) {
+                let $userListWrapper = $this.parents('.channel-tab').find('.user-list-wrapper');
+                $userListWrapper.toggleClass('hidden', !$userListWrapper.hasClass('hidden'));
+            }
+        }
+        /**
+         * This event is triggered when a user toggles the global settings menu.
+         * @method vga.irc.chat.onGlobalSettingsMenu
+         * @param {object} $this is a jQuery object that triggered the event.
+         */
+        onGlobalSettingsMenu($this) {
+            let $container = $('#settings-container');
+            $container.toggleClass('hidden', !$container.hasClass('hidden'));
+        }
+        /**
+         * This event is triggered when a the load cookie setting event is triggered.
+         * @method vga.irc.chat.onLoadSettings
+         */
+        onLoadSettings() {
+            let joinMode = (vga.util.readCookie(joinModeId, 'false') === 'true');
+            let smoothScroll = (vga.util.readCookie(smoothScrollModeId, 'true') === 'true');
+            
+            this._showUserJoinLeaveMessage = joinMode;
+            this._smoothScroll = smoothScroll;
+
+            this.toggleSettingItem(joinModeId, joinMode);
+            this.toggleSettingItem(smoothScrollModeId, smoothScroll);
+        }
+        /**
+         * This event is triggered when a user toggles a setting from the global settings menu.
+         * @method vga.irc.chat.onSettingsItemToggle
+         * @param {object} $this is a jQuery object that triggered the event.
+         */
+        onSettingsItemToggle($this) {
+            let $toggleButton = $this.find('i');
+            let toggledState = !$toggleButton.hasClass('fa-toggle-on');
+            switch($this.data('settings-type'))
+            {
+                case frashShowModeId:
+                    this.setFrashShowMode(toggledState);
+                    break;
+
+                case turboModeId:
+                    let channelName = $this.data('channels');
+                    this.setTurboMode(channelName, toggledState);
+                    break;
+
+                case joinModeId:
+                    this._showUserJoinLeaveMessage = toggledState;
+                    $toggleButton.toggleClass('fa-toggle-off', !toggledState).toggleClass('fa-toggle-on', toggledState);
+                    vga.util.setCookie(joinModeId, toggledState);
+                    break;
+
+                case smoothScrollModeId:
+                    this._smoothScroll = toggledState;
+                    $toggleButton.toggleClass('fa-toggle-off', !toggledState).toggleClass('fa-toggle-on', toggledState);
+                    vga.util.setCookie(smoothScrollModeId, toggledState);
+                    break;
+            }
+        }
+        /**
+         * This event is triggered when a user hovers over the current channel window.
+         * @method vga.irc.chat.onChannelWindowHover
+         * @param {object} $this is a jQuery object that triggered the event.
+         */
+        onChannelWindowHover(isHovering) {
+            this.pauseSmoothScrolling(isHovering);
+        }
+        /**
+         * This event is triggered when a user sends a command or message to the chat.
+         * @method vga.irc.chat.onSendCommandMessage
+         * @param {object} $this is a jQuery object that triggered the event.
+         */
+        onSendCommandMessage($this, key) {
+            let value = $this.val();
+            if (key === 13 && value !== '') {
+                let channelName = $this.parents('.channel-tab').data('channel');
+                this.send(channelName, value);
+                $this.val('');
+            }
+        }        
     }
 
 }());
