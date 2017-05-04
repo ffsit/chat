@@ -30,7 +30,7 @@
 				<div id="slide_message" class="hidden"></div>
 				<div id="slide_login" class="slide_page">
 					<h1>Login</h1>
-					<div>Please read &amp; follow the <a href="http://videogamesawesome.com/the-rule-compendium/">chat rules</a>.</div>
+					<div>Please read &amp; follow the <a href="http://videogamesawesome.com/the-rule-compendium/" target="_blank">chat rules</a>.</div>
 					<img class="spinner hidden" src="/img/spinner<?php print(strval(rand(1,5))); ?>.gif" alt="One moment">
 					<div id="vgairc_loginform">
 						<label for="nickname">Name:</label>

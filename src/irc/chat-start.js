@@ -58,6 +58,7 @@ $(function(){
     var chat = new vga.irc.chat({
         url: "ws://valhalla.ffsit.net:7778/?transport=websocket",
         hostname: "valhalla.ffsit.net",
+        //hostname: 'turbo.chat/socket',
         port: "6667",
         defaultChannel: '#ffstv',
         wallRegEx: /^%! [^\r\n]*/,

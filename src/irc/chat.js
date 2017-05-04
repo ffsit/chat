@@ -139,6 +139,7 @@ $(function(){
 
     function toggleLoginWindow(show) {
         $('#login-wrapper').toggleClass('hidden', !show);
+        show && $nickname.focus();
     }
 
     function toggleSpinner(show) {
@@ -765,12 +766,10 @@ $(function(){
             this.stopSmoothScrolling();
             toggleLoginWindow(true);
 
-            /*
             if (eventData.closedByServer)
             {
-                setStatus(eventData.disconnectMsg, 5000);
+                setStatus(eventData.reason, 5000);
             }
-            */
 
             vga.util.forEach(this._userChannels, (channelName, channelData)=>{
                 enableLowerUI(channelName, false);
