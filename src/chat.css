@@ -122,13 +122,18 @@ Global classes
     right: 5%;
 }
 
+.center_helper {
+    width: 100%;
+    height: 0;
+    top: 0;
+    left: 0;
+    position: absolute;
+}
+
+
 /*
 ---
 */
-#login-wrapper a, #login-wrapper a:hover, #login-wrapper a:visited, #login-wrapper a:active {
-    color: #FFFF99;
-    text-decoration: none;
-}
 
 #wrapper1 {
     padding: 0.5em;
@@ -142,57 +147,12 @@ Global classes
     border-spacing: 0.5em;
 }
 
-.center_helper {
-    width: 100%;
-    height: 0;
-    top: 0;
-    left: 0;
-    position: absolute;
-}
 
-#login-wrapper {
-    font-size: 12pt;
-    max-width: 300px;
-    padding: 1.5em;
-    padding-bottom: 2em;
-    background-color: #121214;
-    color: #E6E6E6;
-    border: 5pt solid #707070;
-    border-top-width: 0;
-    position: relative;
-    margin: 0 auto;
-    border-radius: 0 0 25px 25px;
-    box-shadow: 1px 1px 20px #000000;
-    border-color: rgba(112, 112, 112, .6);
-    z-index: 100;
-}
-
-.slide_page h1 {
-    color: inherit;
-    font-family: sans-serif;
-    font-size: 1.5em;
-    margin: 0 0 0.5em 0;
-}
-
-#vgairc_loginform {
-    margin-top: 0.6em;
-}
-
-#vgairc_loginform label,
-#vgairc_loginform input {
-    width: 100%;
-    display: block;
-}
-#vgairc_loginform input {
-    margin-bottom: 0.5em;
-}
-
-#slide_message {
-    font-weight: bold;
-    color: #C01010;
-    width: 100%;
-    line-height: 1.5em;
-}
+/*
+---------------------------
+Debug classes
+---------------------------
+*/
 
 #debug_wrapper {
     min-width: 300px;
@@ -231,7 +191,62 @@ form.debug #showdebug {
 
 /*
 ---------------------------
-Settings
+Login classes
+---------------------------
+*/
+
+#login-wrapper {
+    font-size: 12pt;
+    max-width: 300px;
+    padding: 1.5em;
+    padding-bottom: 2em;
+    background-color: #121214;
+    color: #E6E6E6;
+    border: 5pt solid #707070;
+    border-top-width: 0;
+    position: relative;
+    margin: 0 auto;
+    border-radius: 0 0 25px 25px;
+    box-shadow: 1px 1px 20px #000000;
+    border-color: rgba(112, 112, 112, .6);
+    z-index: 100;
+}
+
+#login-wrapper a, #login-wrapper a:hover, #login-wrapper a:visited, #login-wrapper a:active {
+    color: #FFFF99;
+    text-decoration: none;
+}
+
+#vgairc_loginform {
+    margin-top: 0.6em;
+}
+
+#vgairc_loginform label,
+#vgairc_loginform input {
+    width: 100%;
+    display: block;
+}
+#vgairc_loginform input {
+    margin-bottom: 0.5em;
+}
+
+#slide_message {
+    font-weight: bold;
+    color: #C01010;
+    width: 100%;
+    line-height: 1.5em;
+}
+
+.slide_page h1 {
+    color: inherit;
+    font-family: sans-serif;
+    font-size: 1.5em;
+    margin: 0 0 0.5em 0;
+}
+
+/*
+---------------------------
+Settings classes
 ---------------------------
 */
 
@@ -308,14 +323,6 @@ User classes
     /*font-size: 1.2rem;*/
 }
 
-.user-entry .message {
-    display: inline;
-    vertical-align: middle;
-    line-height: 16px;	
-    word-wrap: break-word;
-    padding-left: 2px;
-}
-
 .user-entry .timeout {
     vertical-align: middle;
     display: none;
@@ -325,7 +332,16 @@ User classes
 }
 
 .user-entry:hover .timeout {
-    display: inline-block;
+    display: inline;
+}
+
+.user-entry .message {
+    display: inline;
+    vertical-align: middle;
+    line-height: 16px;	
+    /*word-wrap: break-word;*/
+    overflow-wrap: break-word;
+    padding-left: 2px;
 }
 
 /*
@@ -334,7 +350,7 @@ Username classes
 ---------------------------
 */
 .user-entry .username {
-    display: inline-block;
+    display: inline;
     vertical-align: middle;
     font-weight: bold;
 }
@@ -479,13 +495,6 @@ User List classes
     z-index: 20;
 }
 
-/*
-.user-list {
-    width: 100%;
-    height: 100%;
-}
-*/
-
 .user-list .user-entry > .icon.role.crew + .username {
     color: #8b2222;
 }
@@ -551,7 +560,8 @@ Channel classes
     line-height: 16px;
     padding: .2em;
     /*padding-left: 0.5em;*/
-    word-wrap: break-word;
+    /*word-wrap: break-word;*/
+    overflow-wrap: break-word;
 }
 
 .channel-window .user-entry .message.action {

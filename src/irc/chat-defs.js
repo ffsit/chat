@@ -71,6 +71,12 @@ vga.irc.smoothScrollState = {
     paused: 2
 }
 
+vga.irc.messageType = {
+    message: 0,
+    action: 1,
+    whisper: 2
+}
+
 //-----------------------------------------------------------------
 // Role methods.
 //-----------------------------------------------------------------

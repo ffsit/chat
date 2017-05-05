@@ -488,6 +488,7 @@ $(function(){
         //-----------------------------------------------------------------
 
         writeToChannelWindow(channelName, user, message, type) {
+            type = type || 'message';
             let optionBody = '';
             let channel = this._userChannels[channelName];
             if (channel) {
@@ -502,13 +503,6 @@ $(function(){
 
             //Encode all HTML characters.
             message = vga.util.encodeHTML(message);
-            let messageBody = '';
-            if (type === 'action') {
-                messageBody = `<div class='message action'>${message}</div>`;
-            }
-            else {
-                messageBody = `:&nbsp<div class='message'>${message}</div>`;
-            }
 
             //Generate the nickname color and change it based on the seed function, if defined.
             let nickColor = getNickColorClass(user.identity, this._nicknameColorSeedFunction && this._nicknameColorSeedFunction());
@@ -519,7 +513,8 @@ $(function(){
             let $channelWindow = getChannelWindow(channelName);
             $channelWindow.append(`<div class='user-entry' data-nickname='${userName}'><div class='role ${roleName}'>`
                 + `<div class="icon" title="${roleName}"></div>${optionBody}`
-                + `<div class='username nickColor${nickColor}'>${userName}</div>${messageBody}`
+                + `<div class='username nickColor${nickColor}'>${userName}${(type === 'message' ? ':' : '')}</div>`
+                + `<div class='message ${(type === 'action' ? `action nickColor${nickColor}` : '')}'>${message}</div>`
                 + `</div></div>`);
         }
         /**
