@@ -144,6 +144,7 @@ $(function(){
 
     function toggleSpinner(show) {
         $('.spinner').toggleClass('hidden', !show);
+        $('#vgairc_loginform').toggleClass('hidden', show);
     }
 
     function setStatus(message, timeout) {
