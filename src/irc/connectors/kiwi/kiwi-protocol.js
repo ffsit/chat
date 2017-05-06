@@ -146,12 +146,13 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     /**
      * Internal method to create a packet to relay to the IRC server.
      * @method createIRCPacket
+     * @param {number} connectionId assigned to the user on login.
      * @param {string} method name of the method to pass to the IRC server.
      * @param {object} data arguments to pass to the IRC server.
      * @returns {object} returns an object that conforms to the IRC packet.
      */
-    function createIRCPacket(method, data) {
-        return createRawPacket(vga.irc.connector.kiwi.IRC_PREFIX + '.' + method, [0,data,null]);
+    function createIRCPacket(connectionId, method, data) {
+        return createRawPacket(vga.irc.connector.kiwi.IRC_PREFIX + '.' + method, [connectionId,data,null]);
     };
     /**
      * Internal method to create a packet to relay to the kiwi server.
@@ -239,11 +240,12 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         /**
          * A safe send method that sends IRC data.
          * @method vga.irc.connector.kiwi.protocolwrapper.sendIRCData
+         * @param {number} connectionId assigned to the user on login.
          * @param {string} method name of the method to pass to the IRC server.
          * @param {object} data arguments to pass to the IRC server.
          */ 
         sendIRCData(method, data) {
-            return this.sendRawData(createIRCPacket(method, data));
+            return this.sendRawData(createIRCPacket((this._connectionInfo || {connectionId: 0}).connectionId, method, data));
         }
         /**
          * Attempts to open a connection to the kiwi IRC server.   This method is idempotent and safe as multiple calls have no side-effects.
@@ -321,7 +323,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             this._connectionInfo = {
                 sid: proxyInfo.sid,
                 pingInterval: proxyInfo.pingInterval,
-                pingTimeout: proxyInfo.pingTimeout
+                pingTimeout: proxyInfo.pingTimeout,
+                connectionId: 0
             };
         }
         /**
@@ -363,11 +366,13 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         /**
          * This event is triggered when the kiwi connection to IRC has been connected.
          * @method vga.irc.connector.kiwi.protocolwrapper.onConnect
+         * @param {object} event socket event data. 
          */
-        onConnect() {
+        onConnect(event) {
             if (this._state === vga.irc.connector.kiwi.STATES.PROXY_CONNECTED) {
                 vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onConnect]: Received a PROXY_CONNECTED state, setting OPENED state.');
                 this._state = vga.irc.connector.kiwi.STATES.OPENED;
+                this._connectionInfo.connectionId = event.connection_id;
             }
         }
 
@@ -467,7 +472,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                         else if (serverMessage.method === vga.irc.connector.kiwi.IRC_PREFIX) {
                             //Special messages.
                             if (command === 'connect') {
-                                this.onConnect();
+                                this.onConnect(eventData);
                             }
                             else if (command == 'disconnect') {
                                 eventData['closedByServer'] = true;
