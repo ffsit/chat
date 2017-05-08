@@ -344,6 +344,11 @@ User classes
     padding-left: 2px;
 }
 
+.user-entry .prefix {
+    display: inline;
+    vertical-align: middle;
+}
+
 /*
 ---------------------------
 Username classes
@@ -495,27 +500,27 @@ User List classes
     z-index: 20;
 }
 
-.user-list .user-entry > .icon.role.crew + .username {
+.user-list .user-entry > .role.crew .icon + .username {
     color: #8b2222;
 }
 
-.user-list .user-entry > .icon.role.mod + .username {
+.user-list .user-entry > .role.mod .icon + .username {
     color: #228b22;
 }
 
-.user-list .user-entry > .icon.role.guest + .username {
+.user-list .user-entry > .role.guest .icon + .username {
     color: #1e90ff;
 }
 
-.user-list .user-entry > .icon.role.turbo + .username {
+.user-list .user-entry > .role.turbo .icon + .username {
     color: #4682D0;
 }
 
-.user-list .user-entry > .icon.role.shadow + .username {
+.user-list .user-entry > .role.shadow .icon + .username {
     color: #B0A065;
 }
 
-.user-list .user-entry > .icon.role.banned + .username {
+.user-list .user-entry > .role.banned .icon + .username {
     color: #aaa;
 }
 
@@ -564,9 +569,11 @@ Channel classes
     overflow-wrap: break-word;
 }
 
+/*
 .channel-window .user-entry .message.action {
     font-weight: bold;
 }
+*/
 
 /*
 ---------------------------
@@ -577,88 +584,88 @@ Username classes
 /*
 Shadows
 */
-.channel-window .user-entry .role.shadow .username.nickColor1 {
+.channel-window .user-entry .role.shadow.nickColor1 .allowColor {
     color: #ab6060;
 }
-.channel-window .user-entry .role.shadow .username.nickColor2 {
+.channel-window .user-entry .role.shadow.nickColor2 .allowColor {
     color: #6db05d;
 }
-.channel-window .user-entry .role.shadow .username.nickColor3 {
+.channel-window .user-entry .role.shadow.nickColor3 .allowColor {
     color: #75b3ae;
 }
-.channel-window .user-entry .role.shadow .username.nickColor4 {
+.channel-window .user-entry .role.shadow.nickColor4 .allowColor {
     color: #72a2b8;
 }
-.channel-window .user-entry .role.shadow .username.nickColor5 {
+.channel-window .user-entry .role.shadow.nickColor5 .allowColor {
     color: #8369a0;
 }
-.channel-window .user-entry .role.shadow .username.nickColor6 {
+.channel-window .user-entry .role.shadow.nickColor6 .allowColor {
     color: #a866a0;
 }
-.channel-window .user-entry .role.shadow .username.nickColor7 {
+.channel-window .user-entry .role.shadow.nickColor7 .allowColor {
     color: #bfa05d;
 }
 
 /*
 Turbos
 */
-.channel-window .user-entry .role.turbo .username.nickColor1 {
+.channel-window .user-entry .role.turbo.nickColor1 .allowColor {
     color: #ac4b4b;
 }
-.channel-window .user-entry .role.turbo .username.nickColor2 {
+.channel-window .user-entry .role.turbo.nickColor2 .allowColor {
     color: #51b03b;
 }
-.channel-window .user-entry .role.turbo .username.nickColor3 {
+.channel-window .user-entry .role.turbo.nickColor3 .allowColor {
     color: #3bb0a8;
 }
-.channel-window .user-entry .role.turbo .username.nickColor4 {
+.channel-window .user-entry .role.turbo.nickColor4 .allowColor {
     color: #3b8db0;
 }
-.channel-window .user-entry .role.turbo .username.nickColor5 {
+.channel-window .user-entry .role.turbo.nickColor5 .allowColor {
     color: #713bb0;
 }
-.channel-window .user-entry .role.turbo .username.nickColor6 {
+.channel-window .user-entry .role.turbo.nickColor6 .allowColor {
     color: #b03ba0;
 }
-.channel-window .user-entry .role.turbo .username.nickColor7 {
+.channel-window .user-entry .role.turbo.nickColor7 .allowColor {
     color: #d1991a;
 }
 
 /*
 Guests, Mods, Crew
 */
-.channel-window .user-entry .role.guest .username.nickColor1,
-.channel-window .user-entry .role.mod   .username.nickColor1,
-.channel-window .user-entry .role.crew  .username.nickColor1 {
+.channel-window .user-entry .role.guest.nickColor1 .allowColor,
+.channel-window .user-entry .role.mod.nickColor1 .allowColor,
+.channel-window .user-entry .role.crew.nickColor1 .allowColor {
     color: #b03b3b;
 }
-.channel-window .user-entry .role.guest .username.nickColor2,
-.channel-window .user-entry .role.mod   .username.nickColor2,
-.channel-window .user-entry .role.crew  .username.nickColor2 {
+.channel-window .user-entry .role.guest.nickColor2 .allowColor,
+.channel-window .user-entry .role.mod.nickColor2 .allowColor,
+.channel-window .user-entry .role.crew.nickColor2 .allowColor {
     color: #51b03b;
 }
-.channel-window .user-entry .role.guest .username.nickColor3,
-.channel-window .user-entry .role.mod   .username.nickColor3,
-.channel-window .user-entry .role.crew  .username.nickColor3 {
+.channel-window .user-entry .role.guest.nickColor3 .allowColor,
+.channel-window .user-entry .role.mod.nickColor3 .allowColor,
+.channel-window .user-entry .role.crew.nickColor3 .allowColor {
     color: #3bb0a8;
 }
-.channel-window .user-entry .role.guest .username.nickColor4,
-.channel-window .user-entry .role.mod   .username.nickColor4,
-.channel-window .user-entry .role.crew  .username.nickColor4 {
+.channel-window .user-entry .role.guest.nickColor4 .allowColor,
+.channel-window .user-entry .role.mod.nickColor4 .allowColor,
+.channel-window .user-entry .role.crew.nickColor4 .allowColor {
     color: #3b8db0;
 }
-.channel-window .user-entry .role.guest .username.nickColor5,
-.channel-window .user-entry .role.mod   .username.nickColor5,
-.channel-window .user-entry .role.crew  .username.nickColor5 {
+.channel-window .user-entry .role.guest.nickColor5 .allowColor,
+.channel-window .user-entry .role.mod.nickColor5 .allowColor,
+.channel-window .user-entry .role.crew.nickColor5 .allowColor {
     color: #713bb0;
 }
-.channel-window .user-entry .role.guest .username.nickColor6,
-.channel-window .user-entry .role.mod   .username.nickColor6,
-.channel-window .user-entry .role.crew  .username.nickColor6 {
+.channel-window .user-entry .role.guest.nickColor6, .allowColor
+.channel-window .user-entry .role.mod.nickColor6 .allowColor,
+.channel-window .user-entry .role.crew.nickColor6 .allowColor {
     color: #b03ba0;
 }
-.channel-window .user-entry .role.guest .username.nickColor7,
-.channel-window .user-entry .role.mod   .username.nickColor7,
-.channel-window .user-entry .role.crew  .username.nickColor7 {
+.channel-window .user-entry .role.guest.nickColor7 .allowColor,
+.channel-window .user-entry .role.mod.nickColor7 .allowColor,
+.channel-window .user-entry .role.crew.nickColor7 .allowColor {
     color: #d1991a;
 }

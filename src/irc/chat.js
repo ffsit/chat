@@ -512,10 +512,11 @@ $(function(){
             let roleName = getRoleName((user !== undefined) ? user.roles : vga.irc.roles.shadow);
 
             let $channelWindow = getChannelWindow(channelName);
-            $channelWindow.append(`<div class='user-entry' data-nickname='${userName}'><div class='role ${roleName}'>`
+            $channelWindow.append(`<div class='user-entry' data-nickname='${userName}'><div class='role ${roleName} nickColor${nickColor}'>`
                 + `<div class="icon" title="${roleName}"></div>${optionBody}`
-                + `<div class='username nickColor${nickColor}'>${userName}${(type === 'message' ? ':' : '')}</div>`
-                + `<div class='message ${(type === 'action' ? `action nickColor${nickColor}` : '')}'>${message}</div>`
+                + `<div class='prefix'></div>`
+                + `<div class='username allowColor'>${userName}${(type === 'message' ? ':' : '')}</div>`
+                + `<div class='message ${(type === 'action' ? 'allowColor' : '')}'>${message}</div>`
                 + `</div></div>`);
         }
         /**
