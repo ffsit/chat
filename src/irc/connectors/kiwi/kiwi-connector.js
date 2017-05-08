@@ -429,7 +429,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {object} eventData event data associated with a disconnect event.
          */
         onDisconnect(eventData) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: (Reason: ${eventData.reason}, closedByServer: ${eventData.closedByServer}, existingConnection: ${eventData.existingConnection}).`);
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: (Reason: '${eventData.reason}', closedByServer: ${eventData.closedByServer}, existingConnection: ${eventData.existingConnection}).`);
             
             let reason = 'Unable to reach the server.  Try again later.';
             //Determine if we are going to trigger the reconnect logic.

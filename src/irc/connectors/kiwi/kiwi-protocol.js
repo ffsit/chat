@@ -475,7 +475,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                                 this.onConnect(eventData);
                             }
                             else if (command == 'disconnect') {
-                                eventData['closedByServer'] = true;
+                                this.onClose({reason: eventData.reason});
+                                return;
                             }
 
                             this._listener.invokeListeners(command, eventData);
