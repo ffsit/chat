@@ -19,20 +19,25 @@ html.frash-show-mode {
     margin-top: 200px !important;
 }
 
+/*
 .frash-show-mode .chatbox {
     margin-top: 50px;
     border-color: #E6E6E6;
     border-bottom-color: #E6E6E6;
 }
+*/
+
+.frash-show-mode .lower-ui {
+    display: none !important;
+}
 
 .frash-show-mode .channel-window {
-    /*width: 354px;*/
-    width: 287px;
+    width: 354px;
     border-color: #E6E6E6;
 }
 
 .frash-show-mode #wrapper1 {
-    width: 288px;
+    width: 355px;
 }
 
 /*
