@@ -60,6 +60,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     vga.irc.connector.kiwi.pingTimeoutRegEx = /^Closing link: [^\r\n]*\[Ping timeout: \d+ seconds\]$/;
     vga.irc.connector.kiwi.registrationTimeOutRegEx = /^Closing link: [^\r\n]*\[Registration timeout\]$/
     vga.irc.connector.kiwi.serverShutDownRegEx = /^Closing link: [^\r\n]*\[Server shutdown\]$/;
+    vga.irc.connector.kiwi.banMaskRegEx =  /(\w:)?([\w\-\[\]\\\`\^\{\|\}\*]+)!([\w\-\[\]\\\`\^\{\|\}\*]+)@.+/;
 
     //-----------------------------------------------------------------
     // Default prefix map to mode.
@@ -77,6 +78,10 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         'o': vga.irc.roles.mod,
         'h': vga.irc.roles.guest,
         'v': vga.irc.roles.turbo
+    };
+
+    const modeToStatusMap =  {
+        'b': vga.irc.status.banned
     };
 
     const channelModeMap =  {
@@ -106,6 +111,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         'channelmode': 'onChannelMode',
         'usermode' : 'onRole',
         'otherusermode': 'onRole',
+        'userstatus' : 'onStatus',
+        'otheruserstatus': 'onStatus',
         //Error events
         'accessdenied': 'onAccessDenied',
         'kicked': 'onKicked',
@@ -638,22 +645,63 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
                 //Determine if we are dealing with a channel or user mode.
                 let channelKey = this.generateChannelKey(eventData.target);
-                let nickname = modePerUser.param;
-                if (nickname !== null) {
-                    //Normalize the nickname as defined by the normalization option.
-                    let normalizedNickname = this.normalizeNickname(nickname);
+                if (modePerUser.param !== null) {
+                    if(modeToStatusMap[mode]) {
+                        //----------------------------
+                        //User Status: Banned, etc...
+                        //----------------------------
 
-                    let eventName = this.isMe(normalizedNickname) ? 'otheruser' : 'user';
-                    this._listener.invokeListeners(`${eventName}mode`, {
-                        channelKey: channelKey,
-                        nicknameKey: this.generateNicknameKey(nickname),
-                        identity: normalizedNickname,
-                        nickname: nickname,
-                        action: action,
-                        roles: vga.irc.compileModes([mode], (userMode) => modeToRolesMap[userMode])
-                    });
+                        let bannedMaskComponents = vga.irc.connector.kiwi.banMaskRegEx.exec(modePerUser.param);
+                        if (bannedMaskComponents === null || bannedMaskComponents.length < 4) {
+                            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onMode]: Invalid banmask: ${modePerUser.param}`);
+                        }
+
+                        //Full match.
+                        //bannedMaskComponents[0]
+                        let nickname = bannedMaskComponents[1];
+                        let identity = bannedMaskComponents[2];
+
+                        this._listener.invokeListeners(`${eventName}status`, {
+                            channelKey: channelKey,
+                            //This is the user's key used to access the user's information for a specific channel.
+                            nicknameKey: identity.toLocaleLowerCase(),
+                            //This is the user's true identity that will be shown to everyone.
+                            identity: identity,
+                            //This is a user's nickname that was assigned to the user on login.
+                            nickname: nickname,
+                            isMe: this.isMe(identity),
+                            action: action,
+                            status: vga.irc.compileModes([status], (userstatus) => modeToStatusMap[userstatus])
+                        });
+                    }
+                    else {
+                        //------------------------------------
+                        //User Roles: Voice, Operator, etc...
+                        //------------------------------------
+                        //Normalize the nickname as defined by the normalization option.
+                        let nickname = modePerUser.param;
+                        let normalizedNickname = this.normalizeNickname(nickname);
+
+                        //Determine if the mode is a status mode or a role mode.
+                        let isMe = this.isMe(normalizedNickname);
+                        this._listener.invokeListeners(`${(isMe ? 'otheruser' : 'user')}mode`, {
+                            channelKey: channelKey,
+                            //This is the user's key used to access the user's information for a specific channel.
+                            nicknameKey: this.generateNicknameKey(nickname),
+                            //This is the user's true identity that will be shown to everyone.
+                            identity: normalizedNickname,
+                            //This is a user's nickname that was assigned to the user on login.
+                            nickname: nickname,
+                            isMe: isMe,
+                            action: action,
+                            roles: vga.irc.compileModes([mode], (userMode) => modeToRolesMap[userMode])
+                        });
+                    }
                 }
                 else {
+                    //---------------------------------
+                    //Channel Mode: Moderated, etc...
+                    //---------------------------------
                     this._listener.invokeListeners(`channelmode`, {
                         channelKey: channelKey,
                         action: action,

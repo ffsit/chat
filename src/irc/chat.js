@@ -934,8 +934,8 @@ $(function(){
                     updateUserEntityInList(eventData.channelKey, user);
                     updateDisplay(eventData.channelKey, user);
 
-                    //If the user is me and I have been granted mode capabilities then show the mode toggle option.
-                    if (this.connector.isMe(eventData.nicknameKey)) {
+                    //If the user is me and I have been granted mod capabilities then show the mode toggle option.
+                    if (eventData.isMe) {
                         let me = channel[this.connector.getMyNicknameKey()];
                         this.showToggleSetting(turboModeId, (me && hasModCapabilities(me.roles)));
                     }
