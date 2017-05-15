@@ -55,6 +55,12 @@ vga.irc.roles = {
     none: 0
 };
 
+vga.irc.status = {
+    muted:  2,
+    banned: 1,
+    nominal: 0
+};
+
 vga.irc.roleModeAction = {
     remove: 0,
     add: 1
@@ -166,8 +172,10 @@ vga.irc.compileModes = function(modes, transformFunction){
 vga.irc.userEntity = class  {
     constructor(identity, nickname, roles) {
         this.roles = (roles !== undefined) ? roles : vga.irc.roles.shadow;
-        this.isBanned = false;
+        this.status = vga.irc.status.nominal;
+        //This is the user's true identity that will be shown to everyone.
         this.identity = identity;
+        //A collection of nicknames that the user may be assigned if he or she has multiple sessions.
         this.nicknames = (nickname !== undefined) ? (Array.isArray(nickname) ? nickname : [nickname]) : [];
     }
     /**
@@ -179,28 +187,20 @@ vga.irc.userEntity = class  {
      */
     applyRoles(roleAction, rolesToApply) {
         this.roles = (roleAction === vga.irc.roleModeAction.add)
-            ? this.addRoles(rolesToApply)
-            : this.removeRoles(rolesToApply);
+            ? vga.irc.addRole(this.roles, rolesToApply)
+            : vga.irc.removeRole(this.roles, rolesToApply);
     }
     /**
-     * Add roles based on the roles to add.
-     * @method vga.irc.addRoles
-     * @param {number} roles bitarray of roles to add.
-     * @return {number} updated bitarray of roles.
+     * Applies a status based on the action to the current user entity.
+     * @method vga.irc.applyStatus
+     * @param {number} modeAction type of action (vga.irc.roleModeAction) to apply.
+     * @param {number} modesToApply bitarray of modes to apply.
      * @api public
-     */
-    addRoles(roles) {
-        return vga.irc.addRole(this.roles, roles);
-    }
-    /**
-     * Remove roles based on the roles to remove.
-     * @method vga.irc.removeRoles
-     * @param {number} roles bitarray of roles to remove.
-     * @return {number} updated bitarray of roles.
-     * @api public
-     */
-    removeRoles(roles) {
-        return vga.irc.removeRole(this.roles, roles);
+     */    
+    applyStatus(modeAction, modesToApply) {
+        this.status = (modeAction === vga.irc.roleModeAction.add)
+            ? vga.irc.addRole(this.status, modesToApply)
+            : vga.irc.removeRole(this.status, modesToApply);
     }
     /**
      * Append a nickname to the user entity.
