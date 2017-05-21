@@ -287,7 +287,7 @@ $(function(){
      */
     function updateDisplay(channelName, user) {
         let $channelWindow = getChannelWindow(channelName);
-        let $userEntry = $channelWindow.find(`.user-entry[data-nickname=${user.identity}] > .role`);
+        let $userEntry = $channelWindow.find(`.user-entry[data-identity=${user.identity}] > .role`);
         
         let roleName = getRoleName(user.roles);
         $userEntry.removeClass().addClass(`role ${roleName}`).find('.icon').attr('title', roleName);
@@ -311,7 +311,7 @@ $(function(){
 
         //TODO: This will cause issues with multiple channels as the ID will not be unique per user.
         let roleName = getRoleName(user.roles);
-        return (`<div id='user-list-${user.identity}' class='user-entry'><div class='role ${roleName}'>`
+        return (`<div data-identity='${user.identity}' class='user-entry'><div class='role ${roleName}'>`
             + `<div class="icon" title="${roleName}"></div>`
             + `<div class='username' title="Nicknames: ${nicknames}">${user.identity}</div>`
             + '</div></div>');
@@ -334,7 +334,8 @@ $(function(){
         let $regularSection = $userList.find('.regular-section-body');
 
         //If the user no longer has any registered nicknames then remove him or her from the user list.
-        let $userEntry = $userList.find(`#user-list-${user.identity}`);
+        //let $userEntry = $userList.find(`#user-list-${user.identity}`);
+        let $userEntry = $userList.find(`.user-entry[data-identity=${user.identity}]`);
         if (user.nicknames.length === 0) {
             $userEntry.remove();
         }
@@ -509,14 +510,14 @@ $(function(){
             //Generate the nickname color and change it based on the seed function, if defined.
             let nickColor = getNickColorClass(user.identity, this._nicknameColorSeedFunction && this._nicknameColorSeedFunction());
 
-            let userName = (user !== undefined) ? user.identity : 'undefined';
+            let identity = (user !== undefined) ? user.identity : 'undefined';
             let roleName = getRoleName((user !== undefined) ? user.roles : vga.irc.roles.shadow);
 
             let $channelWindow = getChannelWindow(channelName);
-            $channelWindow.append(`<div class='user-entry' data-nickname='${userName}'><div class='role ${roleName} nickColor${nickColor}'>`
+            $channelWindow.append(`<div class='user-entry nickColor${nickColor}' data-identity='${identity}'><div class='role ${roleName}'>`
                 + `<div class="icon" title="${roleName}"></div>${optionBody}`
                 + `<div class='prefix'></div>`
-                + `<div class='username allowColor'>${userName}${(type === 'message' ? ':' : '')}</div>`
+                + `<div class='username allowColor'>${identity}${(type === 'message' ? ':' : '')}</div>`
                 + `<div class='message ${(type === 'action' ? 'allowColor' : '')}'>${message}</div>`
                 + `</div></div>`);
         }
@@ -968,7 +969,7 @@ $(function(){
         onBanned(eventData) {
             //TODO: Close channel window.
             //For now, disconnect the user if he or she is kicked from the channel.
-            //this.close();
+            this.close();
             setStatus('You have been banned.');
         }
         /**
