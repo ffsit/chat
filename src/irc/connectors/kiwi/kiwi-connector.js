@@ -109,10 +109,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         'otheruserpart': 'onOtherUserLeave',
         //Mode & Channel events
         'channelmode': 'onChannelMode',
-        'usermode' : 'onRole',
-        'otherusermode': 'onRole',
-        'userstatus' : 'onStatus',
-        'otheruserstatus': 'onStatus',
+        'role': 'onRole',
+        'status' : 'onStatus',
         //Error events
         'accessdenied': 'onAccessDenied',
         'kicked': 'onKicked',
@@ -646,57 +644,80 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 //Determine if we are dealing with a channel or user mode.
                 let channelKey = this.generateChannelKey(eventData.target);
                 if (modePerUser.param !== null) {
+
+                    let newEventName;
+                    let newEventData = {
+                        channelKey: channelKey,
+                        action: action
+                    };
+
+                    //Normalize the nickname as defined by the normalization option.
+                    let nickname = modePerUser.param;
+                    let normalizedNickname = this.normalizeNickname(nickname);
+
                     if(modeToStatusMap[mode]) {
                         //----------------------------
                         //User Status: Banned, etc...
                         //----------------------------
 
-                        let bannedMaskComponents = vga.irc.connector.kiwi.banMaskRegEx.exec(modePerUser.param);
-                        if (bannedMaskComponents === null || bannedMaskComponents.length < 4) {
-                            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onMode]: Invalid banmask: ${modePerUser.param}`);
+                        //Get the status and handle banned modes differently.
+                        //Banned modes deal with a banned mask.
+                        let status = modeToStatusMap[mode];
+                        if (status === vga.irc.status.banned)
+                        {
+                            //NOTE: The major issue we are having here is if the ban mask is an identity only we do not have it.
+                            //Kiwi does not give us an identity per user when giving us the userlist, all we get is the nickname.
+                            //So if the consolidate nickname features if off, any nickname with a numeric suffix does not have an identity.
+                            //For example if that feature is off and the user that was banned was cafftest_1 then our identity is cafftest_1, which does not match the identity.
+                            let bannedMaskComponents = vga.irc.connector.kiwi.banMaskRegEx.exec(modePerUser.param);
+                            if (bannedMaskComponents === null || bannedMaskComponents.length < 4) {
+                                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onMode]: Invalid banmask: ${modePerUser.param}`);
+                            }
+
+                            //bannedMaskComponents[0] -- Full match.
+                            //bannedMaskComponents[1] -- Mode prefix,  such as m:*!ident@*
+                            //bannedMaskComponents[2] -- Optional/Full Nickname, such as m:nick!ident@* or m:*!ident@*
+                            //bannedMaskComponents[3] -- Identity/Full Identity/Partial Identity, such as m:nick!ident@* or m:nick!*ident@* or m:nick!ident*@*
+                            
+                            nickname = bannedMaskComponents[2];
+                            let identity = bannedMaskComponents[3];
+                            
+                            //We can't handle a ban mask that is IP/Domain only, so we'll just bail.
+                            if (nickname.trim() === '*' && identity.trim() === '*') {
+                                return;
+                            }
+
+                            //TODO: How to handle the nickname key with a wildcard.
+                            //The identity part is a wildcard, so just use the nickname and normalize it.
+                            if (nickname === '*') {
+                                normalizedNickname = nickname = identity;
+                            }
                         }
 
-                        //Full match.
-                        //bannedMaskComponents[0]
-                        let nickname = bannedMaskComponents[1];
-                        let identity = bannedMaskComponents[2];
-
-                        this._listener.invokeListeners(`${eventName}status`, {
-                            channelKey: channelKey,
-                            //This is the user's key used to access the user's information for a specific channel.
-                            nicknameKey: identity.toLocaleLowerCase(),
-                            //This is the user's true identity that will be shown to everyone.
-                            identity: identity,
-                            //This is a user's nickname that was assigned to the user on login.
-                            nickname: nickname,
-                            isMe: this.isMe(identity),
-                            action: action,
-                            status: vga.irc.compileModes([status], (userstatus) => modeToStatusMap[userstatus])
-                        });
+                        //Set the specific status eventdata.
+                        newEventName = 'status';
+                        newEventData['status'] = status;
                     }
                     else {
                         //------------------------------------
                         //User Roles: Voice, Operator, etc...
                         //------------------------------------
-                        //Normalize the nickname as defined by the normalization option.
-                        let nickname = modePerUser.param;
-                        let normalizedNickname = this.normalizeNickname(nickname);
 
-                        //Determine if the mode is a status mode or a role mode.
-                        let isMe = this.isMe(normalizedNickname);
-                        this._listener.invokeListeners(`${(isMe ? 'otheruser' : 'user')}mode`, {
-                            channelKey: channelKey,
-                            //This is the user's key used to access the user's information for a specific channel.
-                            nicknameKey: this.generateNicknameKey(nickname),
-                            //This is the user's true identity that will be shown to everyone.
-                            identity: normalizedNickname,
-                            //This is a user's nickname that was assigned to the user on login.
-                            nickname: nickname,
-                            isMe: isMe,
-                            action: action,
-                            roles: vga.irc.compileModes([mode], (userMode) => modeToRolesMap[userMode])
-                        });
+                        //Set the specific roles eventdata.
+                        newEventName = 'role';
+                        newEventData['roles'] = vga.irc.compileModes([mode], (userMode) => modeToRolesMap[userMode]);
                     }
+
+                    //Set the common eventdata for the mode based events.
+
+                    //This is the user's key used to access the user's information for a specific channel.
+                    newEventData['nicknameKey'] = this.generateNicknameKey(nickname);
+                    //This is the user's true identity that will be shown to everyone.
+                    newEventData['identity'] = normalizedNickname;
+                    //This is a user's nickname that was assigned to the user on login.
+                    newEventData['nickname'] = nickname;
+                    newEventData['isMe'] = this.isMe(normalizedNickname);
+                    this._listener.invokeListeners(newEventName, newEventData);
                 }
                 else {
                     //---------------------------------
@@ -739,9 +760,10 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 }
 
                 //Remove the prefix from the nickname.
+                //For example: Parse the operator @user into user.
                 let parsedNickname = user.nick.substring(nameIndex);
 
-                //Normalize the nickname as defined by the normalization option.
+                //Normalize the nickname as defined by the normalization option and generate the key.
                 let normalizedNickname = this.normalizeNickname(parsedNickname);
                 let nicknameKey = this.generateNicknameKey(parsedNickname);
 

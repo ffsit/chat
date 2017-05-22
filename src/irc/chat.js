@@ -944,6 +944,26 @@ $(function(){
             }
         }
         /**
+         * An event that is triggered on a status assignment either with the authenticated user or another user in chat.
+         * @method vga.irc.chat.onStatus
+         * @param {object} eventData contains the status information for the specific channel per user.
+         */
+        onStatus (eventData) {
+            let channel = this._userChannels[eventData.channelKey];
+            if (channel) {
+                /*
+                //TODO: Figure out how to handle a missing nickname/wildcard identity.
+                let user = channel[eventData.nicknameKey];
+                if (user) {
+                    user.applyStatus(eventData.action, eventData.roles);
+                    updateUserEntityInList(eventData.channelKey, user);
+                    updateDisplay(eventData.channelKey, user);
+
+                }
+                */
+            }
+        }
+        /**
          * An event that is triggered when the authentication information is incorrect.
          * @method vga.irc.chat.onAccessDenied
          */
