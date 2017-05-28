@@ -62,11 +62,9 @@ $(function(){
     // Event: onTopic ({ topic: string, channelKey: string })
     // Event: onMessage ({ nicknameKey: string, identity: string, nickname: string, target: string, message: string, type: string })
     // Event: onUserlist ({ channelKey: string, users: { roles: bitarray, prefixes: [ {prefix: string} ], nicknames: [string] })
-    // Event: onJoin ({ channelKey: string, nicknameKey: string, identity: string, nickname: string })
-    // Event: onLeave ({ channelKey: string, nicknameKey: string, identity: string, nickname: string })
-    // Event: onOtherUserJoin ({ channelKey: string, nicknameKey: string, identity: string, nickname: string })
-    // Event: onOtherUserLeave ({ channelKey: string, nicknameKey: string, identity: string, nickname: string })
-    // Event: onQuit ({ nicknameKey: string, identity: string, nickname: string })
+    // Event: onJoin ({ channelKey: string, nicknameKey: string, identity: string, nickname: string, isMe: bool })
+    // Event: onLeave ({ channelKey: string, nicknameKey: string, identity: string, nickname: string, isMe: bool })
+    // Event: onQuit ({ nicknameKey: string, identity: string, nickname: string, isMe: bool })
     // Event: onChannelMode ({ channelKey: string, modes: bitarray, action: vga.irc.roleModeAction })
     // Event: onRole ({ channelKey: string, nicknameKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, roles: bitarray })
     // Event: onStatus ({ channelKey: string, nicknameKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, status: bitarray })
@@ -679,39 +677,57 @@ $(function(){
          */
         send(channelName, message) {
             if (channelName) {
-                let messageCommand = message.toLowerCase();
-                if (messageCommand.startsWith("/quit")) {
-                    this.close(message.substring(6));
-                }
-                else if (messageCommand.startsWith("/join")) {
-                    this.join(message.substring(6));
-                }
-                else if (messageCommand.startsWith("/leave")) {
-                    this.leave(channelName, message.substring(7));
-                }
-                else if (messageCommand.startsWith("/r")) {
-                    let name = channelName;
-                    let messageIndex = message.indexOf(' ', 3);
-                    if (messageIndex > -1) {
-                        name = message.substring(3, messageIndex);
-                        message = message.substring(messageIndex + 1);
+                //Check for any known commands.
+                if (message[0] === '/') {
+                    let indexOfFirstSpace = message.indexOf(' ');
+                    if (indexOfFirstSpace > -1) {
+                        let messageCommand = message.substring(0, indexOfFirstSpace).toLowerCase();
+                        let message = message.substring(indexOfFirstSpace + 1);
+
+                        switch(message) {
+                            case '/quit':
+                                this.close(message);
+                                break;
+
+                            case '/join':
+                                this.join(message);
+                                break;
+                            
+                            case '/leave': 
+                                this.leave(message);
+                                break;
+
+                            case '/e':
+                            {
+                                this.connector.emote(channelName, message);
+                                let channel = this._userChannels[channelName];
+                                if (channel) {
+                                    let user = channel[this.connector.getMyNicknameKey()];
+                                    this.writeToChannelWindow(channelName, user, message, 'action');
+                                }
+                            }
+                            break;
+
+                            case '/r':
+                            {
+                                let name = channelName;
+                                let messageIndex = message.indexOf(' ');
+                                if (messageIndex > -1) {
+                                    name = message.substring(messageIndex);
+                                    message = message.substring(messageIndex + 1);
+                                }
+                                this.connector && this.connector.send(message, name);
+                                let channel = this._userChannels[channelName];
+                                if (channel) {
+                                    let user = channel[this.connector.getMyNicknameKey()];
+                                    this.writeToChannelWindow(channelName, user, ` whispers to ${name}: '${message}'`, 'action');
+                                }
+                            }
+                            break;
+                        }
                     }
-                    this.connector && this.connector.send(message, name);
-                    let channel = this._userChannels[channelName];
-                    if (channel) {
-                        let user = channel[this.connector.getMyNicknameKey()];
-                        this.writeToChannelWindow(channelName, user, ` whispers to ${name}: '${message}'`, 'action');
-                    }
                 }
-                else if (messageCommand.startsWith("/e")) {
-                    let emote = message.substring(3);
-                    this.connector.emote(channelName, emote);
-                    let channel = this._userChannels[channelName];
-                    if (channel) {
-                        let user = channel[this.connector.getMyNicknameKey()];
-                        this.writeToChannelWindow(channelName, user, emote, 'action');
-                    }
-                }
+                //Send messages as normal.
                 else {
                     this.connector && this.connector.send(message, channelName);
                     let channel = this._userChannels[channelName];
@@ -851,58 +867,60 @@ $(function(){
             createUserList(eventData.channelKey, eventData.users);
         }
         /**
-         * An event that is triggered when the authenticated user has joined a channel.
+         * An event that is triggered when the a user has joined a channel.
          * @method vga.irc.chat.onJoin
          * @param {object} eventData
          */
         onJoin(eventData) {
-            writeInformationalMessage(eventData.channelKey, `Joined ${eventData.channelKey} channel`);
-        }
-        /**
-         * An event that is triggered when another user has joined the channel.
-         * @method vga.irc.chat.onOtherUserJoin
-         * @param {object} eventData
-         */
-        onOtherUserJoin(eventData) {
-            let channel = this._userChannels[eventData.channelKey];
-            if (channel) {
-                //Retrieve the user entity if he or she already exists in the userlist.
-                let user = channel[eventData.nicknameKey];
-                //If the user is new then add him or her to the userlist and channel information block.
-                if (!user) {
-                    user = new vga.irc.userEntity(eventData.identity, eventData.nickname);
-                    channel[eventData.nicknameKey] = user;
-                    if (!this._frashShowMode && this._showUserJoinLeaveMessage) {
-                        this.writeToChannelWindow(eventData.channelKey, user, `has joined.`, 'action');
-                    }
-                }
-
-                //Add any new nicknames to the user entity and update the userlist.
-                user.addNickname(eventData.nickname);
-                updateUserEntityInList(eventData.channelKey, user);
+            if (eventData.isMe) {
+                writeInformationalMessage(eventData.channelKey, `Joined ${eventData.channelKey} channel.`);
             }
-        }
-        /**
-         * An event that is triggered when another user has left the channel.
-         * @method vga.irc.chat.onOtherUserLeave
-         * @param {object} eventData
-         */
-        onOtherUserLeave(eventData) {
-            let channel = this._userChannels[eventData.channelKey];
-            if (channel) {
-                //If the user exists then remove this nickname from the user entity, otherwise ignore the event.
-                let user = channel[eventData.nicknameKey];
-                if (user) {
-                    user.removeNickname(eventData.nickname);
-                    //If we have exhasted the number of nicknames then we need to remove the user entity from the channel information block.
-                    if (user.nicknames.length === 0) {
-                        channel[eventData.nicknameKey] = undefined;
+            else {
+                let channel = this._userChannels[eventData.channelKey];
+                if (channel) {
+                    //Retrieve the user entity if he or she already exists in the userlist.
+                    let user = channel[eventData.nicknameKey];
+                    //If the user is new then add him or her to the userlist and channel information block.
+                    if (!user) {
+                        user = new vga.irc.userEntity(eventData.identity, eventData.nickname);
+                        channel[eventData.nicknameKey] = user;
                         if (!this._frashShowMode && this._showUserJoinLeaveMessage) {
-                            this.writeToChannelWindow(eventData.channelKey, user, `has left.`, 'action');
+                            this.writeToChannelWindow(eventData.channelKey, user, `has joined.`, 'action');
                         }
                     }
 
+                    //Add any new nicknames to the user entity and update the userlist.
+                    user.addNickname(eventData.nickname);
                     updateUserEntityInList(eventData.channelKey, user);
+                }
+            }
+        }
+        /**
+         * An event that is triggered when a user has left the channel.
+         * @method vga.irc.chat.onLeave
+         * @param {object} eventData
+         */
+        onLeave(eventData){
+            if (eventData.isMe) {
+                writeInformationalMessage(eventData.channelKey, `Left ${eventData.channelKey} channel.`);
+            }
+            else {
+                let channel = this._userChannels[eventData.channelKey];
+                if (channel) {
+                    //If the user exists then remove this nickname from the user entity, otherwise ignore the event.
+                    let user = channel[eventData.nicknameKey];
+                    if (user) {
+                        user.removeNickname(eventData.nickname);
+                        //If we have exhasted the number of nicknames then we need to remove the user entity from the channel information block.
+                        if (user.nicknames.length === 0) {
+                            channel[eventData.nicknameKey] = undefined;
+                            if (!this._frashShowMode && this._showUserJoinLeaveMessage) {
+                                this.writeToChannelWindow(eventData.channelKey, user, `has left.`, 'action');
+                            }
+                        }
+
+                        updateUserEntityInList(eventData.channelKey, user);
+                    }
                 }
             }
         }
@@ -914,10 +932,11 @@ $(function(){
         onQuit(eventData) {
             //Reuse the leave logic but apply it to all channels.
             vga.util.forEach(this._userChannels, (channelKey, users) => {
-                this.onOtherUserLeave({
+                this.onLeave({
                     channelKey: channelKey,
                     nicknameKey: eventData.nicknameKey,
-                    nickname: eventData.nickname
+                    nickname: eventData.nickname,
+                    isMe: eventData.IsMe
                 })
             });
         }
