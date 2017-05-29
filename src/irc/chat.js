@@ -798,7 +798,6 @@ $(function(){
         setUserStatus(channelName, identity, status) {
             if (this.connector) {
                 this.connector.setUserStatus(channelName, identity, status, vga.irc.roleModeAction.add);
-                this.toggleSettingItem(turboModeId, activate);
             }
             return this;
         }
