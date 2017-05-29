@@ -193,9 +193,10 @@ vga.util.readCookie = (name, defaultValue) => {
         let cookieName = name.toLowerCase() + '=';
         let cookieItems = document.cookie.split(';');
         for(let i = 0; i < cookieItems.length; i++) {
-            let index = cookieItems[i].trim().toLowerCase().indexOf(cookieName);
+            let cookieItem = cookieItems[i].trim().toLowerCase();
+            let index = cookieItem.indexOf(cookieName);
             if (index > -1) {
-                return cookieItems[i].substring(cookieName.length+1);
+                return cookieItem.substring(cookieName.length);
             }
         }
     }
