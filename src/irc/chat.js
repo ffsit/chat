@@ -52,6 +52,27 @@ vga.irc = vga.irc || {};
 $(function(){
 
     //-----------------------------------------------------------------
+    // Notes on chat & the connector to help alleviate confusion.
+    //-----------------------------------------------------------------
+    // 
+    // Connector Identity
+    // ----------------------------
+    // The identity is provided by the connector.  The identity is what is displayed in the user list and the user messages to visually identify a user.
+    //
+    // Connector Nickname (s)
+    // ----------------------------
+    // An indirect identity, a user can have multiple nicknames if he or she has multiple sessions.
+    // If a user has more htan one nickname it will be visible on the user list while hovering over his or her name.
+    //
+    // ChannelKey
+    // ----------------------------
+    // The channelkey is a connector specific field that uniquely identifies a channel.
+    //
+    // UserKey
+    // ----------------------------
+    // The userkey is a connector specific field that uniquely identifies a user.
+
+    //-----------------------------------------------------------------
     // Expected structures note.
     //-----------------------------------------------------------------
     // Since JS is a dynamic language, we cannot force structures to conform to a specific format.
@@ -60,17 +81,17 @@ $(function(){
     // Event: onDisconnect({closedByServer: bool})
     // Event: onReconnect()
     // Event: onTopic ({ topic: string, channelKey: string })
-    // Event: onMessage ({ nicknameKey: string, identity: string, nickname: string, target: string, message: string, type: string })
+    // Event: onMessage ({ userKey: string, identity: string, nickname: string, target: string, message: string, type: string })
     // Event: onUserlist ({ channelKey: string, users: { roles: bitarray, prefixes: [ {prefix: string} ], nicknames: [string] })
-    // Event: onJoin ({ channelKey: string, nicknameKey: string, identity: string, nickname: string, isMe: bool })
-    // Event: onLeave ({ channelKey: string, nicknameKey: string, identity: string, nickname: string, isMe: bool })
-    // Event: onQuit ({ nicknameKey: string, identity: string, nickname: string, isMe: bool })
+    // Event: onJoin ({ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool })
+    // Event: onLeave ({ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool })
+    // Event: onQuit ({ userKey: string, identity: string, nickname: string, isMe: bool })
     // Event: onChannelMode ({ channelKey: string, modes: bitarray, action: vga.irc.roleModeAction })
-    // Event: onRole ({ channelKey: string, nicknameKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, roles: bitarray })
-    // Event: onStatus ({ channelKey: string, nicknameKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, status: bitarray })
+    // Event: onRole ({ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, roles: bitarray })
+    // Event: onStatus ({ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, status: bitarray })
     // Event: onAccessDenied()
-    // Event: onKicked ({ identity: string, nicknameKey: string, channelKey: string })
-    // Event: onBanned ({ identity: string, nicknameKey: string, channelKey: string })
+    // Event: onKicked ({ identity: string, userKey: string, channelKey: string })
+    // Event: onBanned ({ identity: string, userKey: string, channelKey: string })
     // Event: onError ({ reason: string })
 
     //-----------------------------------------------------------------
@@ -493,7 +514,7 @@ $(function(){
             let optionBody = '';
             let channel = this._userChannels[channelName];
             if (channel) {
-                let me = channel[this.connector.getMyNicknameKey()];
+                let me = channel[this.connector.getMyUserKey()];
                 if (me && hasModCapabilities(me.roles)) {
                     optionBody = '<span class="timeout"><i class="fa fa-ban" role="button" title="Timeout Chatter!"></i></span>'
                 }
@@ -702,7 +723,7 @@ $(function(){
                                 this.connector.emote(channelName, message);
                                 let channel = this._userChannels[channelName];
                                 if (channel) {
-                                    let user = channel[this.connector.getMyNicknameKey()];
+                                    let user = channel[this.connector.getMyUserKey()];
                                     this.writeToChannelWindow(channelName, user, message, 'action');
                                 }
                             }
@@ -719,7 +740,7 @@ $(function(){
                                 this.connector && this.connector.send(message, name);
                                 let channel = this._userChannels[channelName];
                                 if (channel) {
-                                    let user = channel[this.connector.getMyNicknameKey()];
+                                    let user = channel[this.connector.getMyUserKey()];
                                     this.writeToChannelWindow(channelName, user, ` whispers to ${name}: '${message}'`, 'action');
                                 }
                             }
@@ -732,7 +753,7 @@ $(function(){
                     this.connector && this.connector.send(message, channelName);
                     let channel = this._userChannels[channelName];
                     if (channel) {
-                        let user = channel[this.connector.getMyNicknameKey()];
+                        let user = channel[this.connector.getMyUserKey()];
                         this.writeToChannelWindow(channelName, user, message);
                     }
                 }
@@ -833,7 +854,7 @@ $(function(){
                         writeInformationalMessage(eventData.channelKey, `The room is now in TURBO only mode.`);
                         
                         //Disable the chatbox if the user is a shadow when turbo mode is on.
-                        let me = channel[this.connector.getMyNicknameKey()];
+                        let me = channel[this.connector.getMyUserKey()];
                         $channelTab.find('input.chatbox').prop('disabled', vga.irc.getMostSignificantRole(me.roles) === vga.irc.roles.shadow);
                     }
                     else {
@@ -852,7 +873,7 @@ $(function(){
             if (!this._wallRegEx.test(eventData.message) || !this._frashShowMode) {
                 let channel = this._userChannels[eventData.target];
                 if (channel) {
-                    let user = channel[eventData.nicknameKey];
+                    let user = channel[eventData.userKey];
                     this.writeToChannelWindow(eventData.target, user, eventData.message, eventData.type);
                 }
             }
@@ -879,11 +900,11 @@ $(function(){
                 let channel = this._userChannels[eventData.channelKey];
                 if (channel) {
                     //Retrieve the user entity if he or she already exists in the userlist.
-                    let user = channel[eventData.nicknameKey];
+                    let user = channel[eventData.userKey];
                     //If the user is new then add him or her to the userlist and channel information block.
                     if (!user) {
                         user = new vga.irc.userEntity(eventData.identity, eventData.nickname);
-                        channel[eventData.nicknameKey] = user;
+                        channel[eventData.userKey] = user;
                         if (!this._frashShowMode && this._showUserJoinLeaveMessage) {
                             this.writeToChannelWindow(eventData.channelKey, user, `has joined.`, 'action');
                         }
@@ -908,12 +929,12 @@ $(function(){
                 let channel = this._userChannels[eventData.channelKey];
                 if (channel) {
                     //If the user exists then remove this nickname from the user entity, otherwise ignore the event.
-                    let user = channel[eventData.nicknameKey];
+                    let user = channel[eventData.userKey];
                     if (user) {
                         user.removeNickname(eventData.nickname);
                         //If we have exhasted the number of nicknames then we need to remove the user entity from the channel information block.
                         if (user.nicknames.length === 0) {
-                            channel[eventData.nicknameKey] = undefined;
+                            channel[eventData.userKey] = undefined;
                             if (!this._frashShowMode && this._showUserJoinLeaveMessage) {
                                 this.writeToChannelWindow(eventData.channelKey, user, `has left.`, 'action');
                             }
@@ -934,7 +955,7 @@ $(function(){
             vga.util.forEach(this._userChannels, (channelKey, users) => {
                 this.onLeave({
                     channelKey: channelKey,
-                    nicknameKey: eventData.nicknameKey,
+                    userKey: eventData.userKey,
                     nickname: eventData.nickname,
                     isMe: eventData.IsMe
                 })
@@ -948,7 +969,7 @@ $(function(){
         onRole (eventData) {
             let channel = this._userChannels[eventData.channelKey];
             if (channel) {
-                let user = channel[eventData.nicknameKey];
+                let user = channel[eventData.userKey];
                 if (user) {
                     user.applyRoles(eventData.action, eventData.roles);
                     updateUserEntityInList(eventData.channelKey, user);
@@ -956,7 +977,7 @@ $(function(){
 
                     //If the user is me and I have been granted mod capabilities then show the mode toggle option.
                     if (eventData.isMe) {
-                        let me = channel[this.connector.getMyNicknameKey()];
+                        let me = channel[this.connector.getMyUserKey()];
                         this.showToggleSetting(turboModeId, (me && hasModCapabilities(me.roles)));
                     }
                 }
@@ -972,7 +993,7 @@ $(function(){
             if (channel) {
                 /*
                 //TODO: Figure out how to handle a missing nickname/wildcard identity.
-                let user = channel[eventData.nicknameKey];
+                let user = channel[eventData.userKey];
                 if (user) {
                     user.applyStatus(eventData.action, eventData.roles);
                     updateUserEntityInList(eventData.channelKey, user);

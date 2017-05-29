@@ -54,13 +54,53 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 (function(){
 
     //-----------------------------------------------------------------
-    //RegExs for the various IRC errors.
+    // Notes on KIWI/IRC & the connector to help alleviate confusion.
+    //-----------------------------------------------------------------
+    // IRC Identity
+    // ----------------------------
+    // The identity is supposed to be the single, consistent identity of the user.
+    // With Kiwi & IRC we do not always have access to the identity, sometimes it is provided while other times it is not.
+    // A good example of this is the userlist where we are given a list of users, modes, and nicks but no identities to work with.
+    // Additionally, a user join or part event will supply an identity while a mode event will not.
+    // In these cases, the identity is not reliable, and we cannot use it consistently through out the connector.
+    // 
+    // Connector Identity
+    // ----------------------------
+    // The identity used by the connector is generated from normalizing the nickname, if the feature is enabled.
+    // This allows us to have a consistent key/identity for our user.
+    // This is what is given to the chat class as an identity, which is what is shown by that class.
+    // This normalization action only works when dealing with multiple user sessions that have a similiar name but a different numerical suffix identifier.
+    // Users signed in with the same name with different sessions will be granted a new numerical suffix identifier to allow them to have multiple sessions.
+    //
+    // IRC Nickname
+    // ----------------------------
+    // This is the name that someone wishes to use in a specific IRC channel.
+    // It can differ from their identity and can be changed if the channel/server allows it.
+    // This gives us a challenge when someone has a unique different nickname then what he or she signed in with.
+    //
+    // Connector Nickname
+    // ----------------------------
+    // The connector nickname is the exact same as the IRC nickname.  It is not normalized and it is provided directly to the chat class as is.
+    // The chat class does not show this directly, only indirectly.
+    //
+    // ChannelKey
+    // ----------------------------
+    // The channelkey is a connector specific field that uniquely identifies a channel.
+    //
+    // UserKey
+    // ----------------------------
+    // The userkey is a connector specific field that uniquely identifies a user.
+
+    //-----------------------------------------------------------------
+    //RegExs for the various IRC masks & errors.
     //-----------------------------------------------------------------
     vga.irc.connector.kiwi.accessDeniedRegEx = /^Closing link: [^\r\n]*\[Access denied\]$/;
     vga.irc.connector.kiwi.pingTimeoutRegEx = /^Closing link: [^\r\n]*\[Ping timeout: \d+ seconds\]$/;
     vga.irc.connector.kiwi.registrationTimeOutRegEx = /^Closing link: [^\r\n]*\[Registration timeout\]$/
     vga.irc.connector.kiwi.serverShutDownRegEx = /^Closing link: [^\r\n]*\[Server shutdown\]$/;
     vga.irc.connector.kiwi.banMaskRegEx =  /(\w:)?([\w\-\[\]\\\`\^\{\|\}\*]+)!([\w\-\[\]\\\`\^\{\|\}\*]+)@.+/;
+
+    //This expression is used to replace the * wildcards so that partial name matches can be performed, and is a direct reflection of the banMaskRegEx.
     vga.irc.connector.kiwi.wildCardMaskRegString ='[\\w\\-\\[\\]\\`\\^\\{\\|\\}\\*]*';
 
     //-----------------------------------------------------------------
@@ -233,12 +273,12 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             return this.normalizeNickname(this._nickname);
         }
         /**
-         * Returns a generated nickname key assigned to the user on login.
-         * @method vga.irc.connector.kiwi.connector.getMyNicknameKey
-         * @return {string} the currently authenticated user's nickname key.
+         * Returns a generated user key assigned to the user on login.
+         * @method vga.irc.connector.kiwi.connector.getMyUserKey
+         * @return {string} the currently authenticated user's key.
          */        
-        getMyNicknameKey() {
-            return this.generateNicknameKey(this._nickname);
+        getMyUserKey() {
+            return this.generateUserKey(this._nickname);
         }
         /**
          * A normalized way of determining if the current user's identity or nickname is the same as the authenticated user.
@@ -261,14 +301,14 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             return this._consolidateNicknames ? sanitizeNickname(nickname) : nickname;
         }        
         /**
-         * Generates a nickname key.
+         * Generates a user key.
          * NOTE: For now this is just a lowercase, normalized value.
-         * @method generateNicknameKey
-         * @param {string} nickname to generate a key.
-         * @return {string} a nickname key.
+         * @method generateUserKey
+         * @param {string} name that is generating the key.
+         * @return {string} a user key.
          */
-        generateNicknameKey(nickname) {
-            return this.normalizeNickname(nickname).toLocaleLowerCase();
+        generateUserKey(name) {
+            return this.normalizeNickname(name).toLocaleLowerCase();
         }
         /**
          * Generates a channel key.
@@ -510,10 +550,10 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //Action message Example Data: {"is_request":true,"type":"ACTION","target":"#channel","params":"tests an action"}
             if (eventData.type === 'message' || eventData.type === 'action') {
                 this._listener.invokeListeners('message', {
-                    nicknameKey: this.generateNicknameKey(eventData.nick),
+                    userKey: this.generateUserKey(eventData.nick),
                     identity: this.normalizeNickname(eventData.nick),
                     nickname: eventData.nick,
-                    target: isChannel ? this.generateChannelKey(eventData.target) : this.generateNicknameKey(eventData.target),
+                    target: isChannel ? this.generateChannelKey(eventData.target) : this.generateUserKey(eventData.target),
                     message: eventData.msg,
                     type: eventData.type
                 });
@@ -573,7 +613,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //So we need to send event notifications on nicknames not the identity; however, we will create a psuedo-identity based on a normalized nickname.
             this._listener.invokeListeners(`${eventData.type}`,{
                 channelKey: channelKey,
-                nicknameKey: this.generateNicknameKey(nickname),
+                userKey: this.generateUserKey(nickname),
                 identity: identity,
                 nickname: nickname,
                 isMe: this.isMe(identity)
@@ -620,7 +660,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //Example Data: {"nick":"quitting_user_nick","ident":"quitting_user_ident","hostname":"::1","message":"Connection closed","connection_id":0}
             let identity = this.normalizeNickname(eventData.nick);
             this._listener.invokeListeners(`quit`,{
-                nicknameKey: this.generateNicknameKey(eventData.nick),
+                userKey: this.generateUserKey(eventData.nick),
                 identity: identity,
                 nickname: eventData.nick,
                 isMe: this.isMe(identity)
@@ -686,6 +726,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          */
         onUserMode(channelKey, nickname, action, mode) {
             let newEventName;
+            let isMe;
             let newEventData = {
                 channelKey: channelKey,
                 action: action
@@ -711,7 +752,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     }
 
                     //bannedMaskComponents[0] -- Full match.
-                    //bannedMaskComponents[1] -- Mode prefix,  such as m:*!ident@*
+                    //bannedMaskComponents[1] -- Mode prefix, such as m:*!ident@*
                     //bannedMaskComponents[2] -- Optional/Full Nickname, such as m:nick!ident@* or m:*!ident@*
                     //bannedMaskComponents[3] -- Identity/Full Identity/Partial Identity, such as m:nick!ident@* or m:nick!*ident@* or m:nick!ident*@*
                     
@@ -767,13 +808,13 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             let identity = this.normalizeNickname(nickname);
             //This is the user's key used to access the user's information for a specific channel.
             //NOTE: This value can be a wildcard * to indiciate there are multiple identities.
-            newEventData['nicknameKey'] = this.generateNicknameKey(nickname);
+            newEventData['userKey'] = this.generateUserKey(nickname);
             //This is the user's true identity that will be shown to everyone.
             //NOTE: This value can be a wildcard * to indiciate there are multiple identities.
             newEventData['identity'] = identity
             //This is a user's nickname that was assigned to the user on login.
             newEventData['nickname'] = nickname;
-            newEventData['isMe'] = this.isMe(identity);
+            newEventData['isMe'] = (isMe !== undefined) ? isMe : this.isMe(identity);
             this._listener.invokeListeners(newEventName, newEventData);
         }
 
@@ -811,18 +852,18 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
                 //Normalize the nickname as defined by the normalization option and generate the key.
                 let identity = this.normalizeNickname(parsedNickname);
-                let nicknameKey = this.generateNicknameKey(parsedNickname);
+                let userKey = this.generateUserKey(parsedNickname);
 
                 //Add known identities to our set.
                 this._knownIdentities.add(identity);
 
                 //Determine if we stored the user information by nickname earlier.
-                let userInfo = userInfoMap[nicknameKey];
+                let userInfo = userInfoMap[userKey];
                 if (!userInfo) {
                     //Create a key...because IRC is case-insensitive, we have to create a key that is consistent.
                     //NOTE: The other option is to iterate through our 'maps', which is not ideal.
                     let roles = vga.irc.compileModes(user.modes, (mode) => modeToRolesMap[mode]);
-                    userInfoMap[nicknameKey] = new vga.irc.userEntity(identity, [parsedNickname], roles);
+                    userInfoMap[userKey] = new vga.irc.userEntity(identity, [parsedNickname], roles);
                 }
                 else {
                     //Keep a collection of all of the alternative nicknames for this user.
@@ -876,7 +917,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 case 'cannot_send_to_channel':
                     /*
                     this._listener.invokeListeners('kicked', {
-                        nicknameKey: this.getMyNicknameKey(),
+                        userKey: this.getMyUserKey(),
                         channelKey: this.generateChannelKey(eventData.channel)
                     });
                     */
@@ -884,7 +925,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
                 case 'banned_from_channel':
                     this._listener.invokeListeners('banned', {
-                        nicknameKey: this.getMyNicknameKey(),
+                        userKey: this.getMyUserKey(),
                         channelKey: this.generateChannelKey(eventData.channel)
                     });
                     return;
