@@ -84,7 +84,90 @@ vga.irc.messageType = {
 }
 
 //-----------------------------------------------------------------
-// Role methods.
+// BitArray methods.
+//-----------------------------------------------------------------
+
+vga.irc.bitArray = vga.irc.bitArray || {};
+
+/**
+ * Finds the most significant value based on the bit weight of the type.
+ * @method vga.irc.getMostSignificantRole
+ * @param {number} values bitarray of values.
+ * @param {object} types defined 'enum' type.
+ * @param {number} defaultValue
+ * @return most significant value.
+ * @api public
+ */
+vga.irc.bitArray.getMostSignificantValue = function(values, types, defaultValue) {
+    let numOfValues = vga.util.propertyCount(types);
+	for(let bitNum = numOfValues - 1; bitNum >= 0; bitNum--) {
+		let bitVal = (1 << bitNum);
+		if ((values & bitVal) === bitVal) {
+			return bitVal;
+		}
+	}
+	return defaultValue;
+};
+
+/**
+ * Applies a one or more values to the current bitarray.
+ * @method vga.irc.bitArray.add
+ * @param {number} value bitarray of values.
+ * @param {number} valueToApply bitarray of a value or values to apply.
+ * @return updated values bitarray.
+ * @api public
+ */
+vga.irc.bitArray.add = function(value, valueToApply) {
+    return (value | valueToApply);
+};
+
+/**
+ * Removes a one or more values to the current bitarray.
+ * @method vga.irc.remove
+ * @param {number} value bitarray of values.
+ * @param {number} valueToApply bitarray of a value or values to apply.
+ * @return updated values bitarray.
+ * @api public
+ */
+vga.irc.bitArray.remove = function(value, valueToApply) {
+    return (value ^ (value & valueToApply));
+};
+
+/**
+ * A helper method that will compile an array of values into a bitarray.
+ * @method vga.irc.compileBitArray
+ * @param {array} valueArray array of values.
+ * @param {function} transformFunction the transformation function that transforms an array into a bitarray.
+ * @param {number} defaultValue that is used if nothing is transformed or the valueArray is empty.
+ * @return a compiled bitarray.
+ * @api public
+ */
+vga.irc.bitArray.compileBitArray = function(valueArray, transformFunction, defaultValue){
+    //Normalize the valueArray.
+    valueArray = valueArray || [];
+
+    if (!transformFunction) {
+        throw new "The transformFunction is undefined.";
+    }
+
+    //Initialize the values to the defaultValue.
+    let values = (defaultValue !== undefined ? defaultValue : 0);
+    if (valueArray.length === 0) {
+        return values;
+    }
+    else if (valueArray.length === 1) {
+        return values | (transformFunction(valueArray[0]) || 0);
+    }
+    else {
+        //Initialize the accumulator with the shadow role.
+        return valueArray.reduce((a, b)=>{
+            return a | (transformFunction[b] || 0);
+        }, values);
+    }
+};
+
+//-----------------------------------------------------------------
+// Helper methods.
 //-----------------------------------------------------------------
 
 /**
@@ -95,70 +178,18 @@ vga.irc.messageType = {
  * @api public
  */
 vga.irc.getMostSignificantRole = function(roles) {
-    let numOfRoles = vga.util.propertyCount(vga.irc.roles);
-	for(let bitNum = numOfRoles - 1; bitNum >= 0; bitNum--) {
-		let bitVal = (1 << bitNum);
-		if ((roles & bitVal) === bitVal) {
-			return bitVal;
-		}
-	}
-	return vga.irc.roles.shadow;
+    return vga.irc.bitArray.getMostSignificantValue(roles, vga.irc.roles, vga.irc.roles.shadow);
 };
 
 /**
- * Applies a one or more roles to the current roles bitarray.
- * @method vga.irc.addRole
- * @param {number} roles bitarray of roles.
- * @param {number} roleToApply bitarray of a role or roles to apply.
- * @return updated roles bitarray.
+ * Finds the most significant status based on the bit weight.
+ * @method vga.irc.getMostSignificantStatus
+ * @param {number} status bitarray of status.
+ * @return most significant status.
  * @api public
  */
-vga.irc.addRole = function(roles, roleToApply) {
-    return (roles | roleToApply);
-};
-
-/**
- * Removes a one or more roles to the current roles bitarray.
- * @method vga.irc.removeRole
- * @param {number} roles bitarray of roles.
- * @param {number} roleToRemove bitarray of a role or roles to remove.
- * @return updated roles bitarray.
- * @api public
- */
-vga.irc.removeRole = function(roles, roleToRemove) {
-    return (roles ^ (roles & roleToRemove));
-};
-
-/**
- * A helper method that will compile an array of modes into a bitarray.
- * @method vga.irc.compileModes
- * @param {array} modes array of modes.
- * @param {function} transformFunction the transformation function that transforms a mode into a role.
- * @return a compiled bitarray.
- * @api public
- */
-vga.irc.compileModes = function(modes, transformFunction){
-    //Normalize the modes.
-    modes = modes || [];
-
-    if (!transformFunction) {
-        throw new "The transformFunction is undefined.";
-    }
-
-    //Initialize the (roles) to 1 so that a user is always a 'shadow'.
-    let roles = vga.irc.roles.shadow;
-    if (modes.length === 0) {
-        return roles;
-    }
-    else if (modes.length === 1) {
-        return roles | (transformFunction(modes[0]) || 0);
-    }
-    else {
-        //Initialize the accumulator with the shadow role.
-        return modes.reduce((a, b)=>{
-            return a | (transformFunction[b] || 0);
-        }, roles);
-    }
+vga.irc.getMostSignificantStatus = function(status) {
+    return vga.irc.bitArray.getMostSignificantValue(status, vga.irc.status, vga.irc.status.nominal);
 };
 
 //-----------------------------------------------------------------
@@ -187,8 +218,8 @@ vga.irc.userEntity = class  {
      */
     applyRoles(roleAction, rolesToApply) {
         this.roles = (roleAction === vga.irc.roleModeAction.add)
-            ? vga.irc.addRole(this.roles, rolesToApply)
-            : vga.irc.removeRole(this.roles, rolesToApply);
+            ? vga.irc.bitArray.add(this.roles, rolesToApply)
+            : vga.irc.bitArray.remove(this.roles, rolesToApply);
     }
     /**
      * Applies a status based on the action to the current user entity.
@@ -199,8 +230,8 @@ vga.irc.userEntity = class  {
      */    
     applyStatus(modeAction, modesToApply) {
         this.status = (modeAction === vga.irc.roleModeAction.add)
-            ? vga.irc.addRole(this.status, modesToApply)
-            : vga.irc.removeRole(this.status, modesToApply);
+            ? vga.irc.bitArray.add(this.status, modesToApply)
+            : vga.irc.bitArray.remove(this.status, modesToApply);
     }
     /**
      * Append a nickname to the user entity.

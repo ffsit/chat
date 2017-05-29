@@ -638,7 +638,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     if (channelModeBlock) {
                         //Only transform positive (additive) channel modes, as channel modes that are removed will generate their own event.
                         if (channelModeBlock.mode.substring(0, 1) === '+') {
-                            channelModes = vga.irc.addRole(channelModes, channelModeMap[channelModeBlock.mode.substring(1, 2)]);
+                            channelModes = vga.irc.bitArray.add(channelModes, channelModeMap[channelModeBlock.mode.substring(1, 2)]);
                         }
                     }
                 });
@@ -711,7 +711,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     this._listener.invokeListeners(`channelmode`, {
                         channelKey: channelKey,
                         action: action,
-                        modes: vga.irc.compileModes([mode], (channelMode) => channelModeMap[channelMode])
+                        modes: vga.irc.bitArray.compileBitArray([mode], (channelMode) => channelModeMap[channelMode])
                     });
                 }
             });
@@ -799,7 +799,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
                 //Set the specific roles eventdata.
                 newEventName = 'role';
-                newEventData['roles'] = vga.irc.compileModes([mode], (userMode) => modeToRolesMap[userMode]);
+                newEventData['roles'] = vga.irc.bitArray.compileBitArray([mode], (userMode) => modeToRolesMap[userMode], vga.irc.roles.shadow);
             }
 
             //Set the common eventdata for the mode based events.
@@ -862,7 +862,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 if (!userInfo) {
                     //Create a key...because IRC is case-insensitive, we have to create a key that is consistent.
                     //NOTE: The other option is to iterate through our 'maps', which is not ideal.
-                    let roles = vga.irc.compileModes(user.modes, (mode) => modeToRolesMap[mode]);
+                    let roles = vga.irc.bitArray.compileBitArray(user.modes, (mode) => modeToRolesMap[mode], vga.irc.roles.shadow);
                     userInfoMap[userKey] = new vga.irc.userEntity(identity, [parsedNickname], roles);
                 }
                 else {
