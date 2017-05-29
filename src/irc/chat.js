@@ -345,8 +345,10 @@ $(function(){
             nicknames += `${(nicknames.length > 0 ? ',' : '')}${nickname}`;
         });
 
-        let roleName = getRoleName(user.roles);
-        return (`<div data-identity='${user.identity}' class='user-entry'><div class='role ${roleName} ${getStatusName(user.status)}'>`
+        //Status overrides roles.
+        let statusName = getStatusName(user.status);
+        let roleName = (!statusName) ? getRoleName(user.roles) : statusName;
+        return (`<div data-identity='${user.identity}' class='user-entry'><div class='role ${roleName}'>`
             + `<div class="icon" title="${roleName}"></div>`
             + `<div class='username' title="Nicknames: ${nicknames}">${user.identity}</div>`
             + '</div></div>');
@@ -1015,23 +1017,29 @@ $(function(){
         onStatus (eventData) {
             let channel = this._userChannels[eventData.channelKey];
             if (channel) {
-                //Determine if the userkey is a wildcard if so, find all users.
-                if ((eventData.userKey === '*') && (eventData.identities)) {
-                    for (let identity of eventData.identities) {
-                        let user = channel[identity];
-                        if (user) {
-                            user.applyStatus(eventData.action, eventData.status);
-                            updateUserEntityInList(eventData.channelKey, user);
-                            updateDisplay(eventData.channelKey, user);
-                        }
-                    }
-                }
-                else {
-                    let user = channel[eventData.userKey];
+                //An internal helper function.
+                let handleStatus = (userKey) => {
+                    let user = channel[userKey];
                     if (user) {
                         user.applyStatus(eventData.action, eventData.status);
                         updateUserEntityInList(eventData.channelKey, user);
                         updateDisplay(eventData.channelKey, user);
+                    }
+                };
+                //Determine if the userkey is a wildcard if so, find all users.
+                if ((eventData.userKey === '*') && (eventData.identities)) {
+                    for (let identity of eventData.identities) {
+                        handleStatus(identity);
+                    }
+                }
+                else {
+                    handleStatus(eventData.userKey);
+                }
+
+                //Handle events specific to me slightly different.
+                if (eventData.isMe) {
+                    if (eventData.status === vga.irc.status.banned) {
+                        writeInformationalMessage(eventData.channelKey, (eventData.action === vga.irc.roleModeAction.add ? `You have been timed out.` : 'Your timeout has expired.'));
                     }
                 }
             }

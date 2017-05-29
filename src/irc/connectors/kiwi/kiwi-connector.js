@@ -806,6 +806,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                                 }
                             });
 
+                            //Find out if I'm the one being banned.
+                            isMe = identityRegEx.test(this.getMyNickname());
                             //Add a new property known as identities.
                             newEventData['identities'] = identities;
                         }
