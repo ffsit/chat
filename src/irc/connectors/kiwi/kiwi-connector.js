@@ -424,7 +424,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * Sets a status on the user.
          * @method vga.irc.connector.kiwi.connector.setUserStatus
          * @param {string} channel the user is occupying.
-         * @param {string} user the identity of the user to apply the status to.
+         * @param {string} identity of the user to apply the status to.
          * @param {number} status type to set (vga.irc.status).
          * @param {number} action type of action (vga.irc.roleModeAction) to apply.
          */
