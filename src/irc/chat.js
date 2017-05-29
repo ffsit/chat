@@ -134,6 +134,16 @@ $(function(){
     };
 
     /**
+     * Returns a status name based on the most significant status of the user.
+     * @method getStatusName
+     * @param {number} status a bitarray of status assigned to the user.
+     * @return {string} the CSS class assigned to the most significant status.
+     */
+    function getStatusName(status) {
+        return (vga.irc.getMostSignificantStatus(status) === vga.irc.status.banned) ? 'banned' : '';
+    };
+
+    /**
      * Determines if the roles provided have mod capabilities, which is any role above mod.
      * @method hasModRoles
      * @param {int} roles bitArray of roles
@@ -224,7 +234,7 @@ $(function(){
         if ($channelTab.length === 0) {
             let $template = $channelContainer.find('#channel-tab-template');
             $channelTab = $template.clone();
-            $channelTab.attr('id', `channel-tab-${channelName.replace('#', '')}`).removeClass('hidden').data('channel', channelName);
+            $channelTab.attr('id', `channel-tab-${channelName.replace('#', '')}`).removeClass('hidden').data('channel', channelName).data('channel', channelName);
             $template.addClass('hidden');
             $channelContainer.append($channelTab);
         }
@@ -306,20 +316,17 @@ $(function(){
      */
     function updateDisplay(channelName, user) {
         let $channelWindow = getChannelWindow(channelName);
-        let $userEntry = $channelWindow.find(`.user-entry[data-identity=${user.identity}] > .role`);
+        let $userEntry = $channelWindow.find(`.user-entry[data-identity=${user.identity}]`);
 
-        let roleName = getRoleName(user.roles);
-        $userEntry.removeClass().addClass(`role ${roleName}`).find('.icon').attr('title', roleName);
-
-        /*
-        if (vga.irc.getMostSignificantRole(user.status ) === vga.irc.status.banned) {
+        //If the user has a banned status then remove all of his or her messages.
+        if (vga.irc.getMostSignificantStatus(user.status) === vga.irc.status.banned) {
             $userEntry.remove();
         }
         else {
             let roleName = getRoleName(user.roles);
-            $userEntry.removeClass().addClass(`role ${roleName}`).find('.icon').attr('title', roleName);
+            let $userRole = $userEntry.find('.role');
+            $userRole.removeClass().addClass(`role ${roleName}`).find('.icon').attr('title', roleName);
         }
-        */
     };
 
     //-----------------------------------------------------------------
@@ -338,9 +345,8 @@ $(function(){
             nicknames += `${(nicknames.length > 0 ? ',' : '')}${nickname}`;
         });
 
-        //TODO: This will cause issues with multiple channels as the ID will not be unique per user.
         let roleName = getRoleName(user.roles);
-        return (`<div data-identity='${user.identity}' class='user-entry'><div class='role ${roleName}'>`
+        return (`<div data-identity='${user.identity}' class='user-entry'><div class='role ${roleName} ${getStatusName(user.status)}'>`
             + `<div class="icon" title="${roleName}"></div>`
             + `<div class='username' title="Nicknames: ${nicknames}">${user.identity}</div>`
             + '</div></div>');
@@ -782,6 +788,20 @@ $(function(){
             }
             return this;
         }
+        /**
+         * Attempts to set a status on a user based on the channel and user identity.
+         * @method vga.irc.chat.setUserStatus
+         * @param {string} channelName the user is occupying.
+         * @param {string} identity of the user to apply a status.
+         * @param {number} status to apply to the user (vga.irc.status).
+         */
+        setUserStatus(channelName, identity, status) {
+            if (this.connector) {
+                this.connector.setUserStatus(channelName, identity, status, vga.irc.roleModeAction.add);
+                this.toggleSettingItem(turboModeId, activate);
+            }
+            return this;
+        }
 
         //-----------------------------------------------------------------
         // Chat events
@@ -996,18 +1016,25 @@ $(function(){
         onStatus (eventData) {
             let channel = this._userChannels[eventData.channelKey];
             if (channel) {
-
-                
-                /*
-                //TODO: Figure out how to handle a missing nickname/wildcard identity.
-                let user = channel[eventData.userKey];
-                if (user) {
-                    user.applyStatus(eventData.action, eventData.roles);
-                    updateUserEntityInList(eventData.channelKey, user);
-                    updateDisplay(eventData.channelKey, user);
-
+                //Determine if the userkey is a wildcard if so, find all users.
+                if ((eventData.userKey === '*') && (eventData.identities)) {
+                    for (let identity of eventData.identities) {
+                        let user = channel[identity];
+                        if (user) {
+                            user.applyStatus(eventData.action, eventData.status);
+                            updateUserEntityInList(eventData.channelKey, user);
+                            updateDisplay(eventData.channelKey, user);
+                        }
+                    }
                 }
-                */
+                else {
+                    let user = channel[eventData.userKey];
+                    if (user) {
+                        user.applyStatus(eventData.action, eventData.status);
+                        updateUserEntityInList(eventData.channelKey, user);
+                        updateDisplay(eventData.channelKey, user);
+                    }
+                }
             }
         }
         /**
@@ -1084,7 +1111,7 @@ $(function(){
             }).on('mouseenter mouseleave', '.channel-window', (e) => {
                 this.onChannelWindowHover(e.type === "mouseenter")
             }).on('click', '.timeout', (e) => {
-                //this.onTimeoutUser($(e.currentTarget));
+                this.onTimeoutUser($(e.currentTarget));
                 e.preventDefault();
             });
         }
@@ -1162,6 +1189,20 @@ $(function(){
                     $toggleButton.toggleClass('fa-toggle-off', !toggledState).toggleClass('fa-toggle-on', toggledState);
                     vga.util.setCookie(smoothScrollModeId, toggledState);
                     break;
+            }
+        }
+        /**
+         * This event is triggered when a mod clicks on the timeout icon next to a user.
+         * @method vga.irc.chat.onChannelWindowHover
+         * @param {object} $this is a jQuery object that triggered the event.
+         */        
+        onTimeoutUser($this) {
+            let $userEntry = $this.parents('.user-entry');
+            let $channel = $userEntry.parents('.channel-tab');
+            let identity = $userEntry.data('identity');
+            let channelName = $channel.data('channel');
+            if (identity && channelName) {
+                this.setUserStatus(channelName, identity, vga.irc.status.banned);
             }
         }
         /**
