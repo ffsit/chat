@@ -490,7 +490,7 @@ $(function(){
             this._enableThemes = options.enableThemes;
             this._showUserJoinLeaveMessage = (options.showUserJoinLeaveMessage !== undefined) ? options.showUserJoinLeaveMessage : false;
             this._smoothScroll = (options.smoothScroll !== undefined) ? options.smoothScroll : true;
-            this._timedBanDurationInSeconds = (options.timedBanDurationInSeconds !== undefined) ? options.timedBanDurationInSeconds : 900;
+            this._timedBanDurationInSeconds = (options.timedBanDurationInSeconds !== undefined) ? options.timedBanDurationInSeconds : 300;
             this._nicknameColorSeedFunction = options.nicknameColorSeedFunction;
 
             let consolidateNicknames = (options.consolidateNicknames !== undefined) ? options.consolidateNicknames : false;
