@@ -490,7 +490,7 @@ $(function(){
             this._enableThemes = options.enableThemes;
             this._showUserJoinLeaveMessage = (options.showUserJoinLeaveMessage !== undefined) ? options.showUserJoinLeaveMessage : false;
             this._smoothScroll = (options.smoothScroll !== undefined) ? options.smoothScroll : true;
-            this._timeoutDurationInSeconds = (options.timeoutDurationInSeconds !== undefined) ? options.timeoutDurationInSeconds : 900;
+            this._timedBanDurationInSeconds = (options.timedBanDurationInSeconds !== undefined) ? options.timedBanDurationInSeconds : 900;
             this._nicknameColorSeedFunction = options.nicknameColorSeedFunction;
 
             let consolidateNicknames = (options.consolidateNicknames !== undefined) ? options.consolidateNicknames : false;
@@ -802,7 +802,7 @@ $(function(){
             if (this.connector) {
                 let status = vga.irc.bitArray.add(0, vga.irc.status.banned | vga.irc.status.timed);
                 let action = (activate ? vga.irc.roleModeAction.add : vga.irc.roleModeAction.remove);
-                this.connector.setUserStatus(channelName, identity, status, action, {duration: this._timeoutDurationInSeconds});
+                this.connector.setUserStatus(channelName, identity, status, action, {duration: this._timedBanDurationInSeconds});
                 this.connector.kick(channelName, identity);
             }
             return this;
