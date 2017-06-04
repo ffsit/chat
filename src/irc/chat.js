@@ -1038,8 +1038,13 @@ $(function(){
 
                 //Handle events specific to me slightly different.
                 if (eventData.isMe) {
+
+                    //TODO: Find a way to consolidate this with the banned event that is triggered when a banned user tries to log into a channel.
                     if (eventData.status === vga.irc.status.banned) {
                         writeInformationalMessage(eventData.channelKey, (eventData.action === vga.irc.roleModeAction.add ? `You have been timed out.` : 'Your timeout has expired.'));
+                        if (eventData.action === vga.irc.roleModeAction.add)  {
+                            this.close();
+                        }
                     }
                 }
             }
