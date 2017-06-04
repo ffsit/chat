@@ -98,7 +98,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     vga.irc.connector.kiwi.pingTimeoutRegEx = /^Closing link: [^\r\n]*\[Ping timeout: \d+ seconds\]$/;
     vga.irc.connector.kiwi.registrationTimeOutRegEx = /^Closing link: [^\r\n]*\[Registration timeout\]$/
     vga.irc.connector.kiwi.serverShutDownRegEx = /^Closing link: [^\r\n]*\[Server shutdown\]$/;
-    vga.irc.connector.kiwi.banMaskToApply =  'm:*!{identity}@*';
+    vga.irc.connector.kiwi.banMaskToApply =  '*!{identity}@*';
     vga.irc.connector.kiwi.banMaskRegEx =  /(\w:)?([\w\-\[\]\\\`\^\{\|\}\*]+)!([\w\-\[\]\\\`\^\{\|\}\*]+)@.+/;
 
     //This expression is used to replace the * wildcards so that partial name matches can be performed, and is a direct reflection of the banMaskRegEx.
@@ -427,20 +427,29 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
          * @param {string} identity of the user to apply the status to.
          * @param {number} status type to set (vga.irc.status).
          * @param {number} action type of action (vga.irc.roleModeAction) to apply.
+         * @param {object} additionalArguments is an optional argument that may contain additional arguments depending on the status type.
          */
-        setUserStatus(channel, identity, status, action) {
+        setUserStatus(channel, identity, status, action, additionalArguments) {
             if (channel) {
                 let convertedStatus = '';
-                let additionalArguments = '';
 
                 //Handle the banned status uniquely due to the ban mask we have to apply.
-                if (status === vga.irc.status.banned) {
-                    convertedStatus = 'b';
-                    additionalArguments = ' ' + vga.irc.connector.kiwi.banMaskToApply.replace('{identity}', `${identity}${this._consolidateNicknames ? '' : '*'}`);
+                if (vga.irc.bitArray.contains(status, vga.irc.status.banned)) {
+
+                    let banMask = vga.irc.connector.kiwi.banMaskToApply.replace('{identity}', `${identity}${this._consolidateNicknames ? '' : '*'}`);
+                    if (vga.irc.bitArray.contains(status, vga.irc.status.timed)) {
+                        convertedStatus = 'tb';
+                        let durationInSeconds = (additionalArguments || {duration: 900}).duration;
+                        this._protocol && this._protocol.sendIRCData('raw', {'data': `TBAN ${channel} ${(durationInSeconds !== undefined ? durationInSeconds : 900)} ${banMask}`});
+                    }
+                    else {
+                        convertedStatus = 'b';
+                        this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${channel} ${(action == vga.irc.roleModeAction.add ? "+" : "-")}${convertedStatus} ${banMask}`});
+                    }
                 }
                 
                 vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.setUserStatus]: (Attempting to ${action == vga.irc.roleModeAction.add ? "add" : "remove"} the status ${convertedStatus} on channel: ${channel}).`);
-                this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${channel} ${(action == vga.irc.roleModeAction.add ? "+" : "-")}${convertedStatus}${additionalArguments}`});
+                //this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${channel} ${(action == vga.irc.roleModeAction.add ? "+" : "-")}${convertedStatus}${additionalArguments}`});
                 return this;
             }
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.setMode]: (Invalid channel ${channel}).`);
@@ -457,6 +466,20 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.nick]: (Attempting to change nickname to: ${nickname}).`);
                 this._protocol && this._protocol.sendIRCData('nick', {nick: nickname});
             }
+            return this;
+        }
+        /**
+         * Attempts to kick a user based on the user's identity & channel the user is occupying.
+         * @method vga.irc.connector.kiwi.connector.kick
+         * @param {string} channel the user is occupying.
+         * @param {string} identity of the user to apply the status to.
+         */
+        kick(channel, identity) {
+            if (channel) {
+                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.nick]: (Attempting to kick: ${identity}).`);
+                this._protocol && this._protocol.sendIRCData('kick', {channel: channel, nick: identity, reason: 'Bye!'});
+            }
+            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.setMode]: (Invalid channel ${channel}).`);
             return this;
         }
         /**

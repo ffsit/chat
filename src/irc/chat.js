@@ -490,6 +490,7 @@ $(function(){
             this._enableThemes = options.enableThemes;
             this._showUserJoinLeaveMessage = (options.showUserJoinLeaveMessage !== undefined) ? options.showUserJoinLeaveMessage : false;
             this._smoothScroll = (options.smoothScroll !== undefined) ? options.smoothScroll : true;
+            this._timeoutDurationInSeconds = (options.timeoutDurationInSeconds !== undefined) ? options.timeoutDurationInSeconds : 900;
             this._nicknameColorSeedFunction = options.nicknameColorSeedFunction;
 
             let consolidateNicknames = (options.consolidateNicknames !== undefined) ? options.consolidateNicknames : false;
@@ -791,15 +792,18 @@ $(function(){
             return this;
         }
         /**
-         * Attempts to set a status on a user based on the channel and user identity.
-         * @method vga.irc.chat.setUserStatus
+         * Attempts to set a timed ban on the user identity in the specific channel.
+         * @method vga.irc.chat.setTimedBan
          * @param {string} channelName the user is occupying.
          * @param {string} identity of the user to apply a status.
-         * @param {number} status to apply to the user (vga.irc.status).
+         * @param {bool} activate or disables the turbo mode.
          */
-        setUserStatus(channelName, identity, status) {
+        setTimedBan(channelName, identity, activate) {
             if (this.connector) {
-                this.connector.setUserStatus(channelName, identity, status, vga.irc.roleModeAction.add);
+                let status = vga.irc.bitArray.add(0, vga.irc.status.banned | vga.irc.status.timed);
+                let action = (activate ? vga.irc.roleModeAction.add : vga.irc.roleModeAction.remove);
+                this.connector.setUserStatus(channelName, identity, status, action, {duration: this._timeoutDurationInSeconds});
+                this.connector.kick(channelName, identity);
             }
             return this;
         }
@@ -1042,9 +1046,6 @@ $(function(){
                     //TODO: Find a way to consolidate this with the banned event that is triggered when a banned user tries to log into a channel.
                     if (eventData.status === vga.irc.status.banned) {
                         writeInformationalMessage(eventData.channelKey, (eventData.action === vga.irc.roleModeAction.add ? `You have been timed out.` : 'Your timeout has expired.'));
-                        if (eventData.action === vga.irc.roleModeAction.add)  {
-                            this.close();
-                        }
                     }
                 }
             }
@@ -1216,7 +1217,7 @@ $(function(){
             let identity = $userEntry.data('identity');
             let channelName = $channel.data('channel');
             if (identity && channelName) {
-                this.setUserStatus(channelName, identity, vga.irc.status.banned);
+                this.setTimedBan(channelName, identity, true);
             }
         }
         /**
