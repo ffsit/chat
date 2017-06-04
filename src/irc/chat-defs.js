@@ -56,7 +56,8 @@ vga.irc.roles = {
 };
 
 vga.irc.status = {
-    muted:  2,
+    muted:  4,
+    timed: 2,
     banned: 1,
     nominal: 0
 };
@@ -87,11 +88,12 @@ vga.irc.messageType = {
 // BitArray methods.
 //-----------------------------------------------------------------
 
+//TODO: Make this a class.
 vga.irc.bitArray = vga.irc.bitArray || {};
 
 /**
  * Finds the most significant value based on the bit weight of the type.
- * @method vga.irc.getMostSignificantRole
+ * @method vga.irc.bitArray.getMostSignificantRole
  * @param {number} values bitarray of values.
  * @param {object} types defined 'enum' type.
  * @param {number} defaultValue
@@ -123,7 +125,7 @@ vga.irc.bitArray.add = function(value, valueToApply) {
 
 /**
  * Removes a one or more values to the current bitarray.
- * @method vga.irc.remove
+ * @method vga.irc.bitArray.remove
  * @param {number} value bitarray of values.
  * @param {number} valueToApply bitarray of a value or values to apply.
  * @return updated values bitarray.
@@ -134,8 +136,20 @@ vga.irc.bitArray.remove = function(value, valueToApply) {
 };
 
 /**
+ * Determines if valueToEvaluate is in the bitarray.
+ * @method vga.irc.bitArray.contains
+ * @param {number} value bitarray of values.
+ * @param {number} valueToEvaluate in the bitarray.
+ * @return true if the bitarray contains the valueToEvaluate.
+ * @api public
+ */
+vga.irc.bitArray.contains = function(value, valueToEvaluate) {
+    return (value & valueToEvaluate === valueToEvaluate);
+};
+
+/**
  * A helper method that will compile an array of values into a bitarray.
- * @method vga.irc.compileBitArray
+ * @method vga.irc.bitArray.compileBitArray
  * @param {array} valueArray array of values.
  * @param {function} transformFunction the transformation function that transforms an array into a bitarray.
  * @param {number} defaultValue that is used if nothing is transformed or the valueArray is empty.
