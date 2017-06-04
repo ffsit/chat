@@ -32,11 +32,11 @@
 					<h1>Login</h1>
 					<div>Please read &amp; follow the <a href="http://videogamesawesome.com/the-rule-compendium/" target="_blank">chat rules</a>.</div>
 					<img class="spinner hidden" src="/img/spinner<?php print(strval(rand(1,5))); ?>.gif" alt="One moment">
-					<div id="vgairc_loginform">
+					<form id="vgairc_loginform" method="post" action="#">
 						<label for="nickname">Name:</label>
 						<input type="text" id="nickname" maxlength="32" value="<?php if(isset($_GET['nick'])) { print(htmlspecialchars($_GET['nick'])); } ?>" placeholder="Nickname"/>
 						<label for="password">Password:</label>
-						<input type="password" id="password" maxlength="128" value="" placeholder="Password"/>
+						<input type="password" id="password" maxlength="128" placeholder="Password"/>
 						<label for="channel">Channel:</label>
 						<input type="text" id="channel" maxlength="128" list="channels" placeholder="#ffstv"/>
 							<datalist id="channels">
@@ -44,8 +44,8 @@
 								<option value="#spoilers">
 								<option value="#support">
 							</datalist>
-						<button id="Login" type="button">Login</button>
-					</div>
+						<input id="Login" type="submit" value="Login"/>
+					</form>
 				</div>
 			</div>
 		</div>

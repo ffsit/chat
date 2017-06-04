@@ -227,7 +227,8 @@ Login classes
 }
 
 #vgairc_loginform label,
-#vgairc_loginform input {
+#vgairc_loginform input[type=text],
+#vgairc_loginform input[type=password] {
     width: 100%;
     display: block;
 }

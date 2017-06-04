@@ -1102,7 +1102,7 @@ $(function(){
          * @method vga.irc.chat.bindEvents
          */
         bindEvents() {
-            $('#vgairc_loginform').off().on('click', 'button', (e) => {
+            $('#vgairc_loginform').off().on('click', 'input[type=submit]', (e) => {
                 this.onLogin();
                 e.preventDefault();
             }).on('keyup', 'input', (e) => {
