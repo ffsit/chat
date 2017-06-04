@@ -90,7 +90,7 @@ $(function(){
     // Event: onRole ({ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, roles: bitarray })
     // Event: onStatus ({ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, status: bitarray })
     // Event: onAccessDenied()
-    // Event: onKicked ({ identity: string, userKey: string, channelKey: string })
+    // Event: onKicked ({ identity: string, userKey: string, channelKey: string, isMe: bool })
     // Event: onBanned ({ identity: string, userKey: string, channelKey: string })
     // Event: onError ({ reason: string })
 
@@ -1059,8 +1059,10 @@ $(function(){
         onKicked(eventData) {
             //TODO: Close channel window.
             //For now, disconnect the user if he or she is kicked from the channel.
-            this.close();
-            setStatus('You have been kicked.');
+            if (eventData.isMe) {
+                this.close();
+                setStatus('You have been kicked.');
+            }
         }
         /**
          * An event that is triggered when the user is banned from the channel.
