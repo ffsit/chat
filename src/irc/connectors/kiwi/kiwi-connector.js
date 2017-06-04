@@ -435,7 +435,6 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
                 //Handle the banned status uniquely due to the ban mask we have to apply.
                 if (vga.irc.bitArray.contains(status, vga.irc.status.banned)) {
-
                     let banMask = vga.irc.connector.kiwi.banMaskToApply.replace('{identity}', `${identity}${this._consolidateNicknames ? '' : '*'}`);
                     if (vga.irc.bitArray.contains(status, vga.irc.status.timed)) {
                         convertedStatus = 'tb';

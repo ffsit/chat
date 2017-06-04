@@ -70,6 +70,8 @@ $(function(){
         //This changes the chatter's nicknames once a month so there is less complaining about hated colors.
         //This can be disabled by commenting this out.
         nicknameColorSeedFunction: () => new Date().getUTCMonth(),
+        //Set this value to change the tban time in seconds.
+        //timedBanDurationInSeconds: 900,
         debug: true
     });
 });
