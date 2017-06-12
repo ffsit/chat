@@ -81,6 +81,7 @@ $(function(){
     // Event: onDisconnect({closedByServer: bool})
     // Event: onReconnect()
     // Event: onTopic ({ topic: string, channelKey: string })
+    // Event: onNick ({ userKey: string, identity: string, nickname: string, newNickName: string, isMe: bool })
     // Event: onMessage ({ userKey: string, identity: string, nickname: string, target: string, message: string, type: string })
     // Event: onUserlist ({ channelKey: string, users: { roles: bitarray, prefixes: [ {prefix: string} ], nicknames: [string] })
     // Event: onJoin ({ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool })
@@ -485,9 +486,9 @@ $(function(){
             this._port = options.port;
             this._ssl = (options.ssl === undefined ? false : options.ssl);
             this._debug = (options.debug == undefined ? false : options.debug);
-            this._wallRegEx = options.wallRegEx || /^%! [^\r\n]*/;
+            this._wallRegEx = options.wallRegEx || /^%! ([^\r\n]*)/;
             this._defaultChannel = options.defaultChannel;
-            this._enableThemes = options.enableThemes;
+            this._themes = options.themes || [];
             this._showUserJoinLeaveMessage = (options.showUserJoinLeaveMessage !== undefined) ? options.showUserJoinLeaveMessage : false;
             this._smoothScroll = (options.smoothScroll !== undefined) ? options.smoothScroll : true;
             this._timedBanDurationInSeconds = (options.timedBanDurationInSeconds !== undefined) ? options.timedBanDurationInSeconds : 300;
@@ -529,7 +530,14 @@ $(function(){
         //-----------------------------------------------------------------
 
         writeToChannelWindow(channelName, user, message, type) {
+            
+            //Normalize.
             type = type || 'message';
+
+            //Setup any additional message classes.
+            let additionalMessageClasses = `${(type === 'action' ? 'allowColor' : '')}`;
+            
+            //Determine if I am a mod and if I can view the timeout option.
             let optionBody = '';
             let channel = this._userChannels[channelName];
             if (channel) {
@@ -539,8 +547,15 @@ $(function(){
                 }
             }
 
-            //let isWall = this._wallRegEx.test(message);
-            //'modbroadcast';
+            //Verify the person performing the wall (shout) has mod capabilities and that it is a wall message.
+            if ( (this._wallRegEx.test(message)) && hasModCapabilities(user.roles)) {
+                //The first capture group must exist in the regex in order for it to work.
+                let messages = this._wallRegEx.exec(message);
+                if (messages.length > 1) {
+                    message = messages[1];
+                    additionalMessageClasses = ((additionalMessageClasses.length > 0) ? ' ' : '') + 'modbroadcast';
+                }
+            }
 
             //Encode all HTML characters.
             message = vga.util.encodeHTML(message);
@@ -556,7 +571,7 @@ $(function(){
                 + `<div class="icon" title="${roleName}"></div>${optionBody}`
                 + `<div class='prefix'></div>`
                 + `<div class='username allowColor'>${(type === 'private' ? `To [${identity}]` : identity)}${(type !== 'action' ? ':' : '')}</div>`
-                + `<div class='message ${(type === 'action' ? 'allowColor' : '')}'>${message}</div>`
+                + `<div class='message ${additionalMessageClasses}'>${message}</div>`
                 + `</div></div>`);
         }
         /**
@@ -595,6 +610,40 @@ $(function(){
 
             //Toggle the styles for frash show mode.
             $('html').toggleClass(frashShowModeId, activate);
+        }
+
+        //----------------------
+        // Themes methods
+        //----------------------
+
+        /**
+         * This is a helper method that starts the theme monitor.
+         * @method vga.irc.chat.startThemes
+         */        
+        startThemes() {
+            let themesWatcher = () => {
+                this._themesIntervalId = setTimeout(() => {
+                    let now = new Date();
+                    this._themes.forEach((theme)=>{
+                        let beginDate = new Date(theme.beginDate);
+                        let endDate = new Date(theme.endDate);
+                        beginDate.setFullYear(now.getFullYear());
+                        endDate.setFullYear(now.getFullYear());
+                        $('body').toggleClass(theme.name, (now >= beginDate && now <= endDate));
+                    })
+
+                    //Recursively invoke the smooth scroll logic until it is terminated.
+                    themesWatcher();
+                }, 33);
+            }
+            themesWatcher();
+        }
+        /**
+         * This is a helper method that stops the theme monitor.
+         * @method vga.irc.chat.stopThemes
+         */
+        stopThemes() {
+            clearTimeout(this._themesIntervalId);
         }
 
         //----------------------
@@ -825,6 +874,7 @@ $(function(){
             enableLowerUI(eventData.channelKey, true);
             toggleLoginWindow(false);
             this.startSmoothScrolling();
+            this.startThemes();
         }
 
         /**
@@ -834,6 +884,7 @@ $(function(){
          */
         onDisconnect(eventData) {
             this.stopSmoothScrolling();
+            this.stopThemes();
             toggleLoginWindow(true);
 
             if (eventData.closedByServer)
@@ -897,6 +948,33 @@ $(function(){
                     }
                 }
             }
+        }
+        /**
+         * This event is triggered on a nickname change.
+         * @method vga.irc.connector.kiwi.connector.onNick
+         * @param {object} eventData event data associated with nickname event sent by the server.
+         */
+        onNick(eventData) {
+
+            //This event occurs across channels so we have to update them all.
+            vga.util.forEach(this._userChannels, (channelKey, users) => {
+                //Find the user for the current channel.
+                let user = users[eventData.userKey];
+                if (user) {
+                    user.identity = eventData.identity;
+                    user.removeNickname(eventData.nickname).addNickname(eventData.newNickName);
+                }
+
+                //The keys have changed too, update that as well.
+                if (eventData.userKey !== eventData.newUserKey) {
+                    users[eventData.newUserKey] = user;
+                    users[eventData.userKey] = undefined;
+                }
+
+                //Update the display when a nickname changes.
+                updateUserEntityInList(channelKey, user);
+                updateDisplay(channelKey, user);
+            });
         }
         /**
          * An event that is triggered when receiving a message from the chat server.

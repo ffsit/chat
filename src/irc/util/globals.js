@@ -164,7 +164,7 @@ vga.util.forEach = (object, evaluatorFunction) => {
  * @api public
  */
 vga.util.inUrl = (key) => {
-    return document.location.href.toLowerCase().indexOf(key) > -1;
+    return document.location.href.toLowerCase().indexOf(key.toLowerCase()) > -1;
 }
 
 /**

@@ -53,6 +53,14 @@ $(function(){
 
     let frashModeBegin = vga.util.inUrl('farshar');
 
+    //Just like Farshar mode can be enabled with the term in the querystring, so can the themes be disabled.
+    //By default, themes are enabled.
+    let themes = [];
+    if (!vga.util.inUrl('disableThemes')) {
+        //NOTE: The year in the date string has no meaning, it will be replaced with the current UTC year.
+        themes = [{ name: 'halloween', beginDate: '10/30/2010 PDT', endDate: '11/1/2010 PDT' }, { name: 'xmas', beginDate: '12/23/2010 PDT', endDate: '12/27/2010 PDT' }];
+    }
+
     //Create the chat object.
     //Set the configuration options here.
     var chat = new vga.irc.chat({
@@ -62,11 +70,12 @@ $(function(){
         hostname: 'turbo.chat',
         port: "6667",
         defaultChannel: '#ffstv',
-        wallRegEx: /^%! [^\r\n]*/,
+        wallRegEx: /^%! ([^\r\n]*)/,
         //This determines when this setting shows up.
         enableFrashShowMode: frashModeBegin,
         consolidateNicknames: true,
         enableReconnect: true,
+        themes: themes,
         //This changes the chatter's nicknames once a month so there is less complaining about hated colors.
         //This can be disabled by commenting this out.
         nicknameColorSeedFunction: () => new Date().getUTCMonth(),

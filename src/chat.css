@@ -570,8 +570,6 @@ Channel classes
 .channel-window div.user-entry {
     line-height: 16px;
     padding: .2em;
-    /*padding-left: 0.5em;*/
-    /*word-wrap: break-word;*/
     overflow-wrap: break-word;
 }
 
@@ -675,3 +673,149 @@ Guests, Mods, Crew
 .channel-window .user-entry.nickColor7 .role.crew .allowColor {
     color: #d1991a;
 }
+
+/*
+---------------------------
+Halloween Theme classes
+---------------------------
+*/
+
+.halloween .role .icon {
+    background-image: url(/img/chat_spritesheet_halloween_128.png);
+}
+
+/*
+Nickname colors
+*/
+.halloween .channel-window .user-entry.nickColor1 .role.shadow .allowColor,
+.halloween .channel-window .user-entry.nickColor1 .role.turbo .allowColor,
+.halloween .channel-window .user-entry.nickColor1 .role.guest .allowColor,
+.halloween .channel-window .user-entry.nickColor1 .role.mod .allowColor,
+.halloween .channel-window .user-entry.nickColor1 .role.crew .allowColor
+{
+    color: rgb(255, 125, 0);
+}
+.halloween .channel-window .user-entry.nickColor2 .role.shadow .allowColor,
+.halloween .channel-window .user-entry.nickColor2 .role.turbo .allowColor,
+.halloween .channel-window .user-entry.nickColor2 .role.guest .allowColor,
+.halloween .channel-window .user-entry.nickColor2 .role.mod .allowColor,
+.halloween .channel-window .user-entry.nickColor2 .role.crew .allowColor
+{
+    color: #000;
+}
+.halloween .channel-window .user-entry.nickColor3 .role.shadow .allowColor,
+.halloween .channel-window .user-entry.nickColor3 .role.turbo .allowColor,
+.halloween .channel-window .user-entry.nickColor3 .role.guest .allowColor,
+.halloween .channel-window .user-entry.nickColor3 .role.mod .allowColor,
+.halloween .channel-window .user-entry.nickColor3 .role.crew .allowColor
+{
+    color: rgb(200, 0, 0);
+}
+.halloween .channel-window .user-entry.nickColor4 .role.shadow .allowColor,
+.halloween .channel-window .user-entry.nickColor4 .role.turbo .allowColor,
+.halloween .channel-window .user-entry.nickColor4 .role.guest .allowColor,
+.halloween .channel-window .user-entry.nickColor4 .role.mod .allowColor,
+.halloween .channel-window .user-entry.nickColor4 .role.crew .allowColor
+{
+    color: #000;
+}
+.halloween .channel-window .user-entry.nickColor5 .role.shadow .allowColor,
+.halloween .channel-window .user-entry.nickColor5 .role.turbo .allowColor,
+.halloween .channel-window .user-entry.nickColor5 .role.guest .allowColor,
+.halloween .channel-window .user-entry.nickColor5 .role.mod .allowColor,
+.halloween .channel-window .user-entry.nickColor5 .role.crew .allowColor
+{
+    color: rgb(255, 125, 0);
+}
+.halloween .channel-window .user-entry.nickColor6 .role.shadow .allowColor,
+.halloween .channel-window .user-entry.nickColor6 .role.turbo .allowColor,
+.halloween .channel-window .user-entry.nickColor6 .role.guest .allowColor,
+.halloween .channel-window .user-entry.nickColor6 .role.mod .allowColor,
+.halloween .channel-window .user-entry.nickColor6 .role.crew .allowColor
+{
+    color: rgb(200, 0, 0);
+}
+.halloween .channel-window .user-entry.nickColor7 .role.shadow .allowColor,
+.halloween .channel-window .user-entry.nickColor7 .role.turbo .allowColor,
+.halloween .channel-window .user-entry.nickColor7 .role.guest .allowColor,
+.halloween .channel-window .user-entry.nickColor7 .role.mod .allowColor,
+.halloween .channel-window .user-entry.nickColor7 .role.crew .allowColor
+{
+    color: rgb(255, 125, 0);
+}
+
+
+/*
+---------------------------
+Xmas Theme classes
+---------------------------
+*/
+
+.xmas .role .icon {
+    background-image: url(/img/chat_spritesheet_xmas_128.png);
+}
+
+/*
+Nickname colors
+*/
+.xmas .channel-window .user-entry.nickColor1 .role.shadow .allowColor,
+.xmas .channel-window .user-entry.nickColor1 .role.turbo .allowColor,
+.xmas .channel-window .user-entry.nickColor1 .role.guest .allowColor,
+.xmas .channel-window .user-entry.nickColor1 .role.mod .allowColor,
+.xmas .channel-window .user-entry.nickColor1 .role.crew .allowColor
+{
+    color: rgb(0, 150, 0);
+}
+.xmas .channel-window .user-entry.nickColor2 .role.shadow .allowColor,
+.xmas .channel-window .user-entry.nickColor2 .role.turbo .allowColor,
+.xmas .channel-window .user-entry.nickColor2 .role.guest .allowColor,
+.xmas .channel-window .user-entry.nickColor2 .role.mod .allowColor,
+.xmas .channel-window .user-entry.nickColor2 .role.crew .allowColor
+{
+    color: rgb(200, 0, 0);
+}
+.xmas .channel-window .user-entry.nickColor3 .role.shadow .allowColor,
+.xmas .channel-window .user-entry.nickColor3 .role.turbo .allowColor,
+.xmas .channel-window .user-entry.nickColor3 .role.guest .allowColor,
+.xmas .channel-window .user-entry.nickColor3 .role.mod .allowColor,
+.xmas .channel-window .user-entry.nickColor3 .role.crew .allowColor
+{
+    color: rgb(255,200,0);
+}
+.xmas .channel-window .user-entry.nickColor4 .role.shadow .allowColor,
+.xmas .channel-window .user-entry.nickColor4 .role.turbo .allowColor,
+.xmas .channel-window .user-entry.nickColor4 .role.guest .allowColor,
+.xmas .channel-window .user-entry.nickColor4 .role.mod .allowColor,
+.xmas .channel-window .user-entry.nickColor4 .role.crew .allowColor
+{
+    color: rgb(0, 150, 0);
+}
+.xmas .channel-window .user-entry.nickColor5 .role.shadow .allowColor,
+.xmas .channel-window .user-entry.nickColor5 .role.turbo .allowColor,
+.xmas .channel-window .user-entry.nickColor5 .role.guest .allowColor,
+.xmas .channel-window .user-entry.nickColor5 .role.mod .allowColor,
+.xmas .channel-window .user-entry.nickColor5 .role.crew .allowColor
+{
+    color: rgb(200, 0, 0);
+}
+.xmas .channel-window .user-entry.nickColor6 .role.shadow .allowColor,
+.xmas .channel-window .user-entry.nickColor6 .role.turbo .allowColor,
+.xmas .channel-window .user-entry.nickColor6 .role.guest .allowColor,
+.xmas .channel-window .user-entry.nickColor6 .role.mod .allowColor,
+.xmas .channel-window .user-entry.nickColor6 .role.crew .allowColor
+{
+    color: rgb(255,200,0);
+}
+.xmas .channel-window .user-entry.nickColor7 .role.shadow .allowColor,
+.xmas .channel-window .user-entry.nickColor7 .role.turbo .allowColor,
+.xmas .channel-window .user-entry.nickColor7 .role.guest .allowColor,
+.xmas .channel-window .user-entry.nickColor7 .role.mod .allowColor,
+.xmas .channel-window .user-entry.nickColor7 .role.crew .allowColor
+{
+    color: rgb(0, 150, 0);
+}
+
+/* 
+Red, Green, Gold
+
+*/

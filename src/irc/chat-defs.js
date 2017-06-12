@@ -234,6 +234,7 @@ vga.irc.userEntity = class  {
         this.roles = (roleAction === vga.irc.roleModeAction.add)
             ? vga.irc.bitArray.add(this.roles, rolesToApply)
             : vga.irc.bitArray.remove(this.roles, rolesToApply);
+        return this;
     }
     /**
      * Applies a status based on the action to the current user entity.
@@ -246,6 +247,7 @@ vga.irc.userEntity = class  {
         this.status = (modeAction === vga.irc.roleModeAction.add)
             ? vga.irc.bitArray.add(this.status, modesToApply)
             : vga.irc.bitArray.remove(this.status, modesToApply);
+        return this;
     }
     /**
      * Append a nickname to the user entity.
@@ -257,6 +259,7 @@ vga.irc.userEntity = class  {
         if (this.nicknames.indexOf(nickname) === -1) {
             this.nicknames.push(nickname);
         }
+        return this;
     }
     /**
      * Removes a nickname from the user entity.
@@ -272,5 +275,6 @@ vga.irc.userEntity = class  {
                 this.nicknames[index] = swap;
             }
         }
+        return this;
     }
 };
