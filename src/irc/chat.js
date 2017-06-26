@@ -475,7 +475,7 @@ $(function(){
             //-----------------------------------------------------------------
             // Versioning
             //-----------------------------------------------------------------
-            vga.irc.chat.CLIENT_VERSION = new vga.util.version(0, 1, 1);
+            vga.irc.chat.CLIENT_VERSION = new vga.util.version(1, 0, 0);
 
             //Internal variables.
             this._userChannels = {};
@@ -619,7 +619,7 @@ $(function(){
         /**
          * This is a helper method that starts the theme monitor.
          * @method vga.irc.chat.startThemes
-         */        
+         */
         startThemes() {
             let themesWatcher = () => {
                 this._themesIntervalId = setTimeout(() => {

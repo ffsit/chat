@@ -1009,6 +1009,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 case 'error':
                     if (vga.irc.connector.kiwi.accessDeniedRegEx.test(eventData.reason)) {
                         this._listener.invokeListeners('accessdenied');
+                        this._protocol && this._protocol.close();
                         return;
                     }
                     break;

@@ -20,9 +20,18 @@ Coding and Pull Request Conventions
 * All pull requests must be unit tested to some degree and will not fail on runtime.
 * All pull requests require a detailed description and justification of the changes.
 
+Required 3rd-party Libraries
+-----------
+* jQuery 2.2.X and above [https://jquery.com/] (CDN: https://code.jquery.com/jquery-2.2.4.min.js).
+* Babel stand-alone library [https://babeljs.io/docs/setup/#installation] (CDN: https://unpkg.com/babel-standalone@6/babel.min.js)
+
 Change Log
 -----------
 
 #### 0.1.0
 
 * Pre-initial release.
+
+#### 1.0.0
+
+* Official release.

@@ -254,7 +254,7 @@ vga.irc.userEntity = class  {
      * @method vga.irc.addNickname
      * @param {string} nickname a nickname to append to the user.
      * @api public
-     */    
+     */
     addNickname(nickname) {
         if (this.nicknames.indexOf(nickname) === -1) {
             this.nicknames.push(nickname);
@@ -266,7 +266,7 @@ vga.irc.userEntity = class  {
      * @method vga.irc.removeNickname
      * @param {string} nickname a nickname to remove to the user.
      * @api public
-     */        
+     */
     removeNickname(nickname) {
         let index = this.nicknames.indexOf(nickname);
         if (index > -1) {
