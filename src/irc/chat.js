@@ -198,7 +198,7 @@ $(function(){
      * Returns a nickColor class based on Kshade's initial algorithm.
      * @method getNickColorClass
      * @param {string} name to evaluate and calculate a color.
-     * @param {number} seed an optional seed value.
+     * @param {number} seed an optional seed/offset value.
      * @return {string} the CSS nickColor generated.
      */
     function getNickColorClass(name, seed) {

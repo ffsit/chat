@@ -361,7 +361,7 @@ Username classes
 ---------------------------
 */
 .user-entry .username {
-    display: inline;
+    display: inline-block;
     vertical-align: middle;
     font-weight: bold;
 }
