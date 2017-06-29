@@ -81,6 +81,6 @@ $(function(){
         nicknameColorSeedFunction: () => new Date().getUTCMonth(),
         //Set this value to change the tban time in seconds.
         //timedBanDurationInSeconds: 900,
-        debug: true
+        debug: false
     });
 });

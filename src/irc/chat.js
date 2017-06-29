@@ -513,6 +513,8 @@ $(function(){
             this.bindEvents();
             this.onLoadSettings();
 
+            console.log(`[vga.irc.chat]: Starting chat version: ${vga.irc.chat.CLIENT_VERSION.toString()}`);
+
             //The connector.  This guy has abstracted all the IRC & Kiwi IRC logic away.
             //If we switch to another IRC type, a new connector can be written to handle this without rewriting all of chat.
             this.connector = new vga.irc.connector.kiwi.connector(options.url, {

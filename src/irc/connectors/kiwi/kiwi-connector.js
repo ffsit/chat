@@ -248,6 +248,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //Protocol information.
             this._listener = new vga.util.listener(methodMap, options.listeners);
             this._protocol = new vga.irc.connector.kiwi.protocolwrapper(url, {listeners: [this]});
+
+            console.log(`[vga.irc.connector.kiwi.connector]: Using the kiwi-connector version: ${vga.irc.connector.kiwi.CLIENT_VERSION.toString()}`);
         }
         /**
          * Registers a listening object to the connector layer.
