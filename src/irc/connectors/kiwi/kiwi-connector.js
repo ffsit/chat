@@ -655,15 +655,20 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //All other actions appear to keep the target's name in the nick.
             let nickname = (eventData.type !== 'kick') ? eventData.nick : eventData.kicked;
             let identity = this.normalizeNickname(nickname);
+            let isMe = this.isMe(nickname);
 
             //Determine if we have joined the auto channel.
             this._autoJoinChannelComplete = (eventData.type === 'join' 
                 && channelKey === this._autoJoinChannel
-                && this.isMe(nickname));
+                && isMe);
 
             //Once we join, ask the channel for it's mode information.
             if (eventData.type === 'join') {
-                this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${this._autoJoinChannel}`});
+
+                // (Caff) --- 6/29/17 --- Okay, we need to make sure this is only sent when WE join and not others...
+                if (isMe) {
+                    this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${this._autoJoinChannel}`});
+                }
 
                 //Add the known identity to our set.
                 this._knownIdentities.add(identity);
