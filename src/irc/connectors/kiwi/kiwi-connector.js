@@ -899,7 +899,17 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onUserlist].');
             
             let prefixMap = vga.util.propertyCount(this._prefixMap) > 0 ? this._prefixMap : defaultPrefixMap;
-            let userInfoMap = {};
+            
+            //Generate the channel key early.
+            let channelKey = this.generateChannelKey(eventData.channel);
+
+            // Caff (6/29/17) --- So apparently I didn't read the RFC well enough to see that this event gets triggered mulitple times.
+            //Determine if we have a map generated from an earlier userlist message.
+            //let userInfoMap = {};
+            let userInfoMap = this._userListByChannel[channelKey];
+            if (!userInfoMap) {
+                this._userListByChannel[channelKey] = userInfoMap = {};
+            }
 
             //Iterate through all users and extract the prefix and store it.
             //Example Data: {"channel":"#channel", "users": [{"nick":"@operator","modes":["o"]},{"nick":"admin","modes":["q"]},{"nick":"scrub","modes":[]},{"nick":"+voiceuser","modes":["v"]}]}
@@ -945,7 +955,10 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             });
 
             //NOTE: There is no RPL_USERSSTART event as defined by the IRC Protocol, so we'll just wait for the RPL_ENDOFUSERS event.
-            this._userListByChannel[this.generateChannelKey(eventData.channel)] = userInfoMap;
+            
+            // Caff (6/29/17) --- So apparently I didn't read the RFC well enough to see that this event gets triggered mulitple times.
+            //New logic is above.
+            //this._userListByChannel[this.generateChannelKey(eventData.channel)] = userInfoMap;
         }
         /**
          * This event is triggered when the userlist_end has been sent by the server.
