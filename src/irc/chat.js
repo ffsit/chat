@@ -202,7 +202,7 @@ $(function(){
      * @return {string} the CSS nickColor generated.
      */
     function getNickColorClass(name, seed) {
-        let color = 0 + (seed || 0);
+        let color = (seed || 0);
         for (var i = 0; i < name.length; i++) {
             color += name.charCodeAt(i);
         }
