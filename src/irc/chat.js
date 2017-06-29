@@ -555,7 +555,8 @@ $(function(){
                 let messages = this._wallRegEx.exec(message);
                 if (messages.length > 1) {
                     message = messages[1];
-                    additionalMessageClasses = ((additionalMessageClasses.length > 0) ? ' ' : '') + 'modbroadcast';
+                    //Allow the mod broadcast to override all other additional message classes.
+                    additionalMessageClasses = 'modbroadcast';
                 }
             }
 
