@@ -663,7 +663,7 @@ Guests, Mods, Crew
 .channel-window .user-entry.nickColor5 .role.crew .allowColor {
     color: #713bb0;
 }
-.channel-window .user-entry.nickColor6 .role.guest, .allowColor
+.channel-window .user-entry.nickColor6 .role.guest .allowColor,
 .channel-window .user-entry.nickColor6 .role.mod .allowColor,
 .channel-window .user-entry.nickColor6 .role.crew .allowColor {
     color: #b03ba0;
