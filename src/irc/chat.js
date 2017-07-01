@@ -855,7 +855,6 @@ $(function(){
                 let status = vga.irc.bitArray.add(0, vga.irc.status.banned | vga.irc.status.timed);
                 let action = (activate ? vga.irc.roleModeAction.add : vga.irc.roleModeAction.remove);
                 this.connector.setUserStatus(channelName, identity, status, action, {duration: this._timedBanDurationInSeconds});
-                this.connector.kick(channelName, identity);
             }
             return this;
         }

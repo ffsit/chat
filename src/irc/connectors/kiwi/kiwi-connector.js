@@ -442,7 +442,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     if (vga.irc.bitArray.contains(status, vga.irc.status.timed)) {
                         convertedStatus = 'tb';
                         let durationInSeconds = (additionalArguments || {duration: 900}).duration;
-                        this._protocol && this._protocol.sendIRCData('raw', {'data': `TBAN ${channel} ${(durationInSeconds !== undefined ? durationInSeconds : 900)} ${banMask}`});
+                        this._protocol && this._protocol.sendIRCData('raw', {'data': `TBAN ${channel} ${(durationInSeconds !== undefined ? durationInSeconds : 900)} m:${banMask}`});
                     }
                     else {
                         convertedStatus = 'b';
