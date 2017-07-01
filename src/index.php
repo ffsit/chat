@@ -107,7 +107,7 @@
 							<i class="fa fa-cog fa-inverse button" aria-hidden="true" title="Show My Settings" alt="?" role="button"></i>
 						</span>
 						<span class="button-container user-support-button disabled">
-							<i class="fa fa-exclamation-circle fa-inverse button" aria-hidden="true" title="Support" alt="!" role="button"></i>
+							<i class="fa fa-exclamation-circle fa-inverse button" aria-hidden="true" title="Support - Not available currently" alt="!" role="button"></i>
 						</span>
 					</div>
 					<!-- Input here to chat. -->

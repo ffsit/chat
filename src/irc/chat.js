@@ -284,7 +284,9 @@ $(function(){
         let $channelTab = getChannelTab(channelName);
         
         //Enable the user list & support buttons.
-        $channelTab.find('.user-list-button,.user-support-button').toggleClass('disabled', !enable);
+        //$channelTab.find('.user-list-button,.user-support-button').toggleClass('disabled', !enable);
+        // --- Caff (7/1/17) --- Leave the support button disabled for now.
+        $channelTab.find('.user-list-button').toggleClass('disabled', !enable);
         
         //Enable the chatbox and give it focus.
         let $chatBox = $channelTab.find('.chatbox');
@@ -762,71 +764,93 @@ $(function(){
             return this;
         }
         /**
-         * Attempts to send a message.
+         * Attempts to send a command or message.
          * @method vga.irc.chat.send
-         * @param {string} channelName to send the message to.
-         * @param {string} message the message to send to the chat with the specific channel.
+         * @param {string} channelName to send the command or message.
+         * @param {string} message or command to send to the specific channel.
          */
         send(channelName, message) {
             if (channelName) {
                 //Check for any known commands.
                 if (message[0] === '/') {
-                    let messageCommand = message.trim().toLowerCase();
+                    let messageCommand = message;
                     let args = '';
                     let indexOfFirstSpace = message.indexOf(' ');
                     if (indexOfFirstSpace > -1) {
-                        messageCommand = message.substring(0, indexOfFirstSpace).trim().toLowerCase();
-                        args = message.substring(indexOfFirstSpace + 1).split(' ');
+                        messageCommand = message.substring(0, indexOfFirstSpace);
+                        args = message.substring(indexOfFirstSpace + 1);
                     }
 
-                    switch(messageCommand) {
-                        case '/quit':
-                            this.close(args[0] || '');
-                            break;
-
-                        case '/join':
-                            this.join(args[0] || '');
-                            break;
-                        
-                        case '/leave': 
-                            this.leave((args[0] || ''), (args[1] || ''));
-                            break;
-
-                        case '/e':
-                        {
-                            let emote = (args[0] || '');
-                            this.connector.emote(channelName, emote);
-                            let channel = this._userChannels[channelName];
-                            if (channel) {
-                                let user = channel[this.connector.getMyUserKey()];
-                                this.writeToChannelWindow(channelName, user, emote, 'action');
-                            }
-                        }
-                        break;
-
-                        case '/r':
-                        {
-                            let name = args[0] || '';
-                            let msg = args[1] || '';
-                            this.connector && this.connector.send(msg, name);
-                            let channel = this._userChannels[channelName];
-                            if (channel) {
-                                let user = channel[this.connector.getMyUserKey()];
-                                this.writeToChannelWindow(channelName, user, `${msg}`, 'private');
-                            }
-                        }
-                        break;
-                    }
+                    handleUserCommand(messageCommand.trim().toLowerCase(), args);
                 }
                 //Send messages as normal.
                 else {
-                    this.connector && this.connector.send(message, channelName);
+                    handleUserMessage(channelName, message);
+                }
+            }
+            return this;
+        }
+        /**
+         * Manages the send user message.
+         * @method vga.irc.chat.handleUserMessage
+         * @param {string} channelName to send the message to.
+         * @param {string} message the message to send to the chat with the specific channel.
+         */        
+        handleUserMessage(channelName, message) {
+            this.connector && this.connector.send(message, channelName);
+            let channel = this._userChannels[channelName];
+            if (channel) {
+                let user = channel[this.connector.getMyUserKey()];
+                this.writeToChannelWindow(channelName, user, message);
+            }
+            return this;
+        }
+        /**
+         * Manages the send user message.
+         * @method vga.irc.chat.handleSendUserMessage
+         * @param {string} channelName to apply turbo mode.
+         * @param {string} message the message to send to the chat with the specific channel.
+         */
+        handleUserCommand(command, args) {
+            switch(messageCommand) {
+                case '/quit':
+                    this.close(args);
+                    break;
+
+                case '/join':
+                    this.join(args);
+                    break;
+                
+                case '/leave':
+                    let indexOfFirstSpace = args.indexOf(' ');
+                    leaveArgs
+                    this.leave((args[0] || ''), (args[1] || ''));
+                    break;
+
+                case '/e':
+                {
+                    let emote = (args[0] || '');
+                    this.connector.emote(channelName, emote);
                     let channel = this._userChannels[channelName];
                     if (channel) {
                         let user = channel[this.connector.getMyUserKey()];
-                        this.writeToChannelWindow(channelName, user, message);
+                        this.writeToChannelWindow(channelName, user, emote, 'action');
                     }
                 }
+                break;
+
+                case '/r':
+                {
+                    let name = args[0] || '';
+                    let msg = args[1] || '';
+                    this.connector && this.connector.send(msg, name);
+                    let channel = this._userChannels[channelName];
+                    if (channel) {
+                        let user = channel[this.connector.getMyUserKey()];
+                        this.writeToChannelWindow(channelName, user, `${msg}`, 'private');
+                    }
+                }
+                break;
             }
             return this;
         }
