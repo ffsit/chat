@@ -724,12 +724,12 @@ $(function(){
          */
         connect(nickname, password, channel) {
             this.connector.connect({ 
-                nick: nickname,
+                nick: nickname.trim(),
                 hostname: this._hostname,
                 port: this._port,
                 ssl: this._ssl,
-                password: password,
-                channel: channel || this._defaultChannel
+                password: password.trim(),
+                channel: ((channel || this._defaultChannel) || '').trim()
             });
             return this;
         }
@@ -1317,9 +1317,9 @@ $(function(){
         onSendCommandMessage($this, key) {
             let value = $this.val();
             if (key === 13 && value !== '') {
+                $this.val('');
                 let channelName = $this.parents('.channel-tab').data('channel');
                 this.send(channelName, value);
-                $this.val('');
             }
         }        
     }
