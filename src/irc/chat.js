@@ -860,7 +860,7 @@ $(function(){
                     this.connector && this.connector.send(parts.first, parts.second);
                     let channel = this._userChannels[channelName];
                     if (channel) {
-                        let user = channel[parts.first];
+                        let user = channel[parts.first.toLowerCase()];
                         if (user) {
                             this.writeToChannelWindow(channelName, user, `${parts.second}`, 'privateTO');
                         }
