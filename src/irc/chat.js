@@ -77,7 +77,7 @@ $(function(){
     //-----------------------------------------------------------------
     // Since JS is a dynamic language, we cannot force structures to conform to a specific format.
     // We can document what type of structure needs to be provided to the chat by a connector.
-    // Event: onConnect({channelKey: string}})
+    // Event: onConnect({channelKey: string})
     // Event: onDisconnect({closedByServer: bool})
     // Event: onReconnect()
     // Event: onTopic ({ topic: string, channelKey: string })
@@ -517,7 +517,7 @@ $(function(){
 
             console.log(`[vga.irc.chat]: Starting chat version: ${vga.irc.chat.CLIENT_VERSION.toString()}`);
 
-            //The connector.  This guy has abstracted all the IRC & Kiwi IRC logic away.
+            //The connector.  This guy has abstracted all the specific IRC or back-end chat server logic away.
             //If we switch to another IRC type, a new connector can be written to handle this without rewriting all of chat.
             this.connector = new vga.irc.connector.kiwi.connector(options.url, {
                 supportConcurrentChannelJoins: options.supportConcurrentChannelJoins,
@@ -827,7 +827,10 @@ $(function(){
                     this.leave((args[0] || ''), (args[1] || ''));
                     break;
 
+                case '/me':
                 case '/e':
+                case '/em':
+                case '/emote':
                 {
                     let emote = (args[0] || '');
                     this.connector.emote(channelName, emote);
@@ -901,6 +904,7 @@ $(function(){
             toggleLoginWindow(false);
             this.startSmoothScrolling();
             this.startThemes();
+            writeInformationalMessage(eventData.channelKey, `VGA Chat version:${this.CLIENT_VERSION.toString()}`);
         }
 
         /**
@@ -1198,7 +1202,7 @@ $(function(){
         }
 
         //-----------------------------------------------------------------
-        // Presentation events
+        // Presentation (UI) events
         // These are presentation methods.
         //-----------------------------------------------------------------
 

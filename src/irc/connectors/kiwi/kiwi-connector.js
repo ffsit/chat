@@ -130,6 +130,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         'm': vga.irc.channelmodes.turbo
     };
 
+    // This seems kind of pointless for one entry, oh well. :D
     var reverseChannelModeMap =  {};
     reverseChannelModeMap[vga.irc.channelmodes.turbo] = 'm';
 
