@@ -206,7 +206,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //-----------------------------------------------------------------
             // Versioning
             //-----------------------------------------------------------------
-            vga.irc.connector.kiwi.CLIENT_VERSION = new vga.util.version(1, 0, 0);
+            vga.irc.connector.kiwi.CLIENT_VERSION = new vga.util.version(1, 0, 1);
 
             //Normalize.
             options = options || {};
@@ -666,7 +666,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //Once we join, ask the channel for it's mode information.
             if (eventData.type === 'join') {
 
-                // (Caff) --- 6/29/17 --- Okay, we need to make sure this is only sent when WE join and not others...
+                // Caff (6/29/17) [V1.0.1 Fix] --- Okay, we need to make sure this is only sent when WE join and not others...
                 if (isMe) {
                     this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${this._autoJoinChannel}`});
                 }
@@ -904,7 +904,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //Generate the channel key early.
             let channelKey = this.generateChannelKey(eventData.channel);
 
-            // Caff (6/29/17) --- So apparently I didn't read the RFC well enough to see that this event gets triggered mulitple times.
+            // Caff (6/29/17) [V1.0.1 Fix] --- So apparently I didn't read the RFC well enough to see that this event gets triggered mulitple times.
             //Determine if we have a map generated from an earlier userlist message.
             //let userInfoMap = {};
             let userInfoMap = this._userListByChannel[channelKey];
@@ -957,7 +957,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
             //NOTE: There is no RPL_USERSSTART event as defined by the IRC Protocol, so we'll just wait for the RPL_ENDOFUSERS event.
             
-            // Caff (6/29/17) --- So apparently I didn't read the RFC well enough to see that this event gets triggered mulitple times.
+            // Caff (6/29/17) [V1.0.1 Fix] --- So apparently I didn't read the RFC well enough to see that this event gets triggered mulitple times.
             //New logic is above.
             //this._userListByChannel[this.generateChannelKey(eventData.channel)] = userInfoMap;
         }
