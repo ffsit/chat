@@ -45,4 +45,5 @@ Change Log
 
 #### 1.0.2
 
-* Official release.
+* Fixed the broken emote command and some minor refactoring.
+* Completed the incomplete logic for private message handling.

@@ -187,7 +187,6 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //-----------------------------------------------------------------
             // Versioning
             //-----------------------------------------------------------------
-            vga.irc.connector.kiwi.CLIENT_VERSION = new vga.util.version(1, 0, 0);
 
             //Normalize.
             options = options || {};

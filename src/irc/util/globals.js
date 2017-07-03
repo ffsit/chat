@@ -201,7 +201,23 @@ vga.util.readCookie = (name, defaultValue) => {
         }
     }
     return (defaultValue || '');
-}
+};
+
+///////////////////////////////////////////////////////////
+// Primitive Extensions
+///////////////////////////////////////////////////////////
+
+String.prototype.splitFirstOccurrence = function (char) {
+	let indexOfFirstSpace = this.indexOf(char);
+	if (indexOfFirstSpace > -1) {
+		return {
+			first: this.substring(0, indexOfFirstSpace),
+			second: this.substring(indexOfFirstSpace + 1)
+		};
+	}	
+	
+	return { first: this, second: ''}
+};
 
 //-----------------------------------------------------------------
 // Version object

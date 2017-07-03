@@ -355,10 +355,10 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         /**
          * Attemps to sends a message to the specific target.
          * @method vga.irc.connector.kiwi.connector.send
-         * @param {string} message to send to the specific target.
          * @param {string} target to send the message.
+         * @param {string} message to send to the specific target.
          */
-        send(message, target) {
+        send(target, message) {
             if (target && message) {
                 vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.send]: Sending to (${target}): ${message}.`);
                 this._protocol && this._protocol.sendIRCData('privmsg', {target: target, msg: message });
@@ -619,6 +619,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     userKey: this.generateUserKey(eventData.nick),
                     identity: this.normalizeNickname(eventData.nick),
                     nickname: eventData.nick,
+                    isChannel: isChannel,
                     target: isChannel ? this.generateChannelKey(eventData.target) : this.generateUserKey(eventData.target),
                     message: eventData.msg,
                     type: eventData.type

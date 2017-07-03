@@ -53,7 +53,7 @@ The following events are expected by the chat library.  These events can be impl
 
 **onMessage**
 
-`{ userKey: string, identity: string, nickname: string, target: string, message: string, type: string }`
+`{ userKey: string, identity: string, nickname: string, isChannel: bool, target: string, message: string, type: string }`
 
 **onUserlist**
 

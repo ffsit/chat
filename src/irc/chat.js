@@ -82,7 +82,7 @@ $(function(){
     // Event: onReconnect()
     // Event: onTopic ({ topic: string, channelKey: string })
     // Event: onNick ({ userKey: string, identity: string, nickname: string, newNickName: string, isMe: bool })
-    // Event: onMessage ({ userKey: string, identity: string, nickname: string, target: string, message: string, type: string })
+    // Event: onMessage ({ userKey: string, identity: string, nickname: string, isChannel: bool, target: string, message: string, type: string })
     // Event: onUserlist ({ channelKey: string, users: { roles: bitarray, prefixes: [ {prefix: string} ], nicknames: [string] })
     // Event: onJoin ({ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool })
     // Event: onLeave ({ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool })
@@ -477,7 +477,7 @@ $(function(){
             //-----------------------------------------------------------------
             // Versioning
             //-----------------------------------------------------------------
-            vga.irc.chat.CLIENT_VERSION = new vga.util.version(1, 0, 0);
+            vga.irc.chat.CLIENT_VERSION = new vga.util.version(1, 0, 2);
 
             //Internal variables.
             this._userChannels = {};
@@ -533,7 +533,7 @@ $(function(){
         // These are presentation methods.
         //-----------------------------------------------------------------
 
-        writeToChannelWindow(channelName, user, message, type) {
+        writeToChannelWindow(channelName, effectedUser, message, type) {
             
             //Normalize.
             type = type || 'message';
@@ -552,7 +552,7 @@ $(function(){
             }
 
             //Verify the person performing the wall (shout) has mod capabilities and that it is a wall message.
-            if ( (this._wallRegEx.test(message)) && hasModCapabilities(user.roles)) {
+            if ( (this._wallRegEx.test(message)) && hasModCapabilities(effectedUser.roles)) {
                 //The first capture group must exist in the regex in order for it to work.
                 let messages = this._wallRegEx.exec(message);
                 if (messages.length > 1) {
@@ -566,17 +566,26 @@ $(function(){
             message = vga.util.encodeHTML(message);
 
             //Generate the nickname color and change it based on the seed function, if defined.
-            let nickColor = getNickColorClass(user.identity, this._nicknameColorSeedFunction && this._nicknameColorSeedFunction());
+            let nickColor = getNickColorClass(effectedUser.identity, this._nicknameColorSeedFunction && this._nicknameColorSeedFunction());
 
-            let identity = (user !== undefined) ? user.identity : 'undefined';
-            let roleName = getRoleName((user !== undefined) ? user.roles : vga.irc.roles.shadow);
+            let identity = (effectedUser !== undefined) ? effectedUser.identity : 'undefined';
+            let roleName = getRoleName((effectedUser !== undefined) ? effectedUser.roles : vga.irc.roles.shadow);
+
+            // --- Caff (7/3/17) --- Version [1.0.2] --- Updated the formatting for private messages.
+            let displayName = identity;
+            if (type === 'privateTO') {
+                displayName = `To [${identity}]`;
+            }
+            else if (type === 'privateFROM') {
+                displayName = `From [${identity}]`;
+            }
 
             let $channelWindow = getChannelWindow(channelName);
             $channelWindow.append(`<div class='user-entry nickColor${nickColor}' data-identity='${identity}'><div class='role ${roleName}'>`
                 + `<div class="icon" title="${roleName}"></div>${optionBody}`
-                + `<div class='prefix'></div>`
-                + `<div class='username allowColor'>${(type === 'private' ? `To [${identity}]` : identity)}${(type !== 'action' ? ':' : '')}</div>`
-                + `<div class='message ${additionalMessageClasses}'>${message}</div>`
+                //+ `<div class='prefix'></div>`
+                + `<span class='username allowColor'>${displayName}${(type !== 'action' ? ':' : '')}</span>`
+                + `<span class='message ${additionalMessageClasses}'>${message}</span>`
                 + `</div></div>`);
         }
         /**
@@ -773,19 +782,12 @@ $(function(){
             if (channelName) {
                 //Check for any known commands.
                 if (message[0] === '/') {
-                    let messageCommand = message;
-                    let args = '';
-                    let indexOfFirstSpace = message.indexOf(' ');
-                    if (indexOfFirstSpace > -1) {
-                        messageCommand = message.substring(0, indexOfFirstSpace);
-                        args = message.substring(indexOfFirstSpace + 1);
-                    }
-
-                    handleUserCommand(messageCommand.trim().toLowerCase(), args);
+                    let parts = message.splitFirstOccurrence(' ');
+                    return this.handleUserCommand(channelName, parts.first.trim().toLowerCase(), parts.second);
                 }
                 //Send messages as normal.
                 else {
-                    handleUserMessage(channelName, message);
+                    return this.handleUserMessage(channelName, message);
                 }
             }
             return this;
@@ -797,7 +799,7 @@ $(function(){
          * @param {string} message the message to send to the chat with the specific channel.
          */        
         handleUserMessage(channelName, message) {
-            this.connector && this.connector.send(message, channelName);
+            this.connector && this.connector.send(channelName, message);
             let channel = this._userChannels[channelName];
             if (channel) {
                 let user = channel[this.connector.getMyUserKey()];
@@ -806,25 +808,30 @@ $(function(){
             return this;
         }
         /**
-         * Manages the send user message.
-         * @method vga.irc.chat.handleSendUserMessage
-         * @param {string} channelName to apply turbo mode.
-         * @param {string} message the message to send to the chat with the specific channel.
+         * Manages the user commands.
+         * @method vga.irc.chat.handleUserCommand
+         * @param {string} channelName to send the command.
+         * @param {string} command to trigger.
+         * @param {string} args to send with the command.
          */
-        handleUserCommand(command, args) {
-            switch(messageCommand) {
+        handleUserCommand(channelName, command, args) {
+            switch(command) {
                 case '/quit':
-                    this.close(args);
+                    //Args(Quitting): 'is quitting. Goodbye.'
+                    this.close(args || 'VGA Webchat');
                     break;
 
                 case '/join':
+                    //Args(Joining): '#channel'
                     this.join(args);
                     break;
                 
                 case '/leave':
-                    let indexOfFirstSpace = args.indexOf(' ');
-                    leaveArgs
-                    this.leave((args[0] || ''), (args[1] || ''));
+                    //Args(Leaving): '#channel is leaving'
+                    //parts.first = '#channel'
+                    //parts.second = 'is leaving'
+                    let parts = args.splitFirstOccurrence(' ');
+                    this.leave(parts.first, parts.second);
                     break;
 
                 case '/me':
@@ -832,25 +839,34 @@ $(function(){
                 case '/em':
                 case '/emote':
                 {
-                    let emote = (args[0] || '');
-                    this.connector.emote(channelName, emote);
+                    //Args(Emote): 'drinks delicious coffee.'
+                    this.connector.emote(channelName, args);
                     let channel = this._userChannels[channelName];
                     if (channel) {
                         let user = channel[this.connector.getMyUserKey()];
-                        this.writeToChannelWindow(channelName, user, emote, 'action');
+                        this.writeToChannelWindow(channelName, user, args, 'action');
                     }
                 }
                 break;
 
                 case '/r':
+                case '/whisper':
+                case '/tell':
                 {
-                    let name = args[0] || '';
-                    let msg = args[1] || '';
-                    this.connector && this.connector.send(msg, name);
+                    //Args(Whispering): 'PersonToWhisperTo Hey, how are you doing today?'
+                    //parts.first = 'PersonToWhisperTo'
+                    //parts.second = 'Hey, how are you doing today?'
+                    let parts = args.splitFirstOccurrence(' ');
+                    this.connector && this.connector.send(parts.first, parts.second);
                     let channel = this._userChannels[channelName];
                     if (channel) {
-                        let user = channel[this.connector.getMyUserKey()];
-                        this.writeToChannelWindow(channelName, user, `${msg}`, 'private');
+                        let user = channel[parts.first];
+                        if (user) {
+                            this.writeToChannelWindow(channelName, user, `${parts.second}`, 'privateTO');
+                        }
+                        else {
+                            writeInformationalMessage(channelName, `The user '${parts.first}' was not found.`);
+                        }
                     }
                 }
                 break;
@@ -904,7 +920,7 @@ $(function(){
             toggleLoginWindow(false);
             this.startSmoothScrolling();
             this.startThemes();
-            writeInformationalMessage(eventData.channelKey, `VGA Chat version:${this.CLIENT_VERSION.toString()}`);
+            writeInformationalMessage(eventData.channelKey, `VGA Chat version:${vga.irc.chat.CLIENT_VERSION.toString()}`);
         }
 
         /**
@@ -1013,10 +1029,22 @@ $(function(){
          */
         onMessage(eventData) {
             if (!this._wallRegEx.test(eventData.message) || !this._frashShowMode) {
-                let channel = this._userChannels[eventData.target];
-                if (channel) {
-                    let user = channel[eventData.userKey];
-                    this.writeToChannelWindow(eventData.target, user, eventData.message, eventData.type);
+                
+                // --- Caff (7/3/17) --- Version [1.0.2] --- Updated the formatting for private messages.
+                let writeMethod = (channelKey, channel, type) => {
+                    if (channel) {
+                        let user = channel[eventData.userKey];
+                        this.writeToChannelWindow(channelKey, user, eventData.message, type);
+                    }
+                };
+                
+                if (eventData.isChannel) {
+                    writeMethod(eventData.target, this._userChannels[eventData.target], eventData.type);
+                }
+                else {
+                    vga.util.forEach(this._userChannels, (channelKey, channel) => {
+                        writeMethod(channelKey, channel, 'privateFROM');
+                    });
                 }
             }
         }
