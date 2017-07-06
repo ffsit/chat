@@ -4,6 +4,7 @@
 * @license
 * Copyright (c) 2016-2017, FarFromSubtle IT
 * All rights reserved.
+* Github: https://github.com/ffsit/chat/
 * Author: Ken Anderson <caffeinatedrat at gmail dot com>
 * @@@@@@@@@@@@@@@@
 * @@@@@@@@@@@@@@@@
@@ -49,7 +50,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
 ///////////////////////////////////////////////////////////
 // Our Kiwi IRC Protocol.
-// This is another abstracted logic layer that happens to extract the more raw kiwi protocol logic and to help clean up the connector class and allow it to be more readable. 
+// This is another abstracted logic layer that happens to extract the more raw kiwi protocol logic and to help clean up the connector class for readability.
 // This class can be merged with the kiwi-connector if necessary.
 ///////////////////////////////////////////////////////////
 (function(){
@@ -203,15 +204,6 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //Our listeners and socket adapters.
             this._listener = new vga.util.listener(methodMap, options.listeners);
             this._socket = new vga.util.websocket(this._url, {listeners: [this]});
-        }
-        /**
-         * Registers a listening object to the protocol.
-         * @method vga.irc.connector.kiwi.protocolwrapper.register
-         * @param {object} listeningObject A listening object to register.  This can be an array of listening objects.
-         */
-        register(listeningObject) {
-            this._listener.register(listeningObject);
-            return this;
         }
         /**
          * Returns the current state.
@@ -418,7 +410,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         /**
          * An event that is triggered when the socket has closed.
          * @method vga.irc.connector.kiwi.protocolwrapper.onClose
-         * @param {object} event socket event data. 
+         * @param {object} event socket event data.
          */
         onClose(event) {
             vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onClose]: (State before close: ${this._state}).`);
@@ -444,7 +436,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         /**
          * An event that is triggered whenever the socket sends a message.
          * @method vga.irc.connector.kiwi.protocolwrapper.onMessage
-         * @param {object} event socket event data. 
+         * @param {object} event socket event data.
          */
         onMessage(event) {
             let parsedMessage = parseMessage(event.data); 

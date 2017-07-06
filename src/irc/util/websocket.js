@@ -4,6 +4,7 @@
 * @license
 * Copyright (c) 2016-2017, FarFromSubtle IT
 * All rights reserved.
+* Github: https://github.com/ffsit/chat/
 * Author: Ken Anderson <caffeinatedrat at gmail dot com>
 * @@@@@@@@@@@@@@@@
 * @@@@@@@@@@@@@@@@
@@ -75,9 +76,9 @@ vga.util = vga.util || {};
         /**
          * Constructor for the websocket wrapper.
          * @method vga.util.websocket
-         * @param {string} url The URL to attempt to open a websocket connection with.
+         * @param {string} url to attempt to open a websocket connection with.
          * @param {object} options Additional options for the websocket wrapper.
-         * @param {object} protocols Additional websocket protocols to pass to the server.
+         * @param {object} protocols to pass to the server.
          */ 
         constructor(url, options, protocols) {
             //Normalize the options.
@@ -89,14 +90,6 @@ vga.util = vga.util || {};
             //Determines if the JSON data is dumped to the console.
             //By default is disabled.
             this._listener = new vga.util.listener(whiteListedMethods, options.listeners);
-        }
-        /**
-         * Registers a listening object to the socket.
-         * @method vga.util.websocket.register
-         * @param {object} listeningObject A listening object to register.  This can be an array of listening objects.
-         */
-        register(listeningObject) {
-            this._listener.register(listeningObject);
         }
         /**
          * Attempts to open a websocket connection at the URL.
@@ -115,7 +108,7 @@ vga.util = vga.util || {};
         /**
          * Attempts to send data through the open websocket connection.
          * @method vga.util.websocket.send
-         * @param {object} data Data to send through the websocket.
+         * @param {object} data to send through the websocket.
          */
         send(data, blockLogging) {
             if (this._webSocket) {

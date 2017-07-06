@@ -4,6 +4,7 @@
 * @license
 * Copyright (c) 2016-2017, FarFromSubtle IT
 * All rights reserved.
+* Github: https://github.com/ffsit/chat/
 * Author: Ken Anderson <caffeinatedrat at gmail dot com>
 * @@@@@@@@@@@@@@@@
 * @@@@@@@@@@@@@@@@
@@ -60,7 +61,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     // ----------------------------
     // The identity is supposed to be the single, consistent identity of the user.
     // With Kiwi & IRC we do not always have access to the identity, sometimes it is provided while other times it is not.
-    // A good example of this is the userlist where we are given a list of users, modes, and nicks but no identities to work with.
+    // A good example of this is the userlist, where we are given a list of users, modes, and nicks but no identities to work with.
     // Additionally, a user join or part event will supply an identity while a mode event will not.
     // In these cases, the identity is not reliable, and we cannot use it consistently through out the connector.
     // 
@@ -70,7 +71,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     // This allows us to have a consistent key/identity for our user.
     // This is what is given to the chat class as an identity, which is what is shown by that class.
     // This normalization action only works when dealing with multiple user sessions that have a similiar name but a different numerical suffix identifier.
-    // Users signed in with the same name with different sessions will be granted a new numerical suffix identifier to allow them to have multiple sessions.
+    // Users signed in with the same name, with different sessions, will be granted a new numerical suffix identifier to allow them to have multiple sessions.
     //
     // IRC Nickname
     // ----------------------------
@@ -251,15 +252,6 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             this._protocol = new vga.irc.connector.kiwi.protocolwrapper(url, {listeners: [this]});
 
             console.log(`[vga.irc.connector.kiwi.connector]: Using the kiwi-connector version: ${vga.irc.connector.kiwi.CLIENT_VERSION.toString()}`);
-        }
-        /**
-         * Registers a listening object to the connector layer.
-         * @method vga.irc.connector.kiwi.connector.register
-         * @param {object} listeningObject A listening object to register.  This can be an array of listening objects.
-         */
-        register(listeningObject) {
-            this._listener.register(listeningObject);
-            return this;
         }
         /**
          * Returns the identity of the current user, which may not be the same as the nickname.
