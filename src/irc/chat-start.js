@@ -4,6 +4,7 @@
 * @license
 * Copyright (c) 2016-2017, FarFromSubtle IT
 * All rights reserved.
+* Github: https://github.com/ffsit/chat/
 * Author: Ken Anderson <caffeinatedrat at gmail dot com>
 * @@@@@@@@@@@@@@@@
 * @@@@@@@@@@@@@@@@

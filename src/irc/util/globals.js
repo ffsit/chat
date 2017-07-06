@@ -4,6 +4,7 @@
 * @license
 * Copyright (c) 2016-2017, FarFromSubtle IT
 * All rights reserved.
+* Github: https://github.com/ffsit/chat/
 * Author: Ken Anderson <caffeinatedrat at gmail dot com>
 * @@@@@@@@@@@@@@@@
 * @@@@@@@@@@@@@@@@
@@ -239,6 +240,7 @@ vga.util.version = class {
     }
 
     /**
+    * @method vga.util.version.toString
     * @return {string} Returns the version number as a string as the format Major.Minor.Revision.
     * @override
     */
@@ -248,6 +250,7 @@ vga.util.version = class {
 
     /**
     * Returns true if this version is equal to the passed version.
+    * @method vga.util.version.equal    
     * @param {object} The version to compare against.
     * @return {bool} Returns true if the version numbers are equal.
     */

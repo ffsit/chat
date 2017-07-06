@@ -4,6 +4,7 @@
 * @license
 * Copyright (c) 2016-2017, FarFromSubtle IT
 * All rights reserved.
+* Github: https://github.com/ffsit/chat/
 * Author: Ken Anderson <caffeinatedrat at gmail dot com>
 * @@@@@@@@@@@@@@@@
 * @@@@@@@@@@@@@@@@
@@ -59,6 +60,7 @@ vga.util = vga.util || {};
          * Constructor for the listener class.
          * @method vga.util.listener
          * @param {object} methodMap An object (dictionary) that contains a collection of white-listed methods.
+         * @param {array} listeners collection that will listen for events triggered durin invocation.
          */
         constructor(methodMap, listeners) {
             this._methodMap = methodMap;

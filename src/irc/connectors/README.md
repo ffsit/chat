@@ -33,66 +33,66 @@ The following events are expected by the chat library.  These events can be impl
 
 ### Signatures
 
-**onConnect**
+**onConnect(eventData)**
 
-`{channelKey: string}`
+`eventData: {channelKey: string}`
 
-**onDisconnect**
+**onDisconnect(eventData)**
 
-`{closedByServer: bool}`
+`eventData: {closedByServer: bool}`
 
 **onReconnect**
 
-**onTopic**
+**onTopic(eventData)**
 
-`{ topic: string, channelKey: string }`
+`eventData: { topic: string, channelKey: string }`
 
-**onNick**
+**onNick(eventData)**
 
-`{ userKey: string, identity: string, nickname: string, newNickName: string, isMe: bool }`
+`eventData: { userKey: string, identity: string, nickname: string, newNickName: string, isMe: bool }`
 
-**onMessage**
+**onMessage(eventData)**
 
-`{ userKey: string, identity: string, nickname: string, isChannel: bool, target: string, message: string, type: string }`
+`eventData: { userKey: string, identity: string, nickname: string, isChannel: bool, target: string, message: string, type: string }`
 
-**onUserlist**
+**onUserlist(eventData)**
 
-`{ channelKey: string, users: { roles: bitarray, prefixes: [ {prefix: string} ], nicknames: [string] }`
+`eventData: { channelKey: string, users: { roles: bitarray, prefixes: [ {prefix: string} ], nicknames: [string] }`
 
-**onJoin**
+**onJoin(eventData)**
 
-`{ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool }`
+`eventData: { channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool }`
 
-**onLeave**
+**onLeave(eventData)**
 
-`{ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool }`
+`eventData: { channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool }`
 
-**onQuit**
+**onQuit(eventData)**
 
-`{ userKey: string, identity: string, nickname: string, isMe: bool }`
+`eventData: { userKey: string, identity: string, nickname: string, isMe: bool }`
 
-**onChannelMode**
+**onChannelMode(eventData)**
 
-`{ channelKey: string, modes: bitarray, action: vga.irc.roleModeAction }`
+`eventData: { channelKey: string, modes: bitarray, action: vga.irc.roleModeAction }`
 
-**onRole**
+**onRole(eventData)**
 
-`{ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, roles: bitarray }`
+`eventData: { channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, roles: bitarray }`
 
-**onStatus**
+**onStatus(eventData)**
 
-`{ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, status: bitarray }`
+`eventData: { channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, status: bitarray }`
 
 **onAccessDenied**
 
-**onKicked**
+**onKicked(eventData)**
 
-`{ identity: string, userKey: string, channelKey: string, isMe: bool }`
+`eventData: { identity: string, userKey: string, channelKey: string, isMe: bool }`
 
-**onBanned**
+**onBanned(eventData)**
 
-`{ identity: string, userKey: string, channelKey: string }`
+`eventData: { identity: string, userKey: string, channelKey: string }`
 
-**onError**
+**onError(eventData)**
 
-`{ reason: string }`
+`eventData: { reason: string }`

@@ -4,6 +4,7 @@
 * @license
 * Copyright (c) 2016-2017, FarFromSubtle IT
 * All rights reserved.
+* Github: https://github.com/ffsit/chat/
 * Author: Ken Anderson <caffeinatedrat at gmail dot com>
 * NOTE: Chat.js logic is based on the original logic implemented by Kshade.
 * @@@@@@@@@@@@@@@@
@@ -945,7 +946,6 @@ $(function(){
             });
         }
 
-        ///TODO: Temporary Reconnect logic, merge with the connect logic currently in the index.php.
         /**
          * An event that is triggered when a topic event occurs.
          * @method vga.irc.chat.onReconnect
