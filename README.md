@@ -36,9 +36,9 @@ Official release.
 
 #### 1.0.1
 Fixed the following issues:
-    * The message 'The room is now in TURBO only mode.' spammed the chat whenever a user logged in.
-    * The userlist became corrupted and user messages were lost when the user count was greater than 20.
-    * Messages were being repeated due to the above condition and the chatbox not being cleared due to a latency issue.
+* The message 'The room is now in TURBO only mode.' spammed the chat whenever a user logged in.
+* The userlist became corrupted and user messages were lost when the user count was greater than 20.
+* Messages were being repeated due to the above condition and the chatbox not being cleared due to a latency issue.
 
 #### 1.0.2
 The following fixes and new features have been implemented in this version:
