@@ -44,3 +44,12 @@ Fixed the following issues:
 The following fixes and new features have been implemented in this version:
 * Fixed the broken emote command and some minor refactoring.
 * Completed the incomplete logic for private message handling.
+
+#### 1.0.3
+The following fixes have been implemented in this version:
+* Fixed the gap between the username and message in Firefox.
+* Fixed the nickname issue with users that have a number as the first character in their nickname.
+* Added additional help information.
+* Removed the support button for now.
+* Added an option to enable debugging via the URL, more user friendly.
+

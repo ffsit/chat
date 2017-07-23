@@ -305,11 +305,18 @@ $(function(){
      * Writes an informative message to the channel window.
      * @method writeInformationalMessage
      * @param {string} channelName of the channel to write the message.
-     * @param {string} message to write.
+     * @param {string} message to write. This can be an array of messages but they will not be centered.
      */
     function writeInformationalMessage(channelName, message) {
         let $channelWindow = getChannelWindow(channelName);
-        $channelWindow.append(`<div class="informative"><span class="message">${vga.util.encodeHTML(message)}</span></div>`);
+        if (Array.isArray(message)) {
+            message.forEach(message => {
+                $channelWindow.append(`<div class="informative"><span class="message">${vga.util.encodeHTML(message)}</span></div>`);
+            });
+        }
+        else {
+            $channelWindow.append(`<div class="informative text-center"><span class="message">${vga.util.encodeHTML(message)}</span></div>`);
+        }
     };
 
     /**
@@ -478,7 +485,7 @@ $(function(){
             //-----------------------------------------------------------------
             // Versioning
             //-----------------------------------------------------------------
-            vga.irc.chat.CLIENT_VERSION = new vga.util.version(1, 0, 2);
+            vga.irc.chat.CLIENT_VERSION = new vga.util.version(1, 0, 3);
 
             //Internal variables.
             this._userChannels = {};
@@ -564,28 +571,33 @@ $(function(){
             }
 
             //Encode all HTML characters.
-            message = vga.util.encodeHTML(message);
+            message = vga.util.encodeHTML(message).trim();
+
+            let identity = (effectedUser !== undefined) ? effectedUser.identity.trim() : 'undefined';
+            let roleName = getRoleName((effectedUser !== undefined) ? effectedUser.roles : vga.irc.roles.shadow);
 
             //Generate the nickname color and change it based on the seed function, if defined.
             let nickColor = getNickColorClass(effectedUser.identity, this._nicknameColorSeedFunction && this._nicknameColorSeedFunction());
 
-            let identity = (effectedUser !== undefined) ? effectedUser.identity : 'undefined';
-            let roleName = getRoleName((effectedUser !== undefined) ? effectedUser.roles : vga.irc.roles.shadow);
-
             // --- Caff (7/3/17) --- Version [1.0.2] --- Updated the formatting for private messages.
             let displayName = identity;
             if (type === 'privateTO') {
-                displayName = `To [${identity}]`;
+                displayName = `To [${displayName}]`;
             }
             else if (type === 'privateFROM') {
-                displayName = `From [${identity}]`;
+                displayName = `From [${displayName}]`;
             }
+
+            // --- Caff (7/8/17) --- Version [1.0.3] --- Fixed the gap between the username and message in Firefox.
+            //Firefox specific issue:
+            //Apparently there is a very specific issue in Firefox where using the style 'text-transform: uppercase' with the pseudo-class ':first-letter', while in an inline-block introduces additional spaces after the text.
+            //So we're just going to have the code manually perform this transformation instead. 
+            displayName = (displayName[0] || '').toLocaleUpperCase() + displayName.substring(1);
 
             let $channelWindow = getChannelWindow(channelName);
             $channelWindow.append(`<div class='user-entry nickColor${nickColor}' data-identity='${identity}'><div class='role ${roleName}'>`
                 + `<div class="icon" title="${roleName}"></div>${optionBody}`
-                //+ `<div class='prefix'></div>`
-                + `<span class='username allowColor'>${displayName}${(type !== 'action' ? ':' : '')}</span>`
+                + `<span class='username allowColor'>${displayName.trim()}${(type !== 'action' ? ':&nbsp' : '&nbsp')}</span>`
                 + `<span class='message ${additionalMessageClasses}'>${message}</span>`
                 + `</div></div>`);
         }
@@ -794,6 +806,59 @@ $(function(){
             return this;
         }
         /**
+         * Performs an emote on a emote channelname.
+         * @method vga.irc.chat.emote
+         * @param {string} channelName to send the command or message.
+         * @param {string} emote to perofrm.
+         */
+        emote(channelName, emote) {
+            this.connector.emote(channelName, emote);
+            let channel = this._userChannels[channelName];
+            if (channel) {
+                let user = channel[this.connector.getMyUserKey()];
+                this.writeToChannelWindow(channelName, user, emote, 'action');
+            }
+        }
+        /**
+         * Performs a whisper to a specific user.
+         * @method vga.irc.chat.whisper
+         * @param {string} channelName current channel the user is speaking on.
+         * @param {string} userNickname to send the whisper.
+         * @param {string} message to send.
+         */
+        whisper(channelName, userNickname, message) {
+            this.connector && this.connector.send(userNickname, message);
+            let channel = this._userChannels[channelName];
+            if (channel) {
+                let user = channel[userNickname.toLowerCase()];
+                if (user) {
+                    this.writeToChannelWindow(channelName, user, `${message}`, 'privateTO');
+                }
+                else {
+                    writeInformationalMessage(channelName, `The user '${userNickname}' was not found.`);
+                }
+            }
+        }
+        /**
+         * Spits out help information to the invoking user.
+         * @method vga.irc.chat.help
+         * @param {string} channelName current channel the user is on.
+         */
+        help(channelName) {
+            writeInformationalMessage(channelName, [
+                'The following commands are available:',
+                'USAGE NOTE: Command [Alias] argument (optional argument)',
+                'EXAMPLE USAGE(1): /emote dances.', 
+                'EXAMPLE USAGE(2): /tell cafftest Hello.',
+                '/help [/h /?] -- Help information, this screen.',
+                '/quit [/q] (message) -- Quits the chat with an optional message.',
+                '/join #channelName -- Joins a specific channel.',
+                '/leave #channelName (message) -- Leaves a specific channel with an optional message.',
+                '/emote [/me /e /em] emote -- Performs an emote on the current channel.',
+                '/whisper [/tell /r] nickname message -- Sends a private message to the nickname.'
+            ]);
+        }
+        /**
          * Manages the send user message.
          * @method vga.irc.chat.handleUserMessage
          * @param {string} channelName to send the message to.
@@ -818,6 +883,7 @@ $(function(){
         handleUserCommand(channelName, command, args) {
             switch(command) {
                 case '/quit':
+                case '/q':
                     //Args(Quitting): 'is quitting. Goodbye.'
                     this.close(args || 'VGA Webchat');
                     break;
@@ -839,16 +905,9 @@ $(function(){
                 case '/e':
                 case '/em':
                 case '/emote':
-                {
                     //Args(Emote): 'drinks delicious coffee.'
-                    this.connector.emote(channelName, args);
-                    let channel = this._userChannels[channelName];
-                    if (channel) {
-                        let user = channel[this.connector.getMyUserKey()];
-                        this.writeToChannelWindow(channelName, user, args, 'action');
-                    }
-                }
-                break;
+                    this.emote(channelName, args);
+                    break;
 
                 case '/r':
                 case '/whisper':
@@ -858,17 +917,15 @@ $(function(){
                     //parts.first = 'PersonToWhisperTo'
                     //parts.second = 'Hey, how are you doing today?'
                     let parts = args.splitFirstOccurrence(' ');
-                    this.connector && this.connector.send(parts.first, parts.second);
-                    let channel = this._userChannels[channelName];
-                    if (channel) {
-                        let user = channel[parts.first.toLowerCase()];
-                        if (user) {
-                            this.writeToChannelWindow(channelName, user, `${parts.second}`, 'privateTO');
-                        }
-                        else {
-                            writeInformationalMessage(channelName, `The user '${parts.first}' was not found.`);
-                        }
-                    }
+                    this.whisper(channelName, parts.first, parts.second);
+                }
+                break;
+
+                case '/help':
+                case '/h':
+                case '/?':
+                {
+                    this.help(channelName);
                 }
                 break;
             }

@@ -135,6 +135,9 @@ Global classes
     position: absolute;
 }
 
+.text-center {
+    text-align: center;
+}
 
 /*
 ---
@@ -288,7 +291,7 @@ Lower UI classes
 
 .lower-ui .right {
     float: right;
-    width: 80px;
+    /*width: 80px;*/
     margin-left: 5px;
 }
 
@@ -347,7 +350,8 @@ User classes
     line-height: 16px;	
     /*word-wrap: break-word;*/
     overflow-wrap: break-word;
-    padding-left: 2px;
+    /* --- Caff (7/8/17) --- Version [1.0.3] --- Fixed the gap between the username and message in Firefox. */
+    /*padding-left: 2px;*/
 }
 
 .user-entry .prefix {
@@ -360,14 +364,12 @@ User classes
 Username classes
 ---------------------------
 */
+
+/* --- Caff (7/8/17) --- Version [1.0.3] --- Fixed the gap between the username and message in Firefox. */
 .user-entry .username {
-    display: inline;
+    display: inline-block;
     vertical-align: middle;
     font-weight: bold;
-}
-
-.user-entry .username:first-letter {
-    text-transform: uppercase;
 }
 
 .large .user-entry .username {
@@ -383,6 +385,15 @@ Username classes
 .small .user-entry .username {
     margin-left: 0.2rem;
     font-size: 1.0rem;
+}
+
+/*
+Caff (7/8/17) --- Version [1.0.3] --- Fixed the gap between the username and message in Firefox. 
+Firefox Issue:
+Due to an issue with Firefox, we're only going to restrict this transform for this pseudo-class for the userlist only.
+*/
+.user-list .user-entry .username:first-letter {
+    text-transform: uppercase;
 }
 
 /*
@@ -556,7 +567,6 @@ Channel classes
 .channel-window .informative {
     font-style: italic;
     color: #999;
-    text-align: center;
     padding: .3em;
 }
 

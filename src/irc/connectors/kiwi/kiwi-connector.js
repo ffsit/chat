@@ -102,6 +102,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     vga.irc.connector.kiwi.banMaskToApply =  '*!{identity}@*';
     vga.irc.connector.kiwi.banMaskRegEx =  /(\w:)?([\w\-\[\]\\\`\^\{\|\}\*]+)!([\w\-\[\]\\\`\^\{\|\}\*]+)@.+/;
 
+    //Check for unsupported nicknames.
+    //Per RFC https://tools.ietf.org/html/rfc2812#section-2.3.1
+    vga.irc.connector.kiwi.supportedNicknameRegEx = /[a-zA-Z_]?[a-zA-Z0-9\-\[\]{}`\^\\_]+/;
+    vga.irc.connector.kiwi.supportedNicknameFirstCharEx = /[a-zA-Z]/;
+
     //This expression is used to replace the * wildcards so that partial name matches can be performed, and is a direct reflection of the banMaskRegEx.
     vga.irc.connector.kiwi.wildCardMaskRegString ='[\\w\\-\\[\\]\\`\\^\\{\\|\\}\\*]*';
 
@@ -183,16 +188,61 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     }
 
     /**
-     * Sanitizes the nickname by removing the numeric suffix identifier.
+     * Deprecated: Sanitizes the nickname by removing the numeric suffix identifier.
+     * @method sanitizeNickname
+     * @param {string} nickname to sanitized.
+     * @return {string} sanitized nickname.
+     */
+    function oldSanitizeNickname(nickname) {
+        let suffixIndex = nickname.lastIndexOf('_');
+        if (suffixIndex > -1) {
+            nickname = nickname.substring(0, suffixIndex);
+        }
+        return nickname;
+    }
+
+    // Caff (7/23/17) [V1.0.3 Fix] --- Handle nicknames with underscores in various places within the nickname.
+    /**
+     * Sanitizes the nickname by removing the numeric suffix identifier and all underscores from the nickname.
      * @method sanitizeNickname
      * @param {string} nickname to sanitized.
      * @return {string} sanitized nickname.
      */
     function sanitizeNickname(nickname) {
-        let suffixIndex = nickname.lastIndexOf('_');
-        if (suffixIndex > -1) {
-            nickname = nickname.substring(0, suffixIndex);
+        const targetChar = '_';
+
+        //Find all target characters.
+        let positionStack = [];
+        for(let i = nickname.length - 1; i >= 0; i--) {
+            if (nickname[i] === targetChar) {
+                positionStack.push(i);
+            }
         }
+
+        //Another messy conditional but since the average case is a nick with no target character, then let's avoid this logic if necessary.
+        if (positionStack.length > 0) {
+            //Check for a very special condition of the targetChar being the first character.
+            //Due to the nature of this algorithm, there is no way to determine if text after the 1st occurance of the targetChar is valid name or the numeric suffix identifier.		
+            if ( (positionStack.length === 1) && (positionStack[0] !== undefined ? positionStack[0] : -1) === 0)
+            {
+                return nickname.substring(1);
+            }
+
+            //Reconstruct the nickname and filter out all target characters, as well as any numerical suffix indicators.
+            let lastPosition = 0;
+            let normalizedNickname = '';
+            while(positionStack.length > 0) {
+                var startPosition = positionStack.pop();
+                if (startPosition > 0) {
+                    normalizedNickname += nickname.substring(lastPosition, startPosition);
+                }
+                lastPosition = startPosition+1;
+            }
+
+            //Return the normalized Nickname.
+            return normalizedNickname || nickname;
+        }
+
         return nickname;
     }
 
@@ -991,6 +1041,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                         return;
                     }
                     break;
+
+                // Caff (7/23/17) [V1.0.3 Fix] --- Handle erroneus nicknames by resetting the nickname to something that server supports.
+                case 'erroneus_nickname':
+                    this.setNickname(`_${this._nickname}`);
+                    return;
 
                 //Occurs when someone has been kicked from the channel and tries to commit an action afterwards.
                 case 'cannot_send_to_channel':

@@ -106,13 +106,13 @@
 						<span class="button-container user-settings-button">
 							<i class="fa fa-cog fa-inverse button" aria-hidden="true" title="Show My Settings" alt="?" role="button"></i>
 						</span>
-						<span class="button-container user-support-button disabled">
+						<span class="button-container user-support-button hidden">
 							<i class="fa fa-exclamation-circle fa-inverse button" aria-hidden="true" title="Support - Not available currently" alt="!" role="button"></i>
 						</span>
 					</div>
 					<!-- Input here to chat. -->
 					<div class="left">
-						<input type="text" class="chatbox" maxlength="300" placeholder="Start Chatting" disabled>
+						<input type="text" class="chatbox" maxlength="300" placeholder="Start Chatting (Or type /help)" disabled>
 					</div>
 				</div>
 			</div>

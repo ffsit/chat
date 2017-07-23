@@ -54,6 +54,9 @@ $(function(){
 
     let frashModeBegin = vga.util.inUrl('farshar');
 
+    // Caff (7/23/17) [V1.0.3 Feature] --- Added the ability to enable debug via the URL.
+    let debug = vga.util.inUrl('debug');
+
     //Just like Farshar mode can be enabled with the term in the querystring, so can the themes be disabled.
     //By default, themes are enabled.
     let themes = [];
@@ -82,6 +85,6 @@ $(function(){
         nicknameColorSeedFunction: () => new Date().getUTCMonth(),
         //Set this value to change the tban time in seconds.
         //timedBanDurationInSeconds: 900,
-        debug: false
+        debug: debug
     });
 });
