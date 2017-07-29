@@ -68,9 +68,7 @@ $(function(){
     //Create the chat object.
     //Set the configuration options here.
     var chat = new vga.irc.chat({
-        //url: "ws://valhalla.ffsit.net:7778/?transport=websocket",
         url: "wss://turbo.chat/kiwi/?transport=websocket",
-        //hostname: "valhalla.ffsit.net",
         hostname: 'turbo.chat',
         port: "6667",
         defaultChannel: '#ffstv',
@@ -82,9 +80,10 @@ $(function(){
         themes: themes,
         //This changes the chatter's nicknames once a month so there is less complaining about hated colors.
         //This can be disabled by commenting this out.
-        nicknameColorSeedFunction: () => new Date().getUTCMonth(),
+        //nicknameColorSeedFunction: () => new Date().getUTCMonth(),
+        nicknameColorSeedFunction: function() { return new Date().getUTCMonth() },
         //Set this value to change the tban time in seconds.
-        //timedBanDurationInSeconds: 900,
+        timedBanDurationInSeconds: 900,
         debug: debug
     });
 });

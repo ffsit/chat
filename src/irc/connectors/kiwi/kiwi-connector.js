@@ -484,8 +484,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     let banMask = vga.irc.connector.kiwi.banMaskToApply.replace('{identity}', `${identity}${this._consolidateNicknames ? '' : '*'}`);
                     if (vga.irc.bitArray.contains(status, vga.irc.status.timed)) {
                         convertedStatus = 'tb';
-                        let durationInSeconds = (additionalArguments || {duration: 900}).duration;
-                        this._protocol && this._protocol.sendIRCData('raw', {'data': `TBAN ${channel} ${(durationInSeconds !== undefined ? durationInSeconds : 900)} m:${banMask}`});
+                        let durationInSeconds = ((additionalArguments || {duration: 0}).duration || 900);
+                        this._protocol && this._protocol.sendIRCData('raw', {'data': `TBAN ${channel} ${durationInSeconds} m:${banMask}`});
                     }
                     else {
                         convertedStatus = 'b';

@@ -226,13 +226,18 @@ String.prototype.splitFirstOccurrence = function (char) {
 
 /**
  * Creates a version object.
- * @method vga.util.enableDebug
- * @param {int} Major major version number.
- * @param {int} Minor minor version number.
- * @param {int} Revision revision version number.
- * @api public
+ * @class vga.util.version
  */
 vga.util.version = class {
+
+    /**
+     * Creates a version object.
+     * @method vga.util.version
+     * @param {int} Major major version number.
+     * @param {int} Minor minor version number.
+     * @param {int} Revision revision version number.
+     * @api public
+     */
     constructor(Major, Minor, Revision) {
         this.Major = Major || 0;
         this.Minor = Minor || 0;
