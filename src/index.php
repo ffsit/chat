@@ -118,8 +118,7 @@
 			</div>
 		</div>
 	</div>
-    <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
-	
+	<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
 	<?php if(isset($_GET['debug'])): ?>
 		<script src="js/src/irc/util/globals.js"></script>
 		<script src="js/src/irc/util/listener.js"></script>
@@ -134,21 +133,6 @@
 		<script src="js/chat-kiwi.min.js"></script>
 		<script src="js/chat-start.js"></script>
 	<?php endif; ?>
-
-	<!-- Enable Babel -->
-	<!--
-	<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-
-	<script type="text/babel" src="/irc/util/globals.js"></script>
-	<script type="text/babel" src="/irc/util/listener.js"></script>
-	<script type="text/babel" src="/irc/util/websocket.js"></script>
-
-	<script type="text/babel" src="/irc/chat-defs.js"></script>
-	<script type="text/babel" src="/irc/chat.js"></script>
-	<script type="text/babel" src="/irc/connectors/kiwi/kiwi-protocol.js"></script>
-	<script type="text/babel" src="/irc/connectors/kiwi/kiwi-connector.js"></script>
-	<script type="text/babel" src="/irc/chat-start.js"></script>
-	-->
 
 </body>
 </html>
