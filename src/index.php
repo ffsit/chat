@@ -31,7 +31,7 @@
 				<div id="slide_login" class="slide_page">
 					<h1>Login</h1>
 					<div>Please read &amp; follow the <a href="http://videogamesawesome.com/the-rule-compendium/" target="_blank">chat rules</a>.</div>
-					<img class="spinner hidden" src="content//img/spinner<?php print(strval(rand(1,5))); ?>.gif" alt="One moment">
+					<img class="spinner hidden" src="content/img/spinner<?php print(strval(rand(1,5))); ?>.gif" alt="One moment">
 					<form id="vgairc_loginform" method="post" action="#">
 						<label for="nickname">Name:</label>
 						<input type="text" id="nickname" maxlength="32" value="<?php if(isset($_GET['nick'])) { print(htmlspecialchars($_GET['nick'])); } ?>" placeholder="Nickname"/>
