@@ -3,7 +3,7 @@
 <head>
 	<title>VGAIRC</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<link rel="stylesheet" type="text/css" href="/chat.css">
+	<link rel="stylesheet" type="text/css" href="/content/chat.css">
 	<link rel="icon" type="image/png"  href="/favicon.png">
 	<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 	<!--[if IE]>
@@ -31,7 +31,7 @@
 				<div id="slide_login" class="slide_page">
 					<h1>Login</h1>
 					<div>Please read &amp; follow the <a href="http://videogamesawesome.com/the-rule-compendium/" target="_blank">chat rules</a>.</div>
-					<img class="spinner hidden" src="/img/spinner<?php print(strval(rand(1,5))); ?>.gif" alt="One moment">
+					<img class="spinner hidden" src="content//img/spinner<?php print(strval(rand(1,5))); ?>.gif" alt="One moment">
 					<form id="vgairc_loginform" method="post" action="#">
 						<label for="nickname">Name:</label>
 						<input type="text" id="nickname" maxlength="32" value="<?php if(isset($_GET['nick'])) { print(htmlspecialchars($_GET['nick'])); } ?>" placeholder="Nickname"/>
@@ -120,19 +120,20 @@
 	</div>
     <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
 	
-	<!-- Minimize into a utility script -->
-	<script src="/irc/util/globals.js"></script>
-	<script src="/irc/util/listener.js"></script>
-    <script src="/irc/util/websocket.js"></script>
-	
-    <!-- Minimize into the chat script -->
-	<script src="/irc/chat-defs.js"></script>
-    <script src="/irc/chat.js"></script>
-	<script src="/irc/chat-start.js"></script>
-
-	<!-- Minimize into the kiwi connector script -->
-	<script src="/irc/connectors/kiwi/kiwi-protocol.js"></script>
-    <script src="/irc/connectors/kiwi/kiwi-connector.js"></script>
+	<?php if(isset($_GET['debug'])): ?>
+		<script src="js/src/irc/util/globals.js"></script>
+		<script src="js/src/irc/util/listener.js"></script>
+		<script src="js/src/irc/util/websocket.js"></script>	
+		<script src="js/src/irc/chat-defs.js"></script>
+		<script src="js/src/irc/chat.js"></script>
+		<script src="js/src/irc/connectors/kiwi/kiwi-protocol.js"></script>
+		<script src="js/src/irc/connectors/kiwi/kiwi-connector.js"></script>
+		<script src="js/chat-start.js"></script>
+	<?php else : ?>
+		<script src="js/util.min.js"></script>
+		<script src="js/chat-kiwi.min.js"></script>
+		<script src="js/chat-start.js"></script>
+	<?php endif; ?>
 
 	<!-- Enable Babel -->
 	<!--

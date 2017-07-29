@@ -1,0 +1,831 @@
+/*
+---------------------------
+Generic HTML Element classes
+---------------------------
+*/
+html, body {
+    font-family: sans-serif;
+    font-size: 10pt;
+    background-color: #707070;
+    padding: 0;
+    margin: 0;
+}
+
+html.frash-show-mode, .frash-show-mode body {
+    background-color: #E6E6E6;
+}
+
+html.frash-show-mode {
+    margin-top: 200px !important;
+}
+
+/*
+.frash-show-mode .chatbox {
+    margin-top: 50px;
+    border-color: #E6E6E6;
+    border-bottom-color: #E6E6E6;
+}
+*/
+
+.frash-show-mode .lower-ui {
+    display: none !important;
+}
+
+.frash-show-mode .channel-window {
+    width: 354px;
+    border-color: #E6E6E6;
+}
+
+.frash-show-mode #wrapper1 {
+    width: 355px;
+}
+
+/*
+---------------------------
+Global classes
+---------------------------
+*/
+
+[role=button] {
+    cursor: pointer;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.hidden {
+    display:none !important;
+}
+
+.disabled {
+    background-color: gray !important;
+    border-color: darkgray !important;
+}
+
+.pulse {
+    animation-duration: 1s;
+    animation-name: pulse;
+    animation-iteration-count: infinite;
+  	animation-direction: alternate;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0px 0px 0px 0px red;
+    }
+    25% {
+        box-shadow: 0px 0px 1px 1px red;
+    }
+    50% {
+        box-shadow: 0px 0px 2px 2px red;
+    }
+    75% {
+        box-shadow: 0px 0px 3px 2px red;
+    }
+    100% {
+        box-shadow: 0px 0px 3px 2px red;
+    }
+}
+
+.center-floating-container {
+    background-color: #e6e6e6;
+    max-width: 28em;
+    max-height: 30em;
+    margin: 0 auto;
+    padding-bottom: 2em;
+
+    border-color: rgba(112, 112, 112, .6);
+    border: 5pt solid #707070;
+    border-top-width: 0;
+    border-radius: 0 0 5px 5px;
+    box-shadow: 1px 1px 20px #000000;
+
+    overflow-x: hidden;
+    overflow-y: scroll;
+
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.center-floating-container h2 {
+    border-bottom: 2px solid black;
+    margin-bottom: 10px;
+}
+
+.center-floating-container h3 {
+    margin-bottom: 0px;
+    margin-top: 5px;
+    font-style: italic;
+    font-weight: 400;
+}
+
+.fixed-top-centered {
+    z-index: 400;
+    position: fixed !important;
+    left: 5%;
+    right: 5%;
+}
+
+.center_helper {
+    width: 100%;
+    height: 0;
+    top: 0;
+    left: 0;
+    position: absolute;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/*
+---
+*/
+
+#wrapper1 {
+    padding: 0.5em;
+    max-width: 60em;
+    margin: 0 auto;
+}
+
+#upper_ui {
+    display: block;
+    height: 34em;
+    border-spacing: 0.5em;
+}
+
+
+/*
+---------------------------
+Debug classes
+---------------------------
+*/
+
+#debug_wrapper {
+    min-width: 300px;
+    border-radius: 0 0 25px 25px;
+    z-index: 200;
+    overflow: auto;
+}
+
+form.debug {
+    width: 100%;
+}
+
+#debugoutput {
+    font-size: 8pt;
+    line-height: 8pt;
+    font-family: monospace;
+    background-color: #121214;
+    color: #E6E6E6;
+    border: none;
+    padding: 0;
+    width: 100%;
+    height: 12em;
+    overflow-x: scroll;
+}
+
+form.debug input {
+    margin-bottom: 0.3em;
+    border: 1px solid #121214;
+    background-color: #E6E6E6;
+    color: #121214;
+}
+
+form.debug #showdebug {
+    min-width: 300px;
+}
+
+/*
+---------------------------
+Login classes
+---------------------------
+*/
+
+#login-wrapper {
+    font-size: 12pt;
+    max-width: 300px;
+    padding: 1.5em;
+    padding-bottom: 2em;
+    background-color: #121214;
+    color: #E6E6E6;
+    border: 5pt solid #707070;
+    border-top-width: 0;
+    position: relative;
+    margin: 0 auto;
+    border-radius: 0 0 25px 25px;
+    box-shadow: 1px 1px 20px #000000;
+    border-color: rgba(112, 112, 112, .6);
+    z-index: 100;
+}
+
+#login-wrapper a, #login-wrapper a:hover, #login-wrapper a:visited, #login-wrapper a:active {
+    color: #FFFF99;
+    text-decoration: none;
+}
+
+#vgairc_loginform {
+    margin-top: 0.6em;
+}
+
+#vgairc_loginform label,
+#vgairc_loginform input[type=text],
+#vgairc_loginform input[type=password] {
+    width: 100%;
+    display: block;
+}
+#vgairc_loginform input {
+    margin-bottom: 0.5em;
+}
+
+#slide_message {
+    font-weight: bold;
+    color: #C01010;
+    width: 100%;
+    line-height: 1.5em;
+}
+
+.slide_page h1 {
+    color: inherit;
+    font-family: sans-serif;
+    font-size: 1.5em;
+    margin: 0 0 0.5em 0;
+}
+
+/*
+---------------------------
+Settings classes
+---------------------------
+*/
+
+#settings-container {
+    z-index: 400;
+    position: relative;
+    max-width: 300px;
+}
+
+.settings-item span {
+    font-size: 1.4rem;
+    vertical-align: text-bottom;
+}
+
+/*
+---------------------------
+Lower UI classes
+---------------------------
+*/
+
+.lower-ui {
+    margin-top: 0.5em;
+    width: 100%;
+}
+
+.lower-ui input {
+    width: 100%;
+    border: 1px solid darkgray;
+    height: 1.5em;
+    vertical-align: middle;
+    border-radius: 3px;
+}
+
+.lower-ui .right {
+    float: right;
+    /*width: 80px;*/
+    margin-left: 5px;
+}
+
+.lower-ui .left {
+    float: none;
+    width: auto;
+    overflow: hidden;
+}
+
+.lower-ui .button-container {
+    position: relative;
+    display: inline-block;
+    background-color: #3a5cf9;
+    vertical-align: middle;
+    width: 20px;
+    height: 20px;
+    line-height: 1.5em;
+    border: 1px solid #00008c;
+    border-radius: 3px;
+}
+
+.lower-ui .button-container .button {
+    position:absolute;
+    left:0;
+    width:100%;
+    line-height:inherit;
+    text-align:center;
+}
+
+/*
+---------------------------
+User classes
+---------------------------
+*/
+.user-entry {
+    display: block;
+    padding: 2px 4px;
+    /*font-size: 1.2rem;*/
+}
+
+.user-entry .timeout {
+    vertical-align: middle;
+    display: none;
+    margin-left: 2px;
+    font-weight: 400;
+    color: red;
+}
+
+.user-entry:hover .timeout {
+    display: inline;
+}
+
+.user-entry .message {
+    display: inline;
+    vertical-align: middle;
+    line-height: 16px;	
+    /*word-wrap: break-word;*/
+    overflow-wrap: break-word;
+    /* --- Caff (7/8/17) --- Version [1.0.3] --- Fixed the gap between the username and message in Firefox. */
+    /*padding-left: 2px;*/
+}
+
+.user-entry .prefix {
+    display: inline;
+    vertical-align: middle;
+}
+
+/*
+---------------------------
+Username classes
+---------------------------
+*/
+
+/* --- Caff (7/8/17) --- Version [1.0.3] --- Fixed the gap between the username and message in Firefox. */
+.user-entry .username {
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: bold;
+}
+
+.large .user-entry .username {
+    margin-left: 0.4rem;
+    font-size: 1.8rem;
+}
+
+.mid-size .user-entry .username {
+    margin-left: 0.3rem;
+    font-size: 1.4rem;
+}
+
+.small .user-entry .username {
+    margin-left: 0.2rem;
+    font-size: 1.0rem;
+}
+
+/*
+Caff (7/8/17) --- Version [1.0.3] --- Fixed the gap between the username and message in Firefox. 
+Firefox Issue:
+Due to an issue with Firefox, we're only going to restrict this transform for this pseudo-class for the userlist only.
+*/
+.user-list .user-entry .username:first-letter {
+    text-transform: uppercase;
+}
+
+/*
+---------------------------
+Icon classes
+---------------------------
+*/
+.role .icon {
+    vertical-align: middle;
+    background-image: url(/img/chat_spritesheet_128.png);
+    display: inline-block;
+}
+
+/*
+Large Icons
+*/
+
+.large .user-entry .role .icon {
+    width: 32px;
+    height: 32px;
+}
+
+.large .user-entry .role.crew .icon {
+    background-position: 0px 0px;
+}
+
+.large .user-entry .role.mod .icon {
+    background-position: -32px 0px;
+}
+
+.large .user-entry .role.guest .icon {
+    background-position: -64px 0px;
+}
+
+.large .user-entry .role.turbo .icon {
+    background-position: -96px 0px;
+}
+
+.large .user-entry .role.shadow .icon {
+    background-position: -0px -32px;
+}
+
+.large .user-entry .role.banned .icon {
+    background-position: -32px -32px;
+}
+
+/*
+Mid-size Icons
+*/
+
+.mid-size .user-entry .role .icon {
+    width: 24px;
+    height: 24px;
+}
+
+.mid-size .user-entry .role.crew .icon {
+    background-position: 0px -64px;
+}
+
+.mid-size .user-entry .role.mod .icon {
+    background-position: -24px -64px;
+}
+
+.mid-size .user-entry .role.guest .icon {
+    background-position: -48px -64px;
+}
+
+.mid-size .user-entry .role.turbo .icon {
+    background-position: -72px -64px;
+}
+
+.mid-size .user-entry .role.shadow .icon {
+    background-position: -0px -88px;
+}
+
+.mid-size .user-entry .role.banned .icon {
+    background-position: -24px -88px;
+}
+
+/*
+Small Icons
+*/
+
+.small .user-entry .role .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.small .user-entry .role.crew .icon {
+    background-position: -64px -32px;
+}
+
+.small .user-entry .role.mod .icon {
+    background-position: -80px -32px;
+}
+
+.small .user-entry .role.guest .icon {
+    background-position: -96px -32px;
+}
+
+.small .user-entry .role.turbo .icon {
+    background-position: -112px -32px;
+}
+
+.small .user-entry .role.shadow .icon {
+    background-position: -64px -48px;
+}
+
+.small .user-entry .role.banned .icon {
+    background-position: -80px -48px;
+}
+
+
+/*
+---------------------------
+User List classes
+---------------------------
+*/
+
+.user-list-wrapper {
+    z-index: 20;
+}
+
+.user-list .user-entry > .role.crew .icon + .username {
+    color: #8b2222;
+}
+
+.user-list .user-entry > .role.mod .icon + .username {
+    color: #228b22;
+}
+
+.user-list .user-entry > .role.guest .icon + .username {
+    color: #1e90ff;
+}
+
+.user-list .user-entry > .role.turbo .icon + .username {
+    color: #4682D0;
+}
+
+.user-list .user-entry > .role.shadow .icon + .username {
+    color: #B0A065;
+}
+
+.user-list .user-entry > .role.banned .icon + .username {
+    color: #aaa;
+}
+
+.user-list .user-entry {
+    border-bottom: 1px dotted #ccc;
+}
+
+/*
+---------------------------
+Channel classes
+---------------------------
+*/
+
+.channel-container {
+    display: block;
+    width: 100%;
+}
+
+.channel-window {
+    background-color: #e6e6e6;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    height: 34em;
+    border-radius: 3px;
+}
+
+.channel-window .informative {
+    font-style: italic;
+    color: #999;
+    padding: .3em;
+}
+
+.channel-window div.user-entry .modbroadcast {
+    font-weight: bold;
+    background-color: #FF6E00;
+    color: #000000;
+    padding: 0 1em;
+}
+
+.channel-window div.user-entry {
+    line-height: 16px;
+    padding: .2em;
+    overflow-wrap: break-word;
+}
+
+/*
+.channel-window .user-entry .message.action {
+    font-weight: bold;
+}
+*/
+
+/*
+---------------------------
+Username classes
+---------------------------
+*/
+
+/*
+Shadows
+*/
+.channel-window .user-entry.nickColor1 .role.shadow .allowColor {
+    color: #ab6060;
+}
+.channel-window .user-entry.nickColor2 .role.shadow .allowColor {
+    color: #6db05d;
+}
+.channel-window .user-entry.nickColor3 .role.shadow .allowColor {
+    color: #75b3ae;
+}
+.channel-window .user-entry.nickColor4 .role.shadow .allowColor {
+    color: #72a2b8;
+}
+.channel-window .user-entry.nickColor5 .role.shadow .allowColor {
+    color: #8369a0;
+}
+.channel-window .user-entry.nickColor6 .role.shadow .allowColor {
+    color: #a866a0;
+}
+.channel-window .user-entry.nickColor7 .role.shadow .allowColor {
+    color: #bfa05d;
+}
+
+/*
+Turbos
+*/
+.channel-window .user-entry.nickColor1 .role.turbo .allowColor {
+    color: #ac4b4b;
+}
+.channel-window .user-entry.nickColor2 .role.turbo .allowColor {
+    color: #51b03b;
+}
+.channel-window .user-entry.nickColor3 .role.turbo .allowColor {
+    color: #3bb0a8;
+}
+.channel-window .user-entry.nickColor4 .role.turbo .allowColor {
+    color: #3b8db0;
+}
+.channel-window .user-entry.nickColor5 .role.turbo .allowColor {
+    color: #713bb0;
+}
+.channel-window .user-entry.nickColor6 .role.turbo .allowColor {
+    color: #b03ba0;
+}
+.channel-window .user-entry.nickColor7 .role.turbo .allowColor {
+    color: #d1991a;
+}
+
+/*
+Guests, Mods, Crew
+*/
+.channel-window .user-entry.nickColor1 .role.guest .allowColor,
+.channel-window .user-entry.nickColor1 .role.mod .allowColor,
+.channel-window .user-entry.nickColor1 .role.crew .allowColor {
+    color: #b03b3b;
+}
+.channel-window .user-entry.nickColor2 .role.guest .allowColor,
+.channel-window .user-entry.nickColor2 .role.mod .allowColor,
+.channel-window .user-entry.nickColor2 .role.crew .allowColor {
+    color: #51b03b;
+}
+.channel-window .user-entry.nickColor3 .role.guest .allowColor,
+.channel-window .user-entry.nickColor3 .role.mod .allowColor,
+.channel-window .user-entry.nickColor3 .role.crew .allowColor {
+    color: #3bb0a8;
+}
+.channel-window .user-entry.nickColor4 .role.guest .allowColor,
+.channel-window .user-entry.nickColor4 .role.mod .allowColor,
+.channel-window .user-entry.nickColor4 .role.crew .allowColor {
+    color: #3b8db0;
+}
+.channel-window .user-entry.nickColor5 .role.guest .allowColor,
+.channel-window .user-entry.nickColor5 .role.mod .allowColor,
+.channel-window .user-entry.nickColor5 .role.crew .allowColor {
+    color: #713bb0;
+}
+.channel-window .user-entry.nickColor6 .role.guest .allowColor,
+.channel-window .user-entry.nickColor6 .role.mod .allowColor,
+.channel-window .user-entry.nickColor6 .role.crew .allowColor {
+    color: #b03ba0;
+}
+.channel-window .user-entry.nickColor7 .role.guest .allowColor,
+.channel-window .user-entry.nickColor7 .role.mod .allowColor,
+.channel-window .user-entry.nickColor7 .role.crew .allowColor {
+    color: #d1991a;
+}
+
+/*
+---------------------------
+Halloween Theme classes
+---------------------------
+*/
+
+.halloween .role .icon {
+    background-image: url(/img/chat_spritesheet_halloween_128.png);
+}
+
+/*
+Nickname colors
+*/
+.halloween .channel-window .user-entry.nickColor1 .role.shadow .allowColor,
+.halloween .channel-window .user-entry.nickColor1 .role.turbo .allowColor,
+.halloween .channel-window .user-entry.nickColor1 .role.guest .allowColor,
+.halloween .channel-window .user-entry.nickColor1 .role.mod .allowColor,
+.halloween .channel-window .user-entry.nickColor1 .role.crew .allowColor
+{
+    color: rgb(255, 125, 0);
+}
+.halloween .channel-window .user-entry.nickColor2 .role.shadow .allowColor,
+.halloween .channel-window .user-entry.nickColor2 .role.turbo .allowColor,
+.halloween .channel-window .user-entry.nickColor2 .role.guest .allowColor,
+.halloween .channel-window .user-entry.nickColor2 .role.mod .allowColor,
+.halloween .channel-window .user-entry.nickColor2 .role.crew .allowColor
+{
+    color: #000;
+}
+.halloween .channel-window .user-entry.nickColor3 .role.shadow .allowColor,
+.halloween .channel-window .user-entry.nickColor3 .role.turbo .allowColor,
+.halloween .channel-window .user-entry.nickColor3 .role.guest .allowColor,
+.halloween .channel-window .user-entry.nickColor3 .role.mod .allowColor,
+.halloween .channel-window .user-entry.nickColor3 .role.crew .allowColor
+{
+    color: rgb(200, 0, 0);
+}
+.halloween .channel-window .user-entry.nickColor4 .role.shadow .allowColor,
+.halloween .channel-window .user-entry.nickColor4 .role.turbo .allowColor,
+.halloween .channel-window .user-entry.nickColor4 .role.guest .allowColor,
+.halloween .channel-window .user-entry.nickColor4 .role.mod .allowColor,
+.halloween .channel-window .user-entry.nickColor4 .role.crew .allowColor
+{
+    color: #000;
+}
+.halloween .channel-window .user-entry.nickColor5 .role.shadow .allowColor,
+.halloween .channel-window .user-entry.nickColor5 .role.turbo .allowColor,
+.halloween .channel-window .user-entry.nickColor5 .role.guest .allowColor,
+.halloween .channel-window .user-entry.nickColor5 .role.mod .allowColor,
+.halloween .channel-window .user-entry.nickColor5 .role.crew .allowColor
+{
+    color: rgb(255, 125, 0);
+}
+.halloween .channel-window .user-entry.nickColor6 .role.shadow .allowColor,
+.halloween .channel-window .user-entry.nickColor6 .role.turbo .allowColor,
+.halloween .channel-window .user-entry.nickColor6 .role.guest .allowColor,
+.halloween .channel-window .user-entry.nickColor6 .role.mod .allowColor,
+.halloween .channel-window .user-entry.nickColor6 .role.crew .allowColor
+{
+    color: rgb(200, 0, 0);
+}
+.halloween .channel-window .user-entry.nickColor7 .role.shadow .allowColor,
+.halloween .channel-window .user-entry.nickColor7 .role.turbo .allowColor,
+.halloween .channel-window .user-entry.nickColor7 .role.guest .allowColor,
+.halloween .channel-window .user-entry.nickColor7 .role.mod .allowColor,
+.halloween .channel-window .user-entry.nickColor7 .role.crew .allowColor
+{
+    color: rgb(255, 125, 0);
+}
+
+
+/*
+---------------------------
+Xmas Theme classes
+---------------------------
+*/
+
+.xmas .role .icon {
+    background-image: url(/img/chat_spritesheet_xmas_128.png);
+}
+
+/*
+Nickname colors
+*/
+.xmas .channel-window .user-entry.nickColor1 .role.shadow .allowColor,
+.xmas .channel-window .user-entry.nickColor1 .role.turbo .allowColor,
+.xmas .channel-window .user-entry.nickColor1 .role.guest .allowColor,
+.xmas .channel-window .user-entry.nickColor1 .role.mod .allowColor,
+.xmas .channel-window .user-entry.nickColor1 .role.crew .allowColor
+{
+    color: rgb(0, 150, 0);
+}
+.xmas .channel-window .user-entry.nickColor2 .role.shadow .allowColor,
+.xmas .channel-window .user-entry.nickColor2 .role.turbo .allowColor,
+.xmas .channel-window .user-entry.nickColor2 .role.guest .allowColor,
+.xmas .channel-window .user-entry.nickColor2 .role.mod .allowColor,
+.xmas .channel-window .user-entry.nickColor2 .role.crew .allowColor
+{
+    color: rgb(200, 0, 0);
+}
+.xmas .channel-window .user-entry.nickColor3 .role.shadow .allowColor,
+.xmas .channel-window .user-entry.nickColor3 .role.turbo .allowColor,
+.xmas .channel-window .user-entry.nickColor3 .role.guest .allowColor,
+.xmas .channel-window .user-entry.nickColor3 .role.mod .allowColor,
+.xmas .channel-window .user-entry.nickColor3 .role.crew .allowColor
+{
+    color: rgb(255,200,0);
+}
+.xmas .channel-window .user-entry.nickColor4 .role.shadow .allowColor,
+.xmas .channel-window .user-entry.nickColor4 .role.turbo .allowColor,
+.xmas .channel-window .user-entry.nickColor4 .role.guest .allowColor,
+.xmas .channel-window .user-entry.nickColor4 .role.mod .allowColor,
+.xmas .channel-window .user-entry.nickColor4 .role.crew .allowColor
+{
+    color: rgb(0, 150, 0);
+}
+.xmas .channel-window .user-entry.nickColor5 .role.shadow .allowColor,
+.xmas .channel-window .user-entry.nickColor5 .role.turbo .allowColor,
+.xmas .channel-window .user-entry.nickColor5 .role.guest .allowColor,
+.xmas .channel-window .user-entry.nickColor5 .role.mod .allowColor,
+.xmas .channel-window .user-entry.nickColor5 .role.crew .allowColor
+{
+    color: rgb(200, 0, 0);
+}
+.xmas .channel-window .user-entry.nickColor6 .role.shadow .allowColor,
+.xmas .channel-window .user-entry.nickColor6 .role.turbo .allowColor,
+.xmas .channel-window .user-entry.nickColor6 .role.guest .allowColor,
+.xmas .channel-window .user-entry.nickColor6 .role.mod .allowColor,
+.xmas .channel-window .user-entry.nickColor6 .role.crew .allowColor
+{
+    color: rgb(255,200,0);
+}
+.xmas .channel-window .user-entry.nickColor7 .role.shadow .allowColor,
+.xmas .channel-window .user-entry.nickColor7 .role.turbo .allowColor,
+.xmas .channel-window .user-entry.nickColor7 .role.guest .allowColor,
+.xmas .channel-window .user-entry.nickColor7 .role.mod .allowColor,
+.xmas .channel-window .user-entry.nickColor7 .role.crew .allowColor
+{
+    color: rgb(0, 150, 0);
+}
+
+/* 
+Red, Green, Gold
+
+*/

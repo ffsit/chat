@@ -61,3 +61,9 @@ The following fixes have been addressed in this version:
 
 The following features have been implemented in this version:
 * The userlist is now sorted by nickname descending.
+
+#### 1.1.0
+This minor version chnage includes major refactoring of how the entire page and resources are structured and loaded.  All content, css and images are now placed in the content folder.  All un-minifed js files are now under the js/src folder.  Transpiled and minified files are now under the js folder.
+
+The following fixes have been addressed in this version:
+* Users running Safari on iOS devices should now be able to use the chat properly due to the transpiling.
