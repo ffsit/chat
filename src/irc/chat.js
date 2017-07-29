@@ -411,6 +411,7 @@ $(function(){
 
             //Add the new or updated user to the appropriate user list section.
             $userListSection.append(buildUserListEntry(user));
+            sortUserListSection($userListSection);
         }
 
         //Toggle the hidden status of each section depending on whether users have shifted into and out of these sections.
@@ -454,6 +455,7 @@ $(function(){
                 
                 //Add the new user.
                 $userListSection.append(buildUserListEntry(user));
+                sortUserListSection($userListSection);
             });
         }
 
@@ -462,6 +464,27 @@ $(function(){
         $guestSection.parent().toggleClass('hidden', $guestSection.find('div').length === 0);
         $regularSection.parent().toggleClass('hidden', $regularSection.find('div').length === 0);
     };
+
+    /**
+     * Sorts the userlist section.
+     * @method sortUserListSection
+     * @param {object} $userListSection jquery object that contains the userlist section to be sorted.
+     */    
+    function sortUserListSection($userListSection) {
+        $userListSection.html($userListSection.find('div[data-identity]').sort((a, b) => { 
+            let aIdentity = ($(a).data('identity') || '').toLowerCase();
+            let bIdentity = ($(b).data('identity') || '').toLowerCase();
+
+            if (aIdentity < bIdentity) {
+                return -1;
+            }
+            else if (aIdentity > bIdentity) {
+                return 1;
+            }
+
+            return 0;
+        }));
+    }
 
     //-----------------------------------------------------------------
     // Main chat class.
@@ -887,7 +910,7 @@ $(function(){
                 '/help [/h /?] -- Help information, this screen.',
                 '/quit [/q] (message) -- Quits the chat with an optional message.',
                 '/join #channelName -- Joins a specific channel.',
-                '/leave #channelName (message) -- Leaves a specific channel with an optional message.',
+                '/leave (message) -- Leaves the current channel tab with an optional message.',
                 '/emote [/me /e /em] emote -- Performs an emote on the current channel.',
                 '/whisper [/tell /r] nickname message -- Sends a private message to the nickname.'
             ]);
@@ -1234,8 +1257,6 @@ $(function(){
                     isMe: eventData.IsMe
                 })
             });
-
-            this._userChannels = [];
         }
         /**
          * An event that is triggered on a role assignment either with the authenticated user or another user in chat.

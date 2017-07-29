@@ -58,3 +58,6 @@ The following features have been implemented in this version:
 #### 1.0.4
 The following fixes have been addressed in this version:
 * Join & Leave now switch windows properly.
+
+The following features have been implemented in this version:
+* The userlist is now sorted by nickname descending.
