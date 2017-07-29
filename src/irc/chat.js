@@ -103,6 +103,7 @@ $(function(){
     const turboModeId = 'turbo-mode';
     const joinModeId = 'join-mode';
     const smoothScrollModeId = 'smooth-scroll-mode';
+    const defaultQuitMessage = 'Bye VGA Webchat';
 
     //-----------------------------------------------------------------
     // Role helper methods.
@@ -224,13 +225,17 @@ $(function(){
     //-----------------------------------------------------------------
 
     /**
-     * Creates a channel tab and returns a reference to it.
+     * Returns a reference to the jQuery channel tab object and create it if one does not exist.
      * This function is idempotent and will have no side effects if called multiple times.
-     * @method getRoleName
-     * @param {string} channelName the name of the channel tab object to create.
-     * @return {object} a jQuery channel tab object.
+     * @method getChannelTab
+     * @param {string} channelName the name of the channel tab object to return.
+     * @return {object} of a jQuery channel tab object.
      */
-    function createChannelTab(channelName) {
+    function getChannelTab(channelName) {
+        if (!channelName)  {
+            return $('');
+        }
+
         //Create a tab if one does not already exist.
         let $channelTab = $channelContainer.find(`#channel-tab-${channelName.replace('#', '')}`);
         if ($channelTab.length === 0) {
@@ -243,21 +248,26 @@ $(function(){
 
         return $channelTab;
     }
-
     /**
-     * Returns a jQuery channel tab object.
-     * @method getChannelTab
-     * @param {string} channelName the name of the channel tab object to return.
-     * @return {object} a jQuery channel tab object.
+     * Toggles a channel tab based on the channel tab supplied.
+     * This function is idempotent and will have no side effects if called multiple times.
+     * @method toggleChannelTab
+     * @param {object} $channelTab a jQuery object that contains the channel tab to toggle.
      */
-    function getChannelTab(channelName) {
-        return $channelContainer.find(`#channel-tab-${channelName.replace('#', '')}`);
-    }
+    function toggleChannelTab($channelTab){
+        $.each($channelContainer.find('.channel-tab').not($channelTab), (index, value) => {
+            let $channelTabToDisable = $(value)
+            $channelTabToDisable.addClass('hidden');
+            enableLowerUI($channelTabToDisable, false);
+        });
 
+        $channelTab.removeClass('hidden');
+        enableLowerUI($channelTab, true);
+    }
     /**
      * Returns a jQuery channel tab, window object.
      * @method getChannelWindow
-     * @param {string} channelName the name of the channel tab, window object to return.
+     * @param {string} channelName the name of the channel window object to return.
      * @return {object} a jQuery channel tab object.
      */
     function getChannelWindow(channelName) {
@@ -267,23 +277,20 @@ $(function(){
     /**
      * Pulses a channel window.
      * @method pulseChannelWindow
-     * @param {string} channelName the name of the channel tab to pulsate.
+     * @param {string} channelName the name of the channel window to pulsate.
      * @param {bool} activate to pulsate channel tab.
      */
     function pulseChannelWindow(channelName, activate) {
-        let $channelWindow = getChannelWindow(channelName);
-        $channelWindow.toggleClass('pulse', activate);
+        getChannelWindow(channelName).toggleClass('pulse', activate);
     };
 
     /**
      * Enables or disables the lower ui for the specific channel.
-     * @method toggleLowerUI
-     * @param {string} channelName the name of the channel tab to pulsate.
+     * @method enableLowerUI
+     * @param {object} $channelTab to enable the lower ui for.
      * @param {bool} enable or disable the lower ui for this specific channel.
      */
-    function enableLowerUI(channelName, enable) {
-        let $channelTab = getChannelTab(channelName);
-        
+    function enableLowerUI($channelTab, enable) {
         //Enable the user list & support buttons.
         //$channelTab.find('.user-list-button,.user-support-button').toggleClass('disabled', !enable);
         // --- Caff (7/1/17) --- Leave the support button disabled for now.
@@ -326,8 +333,7 @@ $(function(){
      * @param {object} user to update.
      */
     function updateDisplay(channelName, user) {
-        let $channelWindow = getChannelWindow(channelName);
-        let $userEntry = $channelWindow.find(`.user-entry[data-identity=${user.identity}]`);
+        let $userEntry = getChannelWindow(channelName).find(`.user-entry[data-identity=${user.identity}]`);
 
         //If the user has a banned status then remove all of his or her messages.
         if (vga.irc.getMostSignificantStatus(user.status) === vga.irc.status.banned) {
@@ -485,7 +491,7 @@ $(function(){
             //-----------------------------------------------------------------
             // Versioning
             //-----------------------------------------------------------------
-            vga.irc.chat.CLIENT_VERSION = new vga.util.version(1, 0, 3);
+            vga.irc.chat.CLIENT_VERSION = new vga.util.version(1, 0, 4);
 
             //Internal variables.
             this._userChannels = {};
@@ -541,7 +547,16 @@ $(function(){
         // These are presentation methods.
         //-----------------------------------------------------------------
 
-        writeToChannelWindow(channelName, effectedUser, message, type) {
+        /**
+         * Performs the bulk of the logic when writing a message to the channel window.
+         * The logic within this method also handles various actions based on user privilege.
+         * @method vga.irc.chat.writeMessage
+         * @param {string} channelName to write the message.
+         * @param {object} effectedUser being effected by the message.
+         * @param {string} message to write to the channel window.
+         * @param {string} type of message.
+         */
+        writeMessage(channelName, effectedUser, message, type) {
             
             //Normalize.
             type = type || 'message';
@@ -565,7 +580,7 @@ $(function(){
                 let messages = this._wallRegEx.exec(message);
                 if (messages.length > 1) {
                     message = messages[1];
-                    //Allow the mod broadcast to override all other additional message classes.
+                    //Allow the wall (mod broadcast) to override all other additional message classes.
                     additionalMessageClasses = 'modbroadcast';
                 }
             }
@@ -661,7 +676,7 @@ $(function(){
 
                     //Recursively invoke the smooth scroll logic until it is terminated.
                     themesWatcher();
-                }, 33);
+                }, 1000);
             }
             themesWatcher();
         }
@@ -767,25 +782,6 @@ $(function(){
             return this;
         }
         /**
-         * Attempts to join a channel.
-         * @method vga.irc.chat.join
-         * @param {string} channelName to join after connecting.
-         */
-        join(channelName) {
-            this.connector && this.connector.join(channelName);
-            return this;
-        }
-        /**
-         * Attempts to leave a channel.
-         * @method vga.irc.chat.leave
-         * @param {string} channelName to leave.
-         * @param {string} message the message to send to the server when leaving a channel.
-         */   
-        leave(channelName, message) {
-            this.connector && this.connector.leave(channelName, message);
-            return this;
-        }
-        /**
          * Attempts to send a command or message.
          * @method vga.irc.chat.send
          * @param {string} channelName to send the command or message.
@@ -806,6 +802,44 @@ $(function(){
             return this;
         }
         /**
+         * Attempts to join a channel or will switch to it if the user has already joined the channel.
+         * @method vga.irc.chat.join
+         * @param {string} channelName to join after connecting.
+         */
+        join(channelName) {
+            //Switch to the channel tab if we have already joined a channel.
+            if (this._userChannels[channelName]) {
+                toggleChannelTab(getChannelTab(channelName));
+            }
+            else {
+                this.connector && this.connector.join(channelName);
+            }
+
+            return this;
+        }
+        /**
+         * Attempts to leave a channel.
+         * @method vga.irc.chat.leave
+         * @param {string} channelName to leave.
+         * @param {string} message the message to send to the server when leaving a channel.
+         */   
+        leave(channelName, message) {
+
+            //The channel has to exist before we can leave it.
+            if (this._userChannels[channelName]) {
+                this.connector && this.connector.leave(channelName, message);
+                
+                //Find another channel to toggle.
+                vga.util.forEach(this._userChannels, (channelName, value) => {
+
+                })
+
+                toggleChannelTab(getChannelTab(channelName));
+            }
+
+            return this;
+        }
+        /**
          * Performs an emote on a emote channelname.
          * @method vga.irc.chat.emote
          * @param {string} channelName to send the command or message.
@@ -816,7 +850,7 @@ $(function(){
             let channel = this._userChannels[channelName];
             if (channel) {
                 let user = channel[this.connector.getMyUserKey()];
-                this.writeToChannelWindow(channelName, user, emote, 'action');
+                this.writeMessage(channelName, user, emote, 'action');
             }
         }
         /**
@@ -832,7 +866,7 @@ $(function(){
             if (channel) {
                 let user = channel[userNickname.toLowerCase()];
                 if (user) {
-                    this.writeToChannelWindow(channelName, user, `${message}`, 'privateTO');
+                    this.writeMessage(channelName, user, `${message}`, 'privateTO');
                 }
                 else {
                     writeInformationalMessage(channelName, `The user '${userNickname}' was not found.`);
@@ -869,7 +903,7 @@ $(function(){
             let channel = this._userChannels[channelName];
             if (channel) {
                 let user = channel[this.connector.getMyUserKey()];
-                this.writeToChannelWindow(channelName, user, message);
+                this.writeMessage(channelName, user, message);
             }
             return this;
         }
@@ -885,7 +919,7 @@ $(function(){
                 case '/quit':
                 case '/q':
                     //Args(Quitting): 'is quitting. Goodbye.'
-                    this.close(args || 'VGA Webchat');
+                    this.close(args || defaultQuitMessage);
                     break;
 
                 case '/join':
@@ -897,8 +931,7 @@ $(function(){
                     //Args(Leaving): '#channel is leaving'
                     //parts.first = '#channel'
                     //parts.second = 'is leaving'
-                    let parts = args.splitFirstOccurrence(' ');
-                    this.leave(parts.first, parts.second);
+                    this.leave(channelName, args);
                     break;
 
                 case '/me':
@@ -972,9 +1005,6 @@ $(function(){
          */
         onConnect(eventData) {
             setStatus();
-            createChannelTab(eventData.channelKey);
-            pulseChannelWindow(eventData.channelKey, false);
-            enableLowerUI(eventData.channelKey, true);
             toggleLoginWindow(false);
             this.startSmoothScrolling();
             this.startThemes();
@@ -997,7 +1027,8 @@ $(function(){
             }
 
             vga.util.forEach(this._userChannels, (channelName, channelData)=>{
-                enableLowerUI(channelName, false);
+                let $channelTab = getChannelTab(channelName);
+                enableLowerUI($channelTab, false);
                 pulseChannelWindow(channelName, false);
                 writeInformationalMessage(channelName, eventData.closedByServer ? 'Disconnected by the server.' : 'You have quit.');
             });
@@ -1091,7 +1122,7 @@ $(function(){
                 let writeMethod = (channelKey, channel, type) => {
                     if (channel) {
                         let user = channel[eventData.userKey];
-                        this.writeToChannelWindow(channelKey, user, eventData.message, type);
+                        this.writeMessage(channelKey, user, eventData.message, type);
                     }
                 };
                 
@@ -1120,25 +1151,31 @@ $(function(){
          * @param {object} eventData
          */
         onJoin(eventData) {
-            let channel = this._userChannels[eventData.channelKey];
-            if (channel) {
-                //Retrieve the user entity if he or she already exists in the userlist.
-                let user = channel[eventData.userKey];
-                //If the user is new then add him or her to the userlist and channel information block.
-                if (!user) {
-                    user = new vga.irc.userEntity(eventData.identity, eventData.nickname);
-                    channel[eventData.userKey] = user;
-                    if (!this._frashShowMode && this._showUserJoinLeaveMessage && !eventData.isMe) {
-                        this.writeToChannelWindow(eventData.channelKey, user, `has joined.`, 'action');
-                    }
-                }
-
-                //Add any new nicknames to the user entity and update the userlist.
-                user.addNickname(eventData.nickname);
-                updateUserEntityInList(eventData.channelKey, user);
+            //Determine if this join event is mine or someone elses.
+            if (eventData.isMe) {
+                let $channelTab = getChannelTab(eventData.channelKey);
+                toggleChannelTab($channelTab);
+                pulseChannelWindow(eventData.channelKey, false);
+                writeInformationalMessage($channelTab, `Joined ${eventData.channelKey} channel.`);
             }
-            else if (eventData.isMe) {
-                writeInformationalMessage(eventData.channelKey, `Joined ${eventData.channelKey} channel.`);
+            else {
+                let channel = this._userChannels[eventData.channelKey];
+                if (channel) {
+                    //Retrieve the user entity if he or she already exists in the userlist.
+                    let user = channel[eventData.userKey];
+                    //If the user is new then add him or her to the userlist and channel information block.
+                    if (!user) {
+                        user = new vga.irc.userEntity(eventData.identity, eventData.nickname);
+                        channel[eventData.userKey] = user;
+                        if (!this._frashShowMode && this._showUserJoinLeaveMessage && !eventData.isMe) {
+                            this.writeMessage(eventData.channelKey, user, `has joined.`, 'action');
+                        }
+                    }
+
+                    //Add any new nicknames to the user entity and update the userlist.
+                    user.addNickname(eventData.nickname);
+                    updateUserEntityInList(eventData.channelKey, user);
+                }
             }
         }
         /**
@@ -1147,30 +1184,44 @@ $(function(){
          * @param {object} eventData
          */
         onLeave(eventData){
-            let channel = this._userChannels[eventData.channelKey];
-            if (channel) {
-                //If the user exists then remove this nickname from the user entity, otherwise ignore the event.
-                let user = channel[eventData.userKey];
-                if (user) {
-                    user.removeNickname(eventData.nickname);
-                    //If we have exhasted the number of nicknames then we need to remove the user entity from the channel information block.
-                    if (user.nicknames.length === 0) {
-                        channel[eventData.userKey] = undefined;
-                        if (!this._frashShowMode && this._showUserJoinLeaveMessage && !eventData.isMe) {
-                            this.writeToChannelWindow(eventData.channelKey, user, `has left.`, 'action');
-                        }
-                    }
-
-                    updateUserEntityInList(eventData.channelKey, user);
+            //Determine if this leave event is mine or someone elses.
+            if (eventData.isMe) {
+                writeInformationalMessage(eventData.channelKey, `Left ${eventData.channelKey} channel.`);
+                //Remove this channel's information.
+                delete this._userChannels[eventData.channelKey];
+                //Find the last valid channel to switch to.
+                let lastKnownValidChannelKey = Object.getOwnPropertyNames(this._userChannels).pop();
+                if (!lastKnownValidChannelKey) {
+                    this.close(defaultQuitMessage);
+                }
+                else {
+                    let $channelTab = getChannelTab(lastKnownValidChannelKey);
+                    toggleChannelTab($channelTab);
                 }
             }
-            else if (eventData.isMe) {
-                writeInformationalMessage(eventData.channelKey, `Left ${eventData.channelKey} channel.`);
+            else {
+                let channel = this._userChannels[eventData.channelKey];
+                if (channel) {
+                    //If the user exists then remove this nickname from the user entity, otherwise ignore the event.
+                    let user = channel[eventData.userKey];
+                    if (user) {
+                        user.removeNickname(eventData.nickname);
+                        //If we have exhasted the number of nicknames then we need to remove the user entity from the channel information block.
+                        if (user.nicknames.length === 0) {
+                            channel[eventData.userKey] = undefined;
+                            if (!this._frashShowMode && this._showUserJoinLeaveMessage && !eventData.isMe) {
+                                this.writeMessage(eventData.channelKey, user, `has left.`, 'action');
+                            }
+                        }
+
+                        updateUserEntityInList(eventData.channelKey, user);
+                    }
+                }
             }
         }
         /**
          * An event that is triggered when the authenticated user has joined a channel.
-         * @method vga.irc.chat.onJoin
+         * @method vga.irc.chat.onQuit
          * @param {object} eventData
          */
         onQuit(eventData) {
@@ -1183,6 +1234,8 @@ $(function(){
                     isMe: eventData.IsMe
                 })
             });
+
+            this._userChannels = [];
         }
         /**
          * An event that is triggered on a role assignment either with the authenticated user or another user in chat.
@@ -1328,7 +1381,7 @@ $(function(){
          * @method vga.irc.chat.onLogin
          */
         onLogin() {
-            let channelName = $channel.val();
+            let channelName = (($channel.val() || this._defaultChannel) || '').trim()
             toggleSpinner(true);
             pulseChannelWindow(channelName, true);
             this.connect($nickname.val(), $password.val(), channelName);

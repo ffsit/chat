@@ -54,3 +54,7 @@ The following fixes (refactoring) have been implemented in this version:
 The following features have been implemented in this version:
 * Added additional help information.
 * Added an option to enable debugging via the URL, more user friendly.
+
+#### 1.0.4
+The following fixes have been addressed in this version:
+* Join & Leave now switch windows properly.
