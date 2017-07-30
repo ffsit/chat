@@ -60,7 +60,7 @@ The following fixes have been addressed in this version:
 * Join & Leave now switch windows properly.
 
 The following features have been implemented in this version:
-* The userlist is now sorted by nickname descending.
+* The userlist is now sorted by nickname ascending.
 
 #### 1.1.0
 This minor version change includes major refactoring of how the entire page and resources are structured and loaded.  All content, css and images, are now placed in the content folder.  All un-minifed js files are now under the js/src folder.  Transpiled and minified files are now under the js folder.
