@@ -372,6 +372,27 @@ $(function(){
     }
 
     /**
+     * Sorts the userlist section.
+     * @method sortUserListSection
+     * @param {object} $userListSection jquery object that contains the userlist section to be sorted.
+     */    
+    function sortUserListSection($userListSection) {
+        $userListSection.html($userListSection.find('div[data-identity]').sort((a, b) => { 
+            let aIdentity = ($(a).data('identity') || '').toLowerCase();
+            let bIdentity = ($(b).data('identity') || '').toLowerCase();
+
+            if (aIdentity < bIdentity) {
+                return -1;
+            }
+            else if (aIdentity > bIdentity) {
+                return 1;
+            }
+
+            return 0;
+        }));
+    }
+
+    /**
      * Updates the user entity in the user list.
      * @method updateUserEntityInList
      * @param {string} channelName of the channel's user list to update.
@@ -465,27 +486,6 @@ $(function(){
         $regularSection.parent().toggleClass('hidden', $regularSection.find('div').length === 0);
     };
 
-    /**
-     * Sorts the userlist section.
-     * @method sortUserListSection
-     * @param {object} $userListSection jquery object that contains the userlist section to be sorted.
-     */    
-    function sortUserListSection($userListSection) {
-        $userListSection.html($userListSection.find('div[data-identity]').sort((a, b) => { 
-            let aIdentity = ($(a).data('identity') || '').toLowerCase();
-            let bIdentity = ($(b).data('identity') || '').toLowerCase();
-
-            if (aIdentity < bIdentity) {
-                return -1;
-            }
-            else if (aIdentity > bIdentity) {
-                return 1;
-            }
-
-            return 0;
-        }));
-    }
-
     //-----------------------------------------------------------------
     // Main chat class.
     //-----------------------------------------------------------------
@@ -536,6 +536,7 @@ $(function(){
             this._smoothScroll = (options.smoothScroll !== undefined) ? options.smoothScroll : true;
             this._timedBanDurationInSeconds = (options.timedBanDurationInSeconds !== undefined) ? options.timedBanDurationInSeconds : 300;
             this._nicknameColorSeedFunction = options.nicknameColorSeedFunction;
+            this._hyperlinkRegEx = options.hyperlinkRegEx || /https?:\/\/[\w.\/?&#%=\-,+@!:\[\]\(\)\$';]+/ig;
 
             let consolidateNicknames = (options.consolidateNicknames !== undefined) ? options.consolidateNicknames : false;
             let enableFrashShowMode = (options.enableFrashShowMode !== undefined ? options.enableFrashShowMode : false);
@@ -612,8 +613,35 @@ $(function(){
                 }
             }
 
-            //Encode all HTML characters.
-            message = vga.util.encodeHTML(message).trim();
+            // --- Caff (7/8/17) --- Version [1.1.1] --- Adding support for hyperlinks.
+            //Only process hyperlinks if not in show mode and one has been detected.
+            if (!this._frashShowMode && this._hyperlinkRegEx && this._hyperlinkRegEx.test(message)) {
+                let newMessage = '', lastIndex = 0, matchingTokens;
+                
+                //Reset the last index or the exec method will fail.
+                this._hyperlinkRegEx.lastIndex = 0;
+                while(matchingTokens = this._hyperlinkRegEx.exec(message)) {
+                    //Encode the token (message part) that does not contain the link information.
+                    newMessage += vga.util.encodeHTML(message.substring(lastIndex, matchingTokens.index));
+                    
+                    //Obtain the link and encode the textual part of it.
+                    let link = message.substr(matchingTokens.index, matchingTokens[0].length);
+                    newMessage += `<a href='${link}' target='_blank'>${vga.util.encodeHTML(link)}</a>`;
+                    lastIndex = this._hyperlinkRegEx.lastIndex || 0;
+
+                    //Break if the regEx is missing the global flag or an infinite loop will occur.
+                    if (this._hyperlinkRegEx.flags.indexOf('g') < 0) {
+                        break;
+                    }
+                }
+
+                //Return the reconstructed message.
+                message = newMessage.trim();
+            }
+            else {
+                //Encode all HTML characters.
+                message = vga.util.encodeHTML(message).trim();
+            }
 
             let identity = (effectedUser !== undefined) ? effectedUser.identity.trim() : 'undefined';
             let roleName = getRoleName((effectedUser !== undefined) ? effectedUser.roles : vga.irc.roles.shadow);
@@ -1183,7 +1211,7 @@ $(function(){
                 let $channelTab = getChannelTab(eventData.channelKey);
                 toggleChannelTab($channelTab);
                 pulseChannelWindow(eventData.channelKey, false);
-                writeInformationalMessage($channelTab, `Joined ${eventData.channelKey} channel.`);
+                writeInformationalMessage(eventData.channelKey, `Joined ${eventData.channelKey} channel.`);
             }
             else {
                 let channel = this._userChannels[eventData.channelKey];
@@ -1374,9 +1402,12 @@ $(function(){
          * @method vga.irc.chat.bindEvents
          */
         bindEvents() {
-            $('#vgairc_loginform').off().on('click', 'input[type=submit]', (e) => {
+            $('#vgairc_loginform').off().on('submit', (e) => {
                 this.onLogin();
                 e.preventDefault();
+                setTimeout(() => {
+                    history.replaceState({success:true}, 'title');
+                },100);
             }).on('keyup', 'input', (e) => {
                 if (e.which === 13) {
                     this.onLogin();

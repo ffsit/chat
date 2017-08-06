@@ -84,6 +84,7 @@ $(function(){
         nicknameColorSeedFunction: function() { return new Date().getUTCMonth() },
         //Set this value to change the tban time in seconds.
         timedBanDurationInSeconds: 900,
-        debug: debug
+        debug: debug,
+        hyperlinkRegEx: /https?:\/\/[\w.\/?&#%=\-,+@!:\[\]\(\)\$';]+/ig
     });
 });

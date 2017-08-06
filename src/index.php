@@ -32,7 +32,7 @@
 					<h1>Login</h1>
 					<div>Please read &amp; follow the <a href="http://videogamesawesome.com/the-rule-compendium/" target="_blank">chat rules</a>.</div>
 					<img class="spinner hidden" src="content/img/spinner<?php print(strval(rand(1,5))); ?>.gif" alt="One moment">
-					<form id="vgairc_loginform" method="post" action="#">
+					<form id="vgairc_loginform" method="post" action="index.php">
 						<label for="nickname">Name:</label>
 						<input type="text" id="nickname" maxlength="32" value="<?php if(isset($_GET['nick'])) { print(htmlspecialchars($_GET['nick'])); } ?>" placeholder="Nickname"/>
 						<label for="password">Password:</label>
@@ -124,6 +124,7 @@
 		<script src="js/src/irc/util/listener.js"></script>
 		<script src="js/src/irc/util/websocket.js"></script>	
 		<script src="js/src/irc/chat-defs.js"></script>
+		<script src="js/src/irc/user-entity.js"></script>
 		<script src="js/src/irc/chat.js"></script>
 		<script src="js/src/irc/connectors/kiwi/kiwi-protocol.js"></script>
 		<script src="js/src/irc/connectors/kiwi/kiwi-connector.js"></script>

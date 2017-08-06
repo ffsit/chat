@@ -28,22 +28,25 @@ Coding and Pull Request Conventions
 Change Log
 -----------
 
-#### 0.1.0
-Pre-initial release.
+#### 1.1.1
+The following fixes have been addressed in this version:
+* Fixed a logic issue during the onJoin event that would cause a JS error.
 
-#### 1.0.0
-Official release.
+The following features have been implemented in this version:
+* Adding support for hyperlinks.
 
-#### 1.0.1
-Fixed the following issues:
-* The message 'The room is now in TURBO only mode.' spammed the chat whenever a user logged in.
-* The userlist became corrupted and user messages were lost when the user count was greater than 20.
-* Messages were being repeated due to the above condition and the chatbox not being cleared due to a latency issue.
+#### 1.1.0
+This minor version change includes major refactoring of how the entire page and resources are structured and loaded.  All content, css and images, are now placed in the content folder.  All un-minifed js files are now under the js/src folder.  Transpiled and minified files are now under the js folder.
 
-#### 1.0.2
-The following fixes and new features have been implemented in this version:
-* Fixed the broken emote command and some minor refactoring.
-* Completed the incomplete logic for private message handling.
+The following fixes have been addressed in this version:
+* Users running Safari on iOS devices should now be able to use the chat properly due to the transpiling.
+
+#### 1.0.4
+The following fixes have been addressed in this version:
+* Join & Leave now switch windows properly.
+
+The following features have been implemented in this version:
+* The userlist is now sorted by nickname ascending.
 
 #### 1.0.3
 The following fixes (refactoring) have been implemented in this version:
@@ -55,15 +58,19 @@ The following features have been implemented in this version:
 * Added additional help information.
 * Added an option to enable debugging via the URL, more user friendly.
 
-#### 1.0.4
-The following fixes have been addressed in this version:
-* Join & Leave now switch windows properly.
+#### 1.0.2
+The following fixes and new features have been implemented in this version:
+* Fixed the broken emote command and some minor refactoring.
+* Completed the incomplete logic for private message handling.
 
-The following features have been implemented in this version:
-* The userlist is now sorted by nickname ascending.
+#### 1.0.1
+Fixed the following issues:
+* The message 'The room is now in TURBO only mode.' spammed the chat whenever a user logged in.
+* The userlist became corrupted and user messages were lost when the user count was greater than 20.
+* Messages were being repeated due to the above condition and the chatbox not being cleared due to a latency issue.
 
-#### 1.1.0
-This minor version change includes major refactoring of how the entire page and resources are structured and loaded.  All content, css and images, are now placed in the content folder.  All un-minifed js files are now under the js/src folder.  Transpiled and minified files are now under the js folder.
+#### 1.0.0
+Official release.
 
-The following fixes have been addressed in this version:
-* Users running Safari on iOS devices should now be able to use the chat properly due to the transpiling.
+#### 0.1.0
+Pre-initial release.
