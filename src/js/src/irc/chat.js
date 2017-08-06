@@ -327,6 +327,43 @@ $(function(){
     };
 
     /**
+     * A helper method to parse hyperlinks in chat messags.
+     * NOTE: The message is still sanitized to prevent injectable HTML characters.
+     * @method parseLinksInMessage
+     * @param {string} regEx used to determine what constitutes a valid link and aides in the parsing of the message.
+     * @param {string} message to prase.
+     * @return {string} a parsed message.
+     */    
+    function parseLinksInMessage(regEx, message) {
+        let newMessage = '', lastIndex = 0, matchingTokens;
+                
+        //Reset the last index or the exec method will fail.
+        regEx.lastIndex = 0;
+        while(matchingTokens = regEx.exec(message)) {
+            //Encode the token (message part) that does not contain the link information.
+            newMessage += vga.util.encodeHTML(message.substring(lastIndex, matchingTokens.index));
+            
+            //Obtain the link and encode the textual part of it.
+            let link = message.substr(matchingTokens.index, matchingTokens[0].length);
+            newMessage += `<a href='${link}' target='_blank'>${vga.util.encodeHTML(link)}</a>`;
+            lastIndex = regEx.lastIndex || 0;
+
+            //Break if the regEx is missing the global flag or an infinite loop will occur.
+            if (regEx.flags.indexOf('g') < 0) {
+                break;
+            }
+        }
+
+        //Check if we have anything extra left over, such as a message part after a link.
+        if (lastIndex > 0) {
+            newMessage += vga.util.encodeHTML(message.substring(lastIndex));
+        }
+
+        //Return the reconstructed message.
+        return newMessage.trim();
+    }
+    
+    /**
      * Updates the channel window with the proper user information.
      * @method updateDisplay
      * @param {string} channelName of the channel to update the user in.
@@ -616,27 +653,10 @@ $(function(){
             // --- Caff (7/8/17) --- Version [1.1.1] --- Adding support for hyperlinks.
             //Only process hyperlinks if not in show mode and one has been detected.
             if (!this._frashShowMode && this._hyperlinkRegEx && this._hyperlinkRegEx.test(message)) {
-                let newMessage = '', lastIndex = 0, matchingTokens;
-                
                 //Reset the last index or the exec method will fail.
                 this._hyperlinkRegEx.lastIndex = 0;
-                while(matchingTokens = this._hyperlinkRegEx.exec(message)) {
-                    //Encode the token (message part) that does not contain the link information.
-                    newMessage += vga.util.encodeHTML(message.substring(lastIndex, matchingTokens.index));
-                    
-                    //Obtain the link and encode the textual part of it.
-                    let link = message.substr(matchingTokens.index, matchingTokens[0].length);
-                    newMessage += `<a href='${link}' target='_blank'>${vga.util.encodeHTML(link)}</a>`;
-                    lastIndex = this._hyperlinkRegEx.lastIndex || 0;
-
-                    //Break if the regEx is missing the global flag or an infinite loop will occur.
-                    if (this._hyperlinkRegEx.flags.indexOf('g') < 0) {
-                        break;
-                    }
-                }
-
                 //Return the reconstructed message.
-                message = newMessage.trim();
+                message = parseLinksInMessage(this._hyperlinkRegEx,  message);
             }
             else {
                 //Encode all HTML characters.
