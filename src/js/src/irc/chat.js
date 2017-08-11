@@ -555,7 +555,7 @@ $(function(){
             //-----------------------------------------------------------------
             // Versioning
             //-----------------------------------------------------------------
-            vga.irc.chat.CLIENT_VERSION = new vga.util.version(1, 1, 0);
+            vga.irc.chat.CLIENT_VERSION = new vga.util.version(1, 1, 1);
 
             //Internal variables.
             this._userChannels = {};

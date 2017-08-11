@@ -1,11 +1,11 @@
 Change Log
 -----------
 
-#### 0.1.0
-Pre-initial release.
+#### 1.0.2
+Issues addressed in this version.
 
-#### 1.0.0
-Official release.
+##### Support for users with a digit as the first character in their nick.
+Addressed an issue where users with a digit as the first character in their nicknames were being rejected by the irc server.  Kiwi binds the identity & nickname together on log on so if the user has a digit as the first character in their identity they are rejected as it is not suppored in the nickname via the IRC RFC.  Additional logic was to prepend a underscore to these users if this specific nickname error was triggered.  Sanitization nickname & normalization methods were modified to support this as well.
 
 #### 1.0.1
 Issues addressed in this version.
@@ -15,3 +15,9 @@ This was caused by a missing check during the onChannel event. When we join the 
 
 ##### Missing users from the userlist and messages from users.
 This issue was caused by the connector not handling multiple userlist events from IRC.  Each event would overwrite the current userlist.  This was fixed by simply appending to this list.
+
+#### 1.0.0
+Official release.
+
+#### 0.1.0
+Pre-initial release.

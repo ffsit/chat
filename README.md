@@ -31,6 +31,7 @@ Change Log
 #### 1.1.1
 The following fixes have been addressed in this version:
 * Fixed a logic issue during the onJoin event that would cause a JS error.
+* Chrome's password manager should now be triggering, allowing users to save their password.
 
 The following features have been implemented in this version:
 * Adding support for hyperlinks.
