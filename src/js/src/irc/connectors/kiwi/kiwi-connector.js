@@ -44,9 +44,9 @@
 
 //Namespace declaration.
 var vga = vga || {};
-vga.irc = vga.irc || {};
-vga.irc.connector = vga.irc.connector || {};
-vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
+vga.webchat = vga.webchat || {};
+vga.webchat.connector = vga.webchat.connector || {};
+vga.webchat.connector.kiwi = vga.webchat.connector.kiwi || {};
 
 ///////////////////////////////////////////////////////////
 // Our Kiwi IRC Connector.
@@ -95,20 +95,20 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     //-----------------------------------------------------------------
     //RegExs for the various IRC masks & errors.
     //-----------------------------------------------------------------
-    vga.irc.connector.kiwi.accessDeniedRegEx = /^Closing link: [^\r\n]*\[Access denied\]$/;
-    vga.irc.connector.kiwi.pingTimeoutRegEx = /^Closing link: [^\r\n]*\[Ping timeout: \d+ seconds\]$/;
-    vga.irc.connector.kiwi.registrationTimeOutRegEx = /^Closing link: [^\r\n]*\[Registration timeout\]$/
-    vga.irc.connector.kiwi.serverShutDownRegEx = /^Closing link: [^\r\n]*\[Server shutdown\]$/;
-    vga.irc.connector.kiwi.banMaskToApply =  '*!{identity}@*';
-    vga.irc.connector.kiwi.banMaskRegEx =  /(\w:)?([\w\-\[\]\\\`\^\{\|\}\*]+)!([\w\-\[\]\\\`\^\{\|\}\*]+)@.+/;
+    vga.webchat.connector.kiwi.accessDeniedRegEx = /^Closing link: [^\r\n]*\[Access denied\]$/;
+    vga.webchat.connector.kiwi.pingTimeoutRegEx = /^Closing link: [^\r\n]*\[Ping timeout: \d+ seconds\]$/;
+    vga.webchat.connector.kiwi.registrationTimeOutRegEx = /^Closing link: [^\r\n]*\[Registration timeout\]$/
+    vga.webchat.connector.kiwi.serverShutDownRegEx = /^Closing link: [^\r\n]*\[Server shutdown\]$/;
+    vga.webchat.connector.kiwi.banMaskToApply =  '*!{identity}@*';
+    vga.webchat.connector.kiwi.banMaskRegEx =  /(\w:)?([\w\-\[\]\\\`\^\{\|\}\*]+)!([\w\-\[\]\\\`\^\{\|\}\*]+)@.+/;
 
     //Check for unsupported nicknames.
     //Per RFC https://tools.ietf.org/html/rfc2812#section-2.3.1
-    vga.irc.connector.kiwi.supportedNicknameRegEx = /[a-zA-Z_]?[a-zA-Z0-9\-\[\]{}`\^\\_]+/;
-    vga.irc.connector.kiwi.supportedNicknameFirstCharEx = /[a-zA-Z]/;
+    vga.webchat.connector.kiwi.supportedNicknameRegEx = /[a-zA-Z_]?[a-zA-Z0-9\-\[\]{}`\^\\_]+/;
+    vga.webchat.connector.kiwi.supportedNicknameFirstCharEx = /[a-zA-Z]/;
 
     //This expression is used to replace the * wildcards so that partial name matches can be performed, and is a direct reflection of the banMaskRegEx.
-    vga.irc.connector.kiwi.wildCardMaskRegString ='[\\w\\-\\[\\]\\`\\^\\{\\|\\}\\*]*';
+    vga.webchat.connector.kiwi.wildCardMaskRegString ='[\\w\\-\\[\\]\\`\\^\\{\\|\\}\\*]*';
 
     //-----------------------------------------------------------------
     // Default prefix map to mode.
@@ -121,24 +121,24 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     // This abstracts the IRC modes from the chat in the event chat no longer uses IRC.
     //-----------------------------------------------------------------    
     const modeToRolesMap =  {
-        'q': vga.irc.roles.owner,
-        'a': vga.irc.roles.admin,
-        'o': vga.irc.roles.mod,
-        'h': vga.irc.roles.guest,
-        'v': vga.irc.roles.turbo
+        'q': vga.webchat.roles.owner,
+        'a': vga.webchat.roles.admin,
+        'o': vga.webchat.roles.mod,
+        'h': vga.webchat.roles.guest,
+        'v': vga.webchat.roles.turbo
     };
 
     const modeToStatusMap =  {
-        'b': vga.irc.status.banned
+        'b': vga.webchat.status.banned
     };
 
     const channelModeMap =  {
-        'm': vga.irc.channelmodes.turbo
+        'm': vga.webchat.channelmodes.turbo
     };
 
     // This seems kind of pointless for one entry, oh well. :D
     var reverseChannelModeMap =  {};
-    reverseChannelModeMap[vga.irc.channelmodes.turbo] = 'm';
+    reverseChannelModeMap[vga.webchat.channelmodes.turbo] = 'm';
 
     //-----------------------------------------------------------------
     // IRC Method Map
@@ -248,12 +248,12 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
     /**
      * Class for the kiwi connector.
-     * @class vga.irc.connector.kiwi.connector
+     * @class vga.webchat.connector.kiwi.connector
      */
-    vga.irc.connector.kiwi.connector = class {
+    vga.webchat.connector.kiwi.connector = class {
         /**
          * Main constructor for the kiwi connector.
-         * @method vga.irc.connector.kiwi.connector.constructor
+         * @method vga.webchat.connector.kiwi.connector.constructor
          * @param {string} url the connector is opening.
          * @param {object} options Additional options for the connector.
          */
@@ -262,7 +262,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //-----------------------------------------------------------------
             // Versioning
             //-----------------------------------------------------------------
-            vga.irc.connector.kiwi.CLIENT_VERSION = new vga.util.version(1, 0, 2);
+            vga.webchat.connector.kiwi.CLIENT_VERSION = new vga.util.version(1, 0, 2);
 
             //Normalize.
             options = options || {};
@@ -304,13 +304,13 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
             //Protocol information.
             this._listener = new vga.util.listener(methodMap, options.listeners);
-            this._protocol = new vga.irc.connector.kiwi.protocolwrapper(url, {listeners: [this]});
+            this._protocol = new vga.webchat.connector.kiwi.protocolwrapper(url, {listeners: [this]});
 
-            console.log(`[vga.irc.connector.kiwi.connector]: Using the kiwi-connector version: ${vga.irc.connector.kiwi.CLIENT_VERSION.toString()}`);
+            console.log(`[vga.webchat.connector.kiwi.connector]: Using the kiwi-connector version: ${vga.webchat.connector.kiwi.CLIENT_VERSION.toString()}`);
         }
         /**
          * Returns the identity of the current user, which may not be the same as the nickname.
-         * @method vga.irc.connector.kiwi.connector.getMyIdentity
+         * @method vga.webchat.connector.kiwi.connector.getMyIdentity
          * @return {string} the currently authenticated user's identity.
          */
         getMyIdentity() {
@@ -318,7 +318,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * Returns the normalized nickname assigned to the user on login.
-         * @method vga.irc.connector.kiwi.connector.getMyNickname
+         * @method vga.webchat.connector.kiwi.connector.getMyNickname
          * @return {string} the currently authenticated user's nickname.
          */
         getMyNickname() {
@@ -326,7 +326,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * Returns a generated user key assigned to the user on login.
-         * @method vga.irc.connector.kiwi.connector.getMyUserKey
+         * @method vga.webchat.connector.kiwi.connector.getMyUserKey
          * @return {string} the currently authenticated user's key.
          */        
         getMyUserKey() {
@@ -335,7 +335,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         /**
          * A normalized way of determining if the current user's identity or nickname is the same as the authenticated user.
          * NOTE: This method is safe from nickname mutation.
-         * @method vga.irc.connector.kiwi.connector.isMe
+         * @method vga.webchat.connector.kiwi.connector.isMe
          * @param {string} entityName the entity's nickname.
          * @return {bool} true if the entity is the currently authenticated user.
          */        
@@ -374,7 +374,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }        
         /**
          * Attempts to open a connection to the kiwi IRC server.   This method is idempotent and safe as multiple calls have no side-effects.
-         * @method vga.irc.connector.kiwi.connector.connect
+         * @method vga.webchat.connector.kiwi.connector.connect
          * @param {object} authenticationParams authentication parameters to set to the server.
          */
         connect(authenticationParams) {
@@ -386,7 +386,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
                 //Retain some information as long as the states are valid.
                 let currentState = this._protocol.getState();
-                if (currentState === vga.irc.connector.kiwi.STATES.CLOSED || currentState === vga.irc.connector.kiwi.STATES.OPENING)
+                if (currentState === vga.webchat.connector.kiwi.STATES.CLOSED || currentState === vga.webchat.connector.kiwi.STATES.OPENING)
                 {
                     //If there is a channel supplied attempt to autojoin it.
                     this._autoJoinChannel = (authenticationParams.channel || '').toLowerCase();
@@ -401,83 +401,83 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * Attemps to sends a message to the specific target.
-         * @method vga.irc.connector.kiwi.connector.send
+         * @method vga.webchat.connector.kiwi.connector.send
          * @param {string} target to send the message.
          * @param {string} message to send to the specific target.
          */
         send(target, message) {
             if (target && message) {
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.send]: Sending to (${target}): ${message}.`);
+                vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.send]: Sending to (${target}): ${message}.`);
                 this._protocol && this._protocol.sendIRCData('privmsg', {target: target, msg: message });
             }
             return this;
         }
         /**
          * Attemps to sends a user emote action
-         * @method vga.irc.connector.kiwi.connector.emote
+         * @method vga.webchat.connector.kiwi.connector.emote
          * @param {string} target to send the emote action.
          * @param {string} emoteAction to send to the specific target.
          */
         emote(target, emoteAction) {
             if (target && emoteAction) {
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.emote]: Sending to (${target}): ${emoteAction}.`);
+                vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.emote]: Sending to (${target}): ${emoteAction}.`);
                 this._protocol && this._protocol.sendIRCData('ctcp', {is_request: true, type: 'ACTION', target: target, params: emoteAction });
             }
             return this;
         }
         /**
          * Attempts to join the channel specified.
-         * @method vga.irc.connector.kiwi.connector.join
+         * @method vga.webchat.connector.kiwi.connector.join
          * @param {string} channel channel to join after connecting to the IRC server.
          */
         join(channel) {
             if (channel) {
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.join]: Attempting to join channel: ${channel}.`);
+                vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.join]: Attempting to join channel: ${channel}.`);
                 this._protocol && this._protocol.sendIRCData('join', {channel: channel, key: '' });
                 return this;
             }
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.join]: Invalid channel.', channel);
+            vga.util.debuglog.info('[vga.webchat.connector.kiwi.connector.join]: Invalid channel.', channel);
             return this;
         }
         /**
          * Attempts to leave the channel specified.
-         * @method vga.irc.connector.kiwi.connector.leave
+         * @method vga.webchat.connector.kiwi.connector.leave
          * @param {string} channel channel to leave.
          * @param {string} message message to send to the server when leaving a channel.
          */
         leave(channel, message) {
             if (channel) {
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.leave]: Attempting to leave channel: ${channel}.`);
+                vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.leave]: Attempting to leave channel: ${channel}.`);
                 this._protocol && this._protocol.sendIRCData('part', {channel: channel, message: message });
                 return this;
             }
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.leave]: Invalid channel.', channel);
+            vga.util.debuglog.info('[vga.webchat.connector.kiwi.connector.leave]: Invalid channel.', channel);
             return this;
         }
         /**
          * Sets the mode for the channel.
-         * @method vga.irc.connector.kiwi.connector.setMode
+         * @method vga.webchat.connector.kiwi.connector.setMode
          * @param {string} channel to set the mode.
-         * @param {number} mode type to set (vga.irc.channelmodes).
-         * @param {number} action type of action (vga.irc.roleModeAction) to apply.
+         * @param {number} mode type to set (vga.webchat.channelmodes).
+         * @param {number} action type of action (vga.webchat.roleModeAction) to apply.
          */
         setMode(channel, mode, action) {
             if (channel) {
                 let convertedMode = reverseChannelModeMap[mode];
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.setMode]: (Attempting to ${action == vga.irc.roleModeAction.add ? "add" : "remove"} the mode ${convertedMode} on channel: ${channel}).`);
-                this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${channel} ${(action == vga.irc.roleModeAction.add ? "+" : "-")}${convertedMode}`});
+                vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.setMode]: (Attempting to ${action == vga.webchat.roleModeAction.add ? "add" : "remove"} the mode ${convertedMode} on channel: ${channel}).`);
+                this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${channel} ${(action == vga.webchat.roleModeAction.add ? "+" : "-")}${convertedMode}`});
                 return this;
             }
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.setMode]: (Invalid channel ${channel}).`);
+            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.setMode]: (Invalid channel ${channel}).`);
             return this;
         }
         /**
          * Sets a status on the user.
-         * @method vga.irc.connector.kiwi.connector.setUserStatus
+         * @method vga.webchat.connector.kiwi.connector.setUserStatus
          * @param {string} channel the user is occupying.
          * @param {string} identity of the user to apply the status to.
-         * @param {number} status type to set (vga.irc.status).
-         * @param {number} action type of action (vga.irc.roleModeAction) to apply.
+         * @param {number} status type to set (vga.webchat.status).
+         * @param {number} action type of action (vga.webchat.roleModeAction) to apply.
          * @param {object} additionalArguments is an optional argument that may contain additional arguments depending on the status type.
          */
         setUserStatus(channel, identity, status, action, additionalArguments) {
@@ -485,56 +485,56 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 let convertedStatus = '';
 
                 //Handle the banned status uniquely due to the ban mask we have to apply.
-                if (vga.irc.bitArray.contains(status, vga.irc.status.banned)) {
-                    let banMask = vga.irc.connector.kiwi.banMaskToApply.replace('{identity}', `${identity}${this._consolidateNicknames ? '' : '*'}`);
-                    if (vga.irc.bitArray.contains(status, vga.irc.status.timed)) {
+                if (vga.webchat.bitArray.contains(status, vga.webchat.status.banned)) {
+                    let banMask = vga.webchat.connector.kiwi.banMaskToApply.replace('{identity}', `${identity}${this._consolidateNicknames ? '' : '*'}`);
+                    if (vga.webchat.bitArray.contains(status, vga.webchat.status.timed)) {
                         convertedStatus = 'tb';
                         let durationInSeconds = ((additionalArguments || {duration: 0}).duration || 900);
                         this._protocol && this._protocol.sendIRCData('raw', {'data': `TBAN ${channel} ${durationInSeconds} m:${banMask}`});
                     }
                     else {
                         convertedStatus = 'b';
-                        this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${channel} ${(action == vga.irc.roleModeAction.add ? "+" : "-")}${convertedStatus} ${banMask}`});
+                        this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${channel} ${(action == vga.webchat.roleModeAction.add ? "+" : "-")}${convertedStatus} ${banMask}`});
                     }
                 }
                 
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.setUserStatus]: (Attempting to ${action == vga.irc.roleModeAction.add ? "add" : "remove"} the status ${convertedStatus} on channel: ${channel}).`);
-                //this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${channel} ${(action == vga.irc.roleModeAction.add ? "+" : "-")}${convertedStatus}${additionalArguments}`});
+                vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.setUserStatus]: (Attempting to ${action == vga.webchat.roleModeAction.add ? "add" : "remove"} the status ${convertedStatus} on channel: ${channel}).`);
+                //this._protocol && this._protocol.sendIRCData('raw', {'data': `MODE ${channel} ${(action == vga.webchat.roleModeAction.add ? "+" : "-")}${convertedStatus}${additionalArguments}`});
                 return this;
             }
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.setMode]: (Invalid channel ${channel}).`);
+            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.setMode]: (Invalid channel ${channel}).`);
             return this;
         }
         /**
          * Attempts to change the nickname of the currently authenticated user.
-         * @method vga.irc.connector.kiwi.connector.nick
+         * @method vga.webchat.connector.kiwi.connector.nick
          * @param {string} nickname the nickname to change to.
          */
         setNickname(nickname) {
             if (nickname) {
                 this._nickname = nickname;
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.nick]: (Attempting to change nickname to: ${nickname}).`);
+                vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.nick]: (Attempting to change nickname to: ${nickname}).`);
                 this._protocol && this._protocol.sendIRCData('nick', {nick: nickname});
             }
             return this;
         }
         /**
          * Attempts to kick a user based on the user's identity & channel the user is occupying.
-         * @method vga.irc.connector.kiwi.connector.kick
+         * @method vga.webchat.connector.kiwi.connector.kick
          * @param {string} channel the user is occupying.
          * @param {string} identity of the user to apply the status to.
          */
         kick(channel, identity) {
             if (channel) {
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.nick]: (Attempting to kick: ${identity}).`);
+                vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.nick]: (Attempting to kick: ${identity}).`);
                 this._protocol && this._protocol.sendIRCData('kick', {channel: channel, nick: identity, reason: 'Bye!'});
             }
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.setMode]: (Invalid channel ${channel}).`);
+            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.setMode]: (Invalid channel ${channel}).`);
             return this;
         }
         /**
          * Disconnects\closes an open connection.  This method is idempotent and safe as multiple calls have no side-effects.
-         * @method vga.irc.connector.kiwi.connector.disconnect
+         * @method vga.webchat.connector.kiwi.connector.disconnect
          * @param {string} message a temporary message to send when closing the socket.
          */
         disconnect(message) {
@@ -542,7 +542,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             this._nickname = this._identity = '';
             //this._numberOfReconnectsAttempted = 0;
             if (this._protocol) {
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.disconnect]: (Attempting to disconnect with message: ${message || 'undefined'}).`);
+                vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.disconnect]: (Attempting to disconnect with message: ${message || 'undefined'}).`);
                 this._protocol.sendIRCData('quit', {message: message});
                 this._protocol.close(message);
             }
@@ -550,7 +550,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * Disposes of the connector, cleaning up any additional resources.
-         * @method vga.irc.connector.kiwi.connector.dispose
+         * @method vga.webchat.connector.kiwi.connector.dispose
          */
         dispose() {
             this.disconnect();
@@ -563,13 +563,13 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         //-----------------------------------------------------------------
         /**
          * This event is triggered when a connection has been established with the IRC server.
-         * @method vga.irc.connector.kiwi.connector.onConnect
+         * @method vga.webchat.connector.kiwi.connector.onConnect
          * @param {object} eventData event data associated with the established connection.
          */
         onConnect(eventData) {
             let channelKey = '';
             this._numberOfReconnectsAttempted = 0;
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onConnect]: (AutoJoinChannel: ${this._autoJoinChannel !== '' ? this._autoJoinChannel : 'none' }, Nick: ${eventData.nick}).`);
+            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.onConnect]: (AutoJoinChannel: ${this._autoJoinChannel !== '' ? this._autoJoinChannel : 'none' }, Nick: ${eventData.nick}).`);
             if (this._autoJoinChannel !== '') {
                 this.join(this._autoJoinChannel);
                 channelKey = this._autoJoinChannel;
@@ -578,11 +578,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * This event is triggered on a disconnect event regardless of whether it was the user or server.
-         * @method vga.irc.connector.kiwi.connector.onDisconnect
+         * @method vga.webchat.connector.kiwi.connector.onDisconnect
          * @param {object} eventData event data associated with a disconnect event.
          */
         onDisconnect(eventData) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: (Reason: '${eventData.reason}', closedByServer: ${eventData.closedByServer}, existingConnection: ${eventData.existingConnection}).`);
+            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.onDisconnected]: (Reason: '${eventData.reason}', closedByServer: ${eventData.closedByServer}, existingConnection: ${eventData.existingConnection}).`);
             
             let reason = 'Unable to reach the server.  Try again later.';
             //Determine if we are going to trigger the reconnect logic.
@@ -590,13 +590,13 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             if (this._attemptReconnect && eventData.closedByServer && eventData.existingConnection) {
                 if (this._numberOfReconnectsAttempted < this._maxNumberOfReconnectAttempts) {
                     this._numberOfReconnectsAttempted++;
-                    vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: (Attempt to reconnect is enabled, attempting try: ${this._numberOfReconnectsAttempted}).`);
+                    vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.onDisconnected]: (Attempt to reconnect is enabled, attempting try: ${this._numberOfReconnectsAttempted}).`);
                     this._listener.invokeListeners('reconnect');
                     return;
                 }
 
                 reason = `(Exceeded the number of retry event: ${this._maxNumberOfReconnectAttempts}). Giving up.`;
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onDisconnected]: ${reason}`);
+                vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.onDisconnected]: ${reason}`);
             }
 
             this._protocol && this._protocol.close();
@@ -604,11 +604,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * This event is triggered when the IRC server sends the options information.
-         * @method vga.irc.connector.kiwi.connector.onOptions
+         * @method vga.webchat.connector.kiwi.connector.onOptions
          * @param {object} eventData event data associated irc server.
          */
         onOptions(eventData) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onOptions].`);
+            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.onOptions].`);
 
             //If we don't have prefix map, create one.
             if (vga.util.propertyCount(this._prefixMap) === 0) {
@@ -623,11 +623,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * This event is triggered on a nickname change.
-         * @method vga.irc.connector.kiwi.connector.onNick
+         * @method vga.webchat.connector.kiwi.connector.onNick
          * @param {object} eventData event data associated with nickname event sent by the server.
          */
         onNick(eventData) {
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onNick].', eventData);
+            vga.util.debuglog.info('[vga.webchat.connector.kiwi.connector.onNick].', eventData);
 
             //Nick change Example Data: {"command":"nick","data":{"nick":"old_nickname","ident":"identity","hostname":"::1","newnick":"new_nickname","connection_id":0}}
             let identity = this.normalizeNickname(eventData.nick);
@@ -648,11 +648,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * This event is triggered when a message is generated by the server.
-         * @method vga.irc.connector.kiwi.connector.onMessage
+         * @method vga.webchat.connector.kiwi.connector.onMessage
          * @param {object} eventData event data associated with a message from the server.
          */
         onMessage(eventData) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onMessage]: (Target: ${eventData.target}, Type: ${eventData.type}, Nickname: ${eventData.nick}, Message: ${eventData.msg}).`);
+            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.onMessage]: (Target: ${eventData.target}, Type: ${eventData.type}, Nickname: ${eventData.nick}, Message: ${eventData.msg}).`);
             
             //Determine if we are dealing with a channel as a target and if so we need to normalize it.
             //We have to make all channel names lowercase.
@@ -675,12 +675,12 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * This event is triggered when a topic event is triggered by the server.
-         * @method vga.irc.connector.kiwi.connector.onTopic
+         * @method vga.webchat.connector.kiwi.connector.onTopic
          * @param {object} eventData event data associated with a topic event.
          */
         onTopic(eventData) {
             let channelKey = this.generateChannelKey(eventData.channel);
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onTopic]: (Topic: ${eventData.topic}, Channel: ${channelKey}).`);
+            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.onTopic]: (Topic: ${eventData.topic}, Channel: ${channelKey}).`);
             //Example Data: {"channel":"#channel","topic":"Welcome to Chat!","connection_id":0}
             this._listener.invokeListeners('topic', {
                 topic: eventData.topic,
@@ -689,12 +689,12 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * This event is triggered for everyone, the authenticated user and everyone in and out of the channel.
-         * @method vga.irc.connector.kiwi.connector.onChannel
+         * @method vga.webchat.connector.kiwi.connector.onChannel
          * @param {object} eventData event data associated with channel join event.
          */
         onChannel(eventData) {
             let channelKey = this.generateChannelKey(eventData.channel);
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onChannel]: (Channel: ${channelKey}, Identity: ${eventData.ident}, Type: ${eventData.type}).`);
+            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.onChannel]: (Channel: ${channelKey}, Identity: ${eventData.ident}, Type: ${eventData.type}).`);
 
             //Join Example Data: {"type":"join","channel":"#channel","nick":"joining_user_nick","ident":"joining_user_identity","hostname":"::1","connection_id":0}
             //Leave Example Data: {"type":"part","channel":"#channel","nick":"joining_user_nick","ident":"joining_user_identity","hostname":"::1","connection_id":0}
@@ -740,11 +740,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * This event is triggered when queried channel information arrives.
-         * @method vga.irc.connector.kiwi.connector.onChannelInfo
+         * @method vga.webchat.connector.kiwi.connector.onChannelInfo
          * @param {object} eventData event data associated the channel information event.
          */
         onChannelInfo(eventData) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onChannelInfo]: (Channel: ${eventData.channel}).`);
+            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.onChannelInfo]: (Channel: ${eventData.channel}).`);
 
             //There maybe multiple channel info events, but we only care about the one that contains channel modes one at this time.
             //If there are no modes then discard this event.
@@ -752,30 +752,30 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //Example Data2: {"channel":"#channel","created_at":1333071102,"connection_id":0}
             if (eventData.modes) {
                 //Transform the irc channel modes into chat channel modes.
-                let channelModes = vga.irc.channelmodes.none;
+                let channelModes = vga.webchat.channelmodes.none;
                 eventData.modes.forEach((channelModeBlock) => {
                     if (channelModeBlock) {
                         //Only transform positive (additive) channel modes, as channel modes that are removed will generate their own event.
                         if (channelModeBlock.mode.substring(0, 1) === '+') {
-                            channelModes = vga.irc.bitArray.add(channelModes, channelModeMap[channelModeBlock.mode.substring(1, 2)]);
+                            channelModes = vga.webchat.bitArray.add(channelModes, channelModeMap[channelModeBlock.mode.substring(1, 2)]);
                         }
                     }
                 });
 
                 this._listener.invokeListeners(`channelmode`, {
                     channelKey: this.generateChannelKey(eventData.channel),
-                    action: vga.irc.roleModeAction.add,
+                    action: vga.webchat.roleModeAction.add,
                     modes: channelModes
                 });
             }
         }
         /**
          * This event is triggered for everyone, the authenticated user and everyone in and out of the channel.
-         * @method vga.irc.connector.kiwi.connector.onQuit
+         * @method vga.webchat.connector.kiwi.connector.onQuit
          * @param {object} eventData event data associated with channel quit event.
          */
         onQuit(eventData){
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onQuit]: (Nick: ${eventData.nick}, Identity: ${eventData.ident}, Message: ${eventData.message}).`);
+            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.onQuit]: (Nick: ${eventData.nick}, Identity: ${eventData.ident}, Message: ${eventData.message}).`);
             //Example Data: {"nick":"quitting_user_nick","ident":"quitting_user_ident","hostname":"::1","message":"Connection closed","connection_id":0}
             let identity = this.normalizeNickname(eventData.nick);
             this._listener.invokeListeners(`quit`,{
@@ -789,11 +789,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * This event is triggered when a mode event has occured.
-         * @method vga.irc.connector.kiwi.connector.onMode
+         * @method vga.webchat.connector.kiwi.connector.onMode
          * @param {object} eventData event data associated with mode event sent by the server.
          */
         onMode(eventData) {
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onMode].');
+            vga.util.debuglog.info('[vga.webchat.connector.kiwi.connector.onMode].');
 
             //Ignore any events that have no mode information.
             if (eventData.modes.length === 0) {
@@ -810,9 +810,9 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 }
 
                 //Parse the mode into an action and mode.
-                let action = vga.irc.roleModeAction.add;
+                let action = vga.webchat.roleModeAction.add;
                 if (mode.length > 1) {
-                    action = (mode.substring(0, 1) === '-') ? vga.irc.roleModeAction.remove : vga.irc.roleModeAction.add;
+                    action = (mode.substring(0, 1) === '-') ? vga.webchat.roleModeAction.remove : vga.webchat.roleModeAction.add;
                     mode = mode.substring(1, 2);
                 }
 
@@ -830,17 +830,17 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     this._listener.invokeListeners(`channelmode`, {
                         channelKey: channelKey,
                         action: action,
-                        modes: vga.irc.bitArray.compileBitArray([mode], (channelMode) => channelModeMap[channelMode])
+                        modes: vga.webchat.bitArray.compileBitArray([mode], (channelMode) => channelModeMap[channelMode])
                     });
                 }
             });
         }
         /**
          * This an internal event that is triggered by the onMode event for user mode (role/status) changes.
-         * @method vga.irc.connector.kiwi.connector.onUserMode
+         * @method vga.webchat.connector.kiwi.connector.onUserMode
          * @param {string} channelKey being affected.
          * @param {string} nickname of user being impacted.
-         * @param {number} action being applied (vga.irc.roleModeAction).
+         * @param {number} action being applied (vga.webchat.roleModeAction).
          * @param {number} mode being applied.
          */
         onUserMode(channelKey, nickname, action, mode) {
@@ -859,15 +859,15 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 //Get the status and handle banned modes differently.
                 //Banned modes deal with a banned mask.
                 let status = modeToStatusMap[mode];
-                if (status === vga.irc.status.banned)
+                if (status === vga.webchat.status.banned)
                 {
                     //NOTE: The major issue we are having here is if the ban mask is an identity only we do not have it.
                     //Kiwi does not give us an identity per user when giving us the userlist, all we get is the nickname.
                     //So if the consolidate nickname features if off, any nickname with a numeric suffix does not have an identity.
                     //For example if that feature is off and the user that was banned was cafftest_1 then our identity is cafftest_1, which does not match the identity.
-                    let bannedMaskComponents = vga.irc.connector.kiwi.banMaskRegEx.exec(nickname);
+                    let bannedMaskComponents = vga.webchat.connector.kiwi.banMaskRegEx.exec(nickname);
                     if (bannedMaskComponents === null || bannedMaskComponents.length < 4) {
-                        vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onMode]: Invalid banmask: ${nickname}`);
+                        vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.onMode]: Invalid banmask: ${nickname}`);
                     }
 
                     //bannedMaskComponents[0] -- Full match.
@@ -890,7 +890,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                         //If so, we have to compile a list of known identities that match the wildcard.
                         let wildCardIndex = identity.indexOf('*');
                         if (wildCardIndex > -1) {
-                            let identityRegEx = new RegExp(identity.replace('*', vga.irc.connector.kiwi.wildCardMaskRegString), 'i');
+                            let identityRegEx = new RegExp(identity.replace('*', vga.webchat.connector.kiwi.wildCardMaskRegString), 'i');
                             let identities = [];
                             this._knownIdentities.forEach((knownIdentity) => {
                                 if (identityRegEx.test(knownIdentity)) {
@@ -920,7 +920,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
                 //Set the specific roles eventdata.
                 newEventName = 'role';
-                newEventData['roles'] = vga.irc.bitArray.compileBitArray([mode], (userMode) => modeToRolesMap[userMode], vga.irc.roles.shadow);
+                newEventData['roles'] = vga.webchat.bitArray.compileBitArray([mode], (userMode) => modeToRolesMap[userMode], vga.webchat.roles.shadow);
             }
 
             //Set the common eventdata for the mode based events.
@@ -941,11 +941,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
         /**
          * This event is triggered when the userlist has been sent by the server.
-         * @method vga.irc.connector.kiwi.connector.onUserlist
+         * @method vga.webchat.connector.kiwi.connector.onUserlist
          * @param {object} eventData event data associated with userlist sent by the server.
          */
         onUserlist(eventData) {
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.connector.onUserlist].');
+            vga.util.debuglog.info('[vga.webchat.connector.kiwi.connector.onUserlist].');
             
             let prefixMap = vga.util.propertyCount(this._prefixMap) > 0 ? this._prefixMap : defaultPrefixMap;
             
@@ -993,8 +993,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                 if (!userInfo) {
                     //Create a key...because IRC is case-insensitive, we have to create a key that is consistent.
                     //NOTE: The other option is to iterate through our 'maps', which is not ideal.
-                    let roles = vga.irc.bitArray.compileBitArray(user.modes, (mode) => modeToRolesMap[mode], vga.irc.roles.shadow);
-                    userInfoMap[userKey] = new vga.irc.userEntity(identity, [parsedNickname], roles);
+                    let roles = vga.webchat.bitArray.compileBitArray(user.modes, (mode) => modeToRolesMap[mode], vga.webchat.roles.shadow);
+                    userInfoMap[userKey] = new vga.webchat.userEntity(identity, [parsedNickname], roles);
                 }
                 else {
                     //Keep a collection of all of the alternative nicknames for this user.
@@ -1011,16 +1011,16 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * This event is triggered when the userlist_end has been sent by the server.
-         * @method vga.irc.connector.kiwi.connector.onUserlistEnd
+         * @method vga.webchat.connector.kiwi.connector.onUserlistEnd
          * @param {object} eventData event data associated with userlist_end sent by the server.
          */
         onUserlistEnd(eventData) {
             let channelKey = this.generateChannelKey(eventData.channel);
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onUserListEnd]: Channel: ${channelKey}`);
+            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.onUserListEnd]: Channel: ${channelKey}`);
 
             //NOTE: There is no RPL_USERSSTART event as defined by the IRC Protocol, so we'll just wait for the RPL_ENDOFUSERS event.
             if (this._userListByChannel && channelKey && this._userListByChannel.hasOwnProperty(channelKey)) { 
-                vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onUserListEnd]: (UserList: ${this._userListByChannel[channelKey].users}).`);
+                vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.onUserListEnd]: (UserList: ${this._userListByChannel[channelKey].users}).`);
                 this._listener.invokeListeners('userlist', {
                     users: this._userListByChannel[channelKey],
                     channelKey: channelKey
@@ -1029,11 +1029,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * This event is triggered when an error is generated by the server.
-         * @method vga.irc.connector.kiwi.connector.onError
+         * @method vga.webchat.connector.kiwi.connector.onError
          * @param {object} eventData event data associated with an error event from the server.
          */
         onError(eventData) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.connector.onError]: (Error: ${eventData.error}, Reason: ${eventData.reason}).`);
+            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.connector.onError]: (Error: ${eventData.error}, Reason: ${eventData.reason}).`);
 
             //Return to complete logic.
             //Break to invoke the unknown error logic.
@@ -1081,7 +1081,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                     return;
 
                 case 'error':
-                    if (vga.irc.connector.kiwi.accessDeniedRegEx.test(eventData.reason)) {
+                    if (vga.webchat.connector.kiwi.accessDeniedRegEx.test(eventData.reason)) {
                         this._listener.invokeListeners('accessdenied');
                         this._protocol && this._protocol.close();
                         return;
@@ -1096,5 +1096,5 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             this._listener.invokeListeners('error', {reason: eventData.reason});
         }
     }
-    //END OF vga.irc.connector.kiwi.connector.prototype = {...
+    //END OF vga.webchat.connector.kiwi.connector.prototype = {...
 }());

@@ -10,7 +10,7 @@ Types of Connectors
 
 Expected Chat Events
 -----------
-The following events are expected by the chat library.  These events can be implemented using the vga.util.listener class or can be your own implementation.  The events in the vga.irc.chat class are simply public methods that can be called at anytime.
+The following events are expected by the chat library.  These events can be implemented using the vga.util.listener class or can be your own implementation.  The events in the vga.webchat.chat class are simply public methods that can be called at anytime.
 
 ### Events
 * onConnect
@@ -73,15 +73,15 @@ The following events are expected by the chat library.  These events can be impl
 
 **onChannelMode(eventData)**
 
-`eventData: { channelKey: string, modes: bitarray, action: vga.irc.roleModeAction }`
+`eventData: { channelKey: string, modes: bitarray, action: vga.webchat.roleModeAction }`
 
 **onRole(eventData)**
 
-`eventData: { channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, roles: bitarray }`
+`eventData: { channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.webchat.roleModeAction, roles: bitarray }`
 
 **onStatus(eventData)**
 
-`eventData: { channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, status: bitarray }`
+`eventData: { channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.webchat.roleModeAction, status: bitarray }`
 
 **onAccessDenied**
 

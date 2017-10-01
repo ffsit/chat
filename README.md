@@ -28,6 +28,9 @@ Coding and Pull Request Conventions
 Change Log
 -----------
 
+#### 1.1.2
+Refactored the namespace from vga.irc to vga.webchat, because, I am...insane.
+
 #### 1.1.1
 The following fixes have been addressed in this version:
 * Fixed a logic issue during the onJoin event that would cause a JS error.

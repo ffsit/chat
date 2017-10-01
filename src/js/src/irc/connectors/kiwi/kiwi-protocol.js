@@ -44,9 +44,9 @@
 
 //Namespace declaration.
 var vga = vga || {};
-vga.irc = vga.irc || {};
-vga.irc.connector = vga.irc.connector || {};
-vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
+vga.webchat = vga.webchat || {};
+vga.webchat.connector = vga.webchat.connector || {};
+vga.webchat.connector.kiwi = vga.webchat.connector.kiwi || {};
 
 ///////////////////////////////////////////////////////////
 // Our Kiwi IRC Protocol.
@@ -60,7 +60,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     //-----------------------------------------------------------------
     // NOTE: Taken directly from the Kiwi IRC source.
     // https://github.com/prawnsalad/KiwiIRC/blob/6f90124e0f15d4cc373496110d1150ffd75072fc/client/assets/libs/engine.io.js
-    vga.irc.connector.kiwi.PACKET_STATUS = {
+    vga.webchat.connector.kiwi.PACKET_STATUS = {
           OPEN:     0   // NA
         , CLOSE:    1   // NA
         , PING:     2   
@@ -73,7 +73,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     //-----------------------------------------------------------------
     // Protocol States
     //-----------------------------------------------------------------
-    vga.irc.connector.kiwi.STATES = {
+    vga.webchat.connector.kiwi.STATES = {
         CLOSED: 0,
         CLOSING: 1,
         OPENING: 2,
@@ -105,14 +105,14 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
     //-----------------------------------------------------------------
     // Defaults
     //-----------------------------------------------------------------
-    vga.irc.connector.kiwi.DEFAULT_PING_INTERVAL = 15000;
-    vga.irc.connector.kiwi.DEFAULT_HEARTBEAT_INTERVAL = 60000;
+    vga.webchat.connector.kiwi.DEFAULT_PING_INTERVAL = 15000;
+    vga.webchat.connector.kiwi.DEFAULT_HEARTBEAT_INTERVAL = 60000;
 
     //-----------------------------------------------------------------
     // Prefixes
     //-----------------------------------------------------------------
-    vga.irc.connector.kiwi.PROXY_PREFIX = 'kiwi';
-    vga.irc.connector.kiwi.IRC_PREFIX = 'irc';
+    vga.webchat.connector.kiwi.PROXY_PREFIX = 'kiwi';
+    vga.webchat.connector.kiwi.IRC_PREFIX = 'irc';
 
     //-----------------------------------------------------------------
     // Helper functions
@@ -153,7 +153,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
      * @returns {object} returns an object that conforms to the IRC packet.
      */
     function createIRCPacket(connectionId, method, data) {
-        return createRawPacket(vga.irc.connector.kiwi.IRC_PREFIX + '.' + method, [connectionId,data,null]);
+        return createRawPacket(vga.webchat.connector.kiwi.IRC_PREFIX + '.' + method, [connectionId,data,null]);
     };
     /**
      * Internal method to create a packet to relay to the kiwi server.
@@ -163,7 +163,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
      * @returns {object} returns an object that conforms to the Kiwi IRC packet. 
      */
     function createKiwiProxyPacket(method, params) {
-        return createRawPacket(vga.irc.connector.kiwi.PROXY_PREFIX + '.' + method, (params || [])); 
+        return createRawPacket(vga.webchat.connector.kiwi.PROXY_PREFIX + '.' + method, (params || [])); 
     };
     /**
      * Internal method that parses the Kiwi IRC message.
@@ -180,12 +180,12 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
     /**
      * Constructor for the kiwi protocol wrapper.
-     * @class vga.irc.connector.kiwi.protocolwrapper
+     * @class vga.webchat.connector.kiwi.protocolwrapper
      */
-    vga.irc.connector.kiwi.protocolwrapper = class {
+    vga.webchat.connector.kiwi.protocolwrapper = class {
         /**
          * Main constructor for the kiwi protocol wrapper.
-         * @method vga.irc.connector.kiwi.protocolwrapper.constructor
+         * @method vga.webchat.connector.kiwi.protocolwrapper.constructor
          * @param {string} url the connector is opening.
          * @param {object} options Additional options for the connector.
          */        
@@ -199,7 +199,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
 
             //Maintain our connection state and additional info.
             this._url = url || '';
-            this._state = vga.irc.connector.kiwi.STATES.CLOSED;
+            this._state = vga.webchat.connector.kiwi.STATES.CLOSED;
             this._connectionInfo = {};
 
             //Timer Ids that regulate the heartbeat nad ping intervals.
@@ -212,21 +212,21 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * Returns the current state.
-         * @method vga.irc.connector.kiwi.protocolwrapper.getState
+         * @method vga.webchat.connector.kiwi.protocolwrapper.getState
          */
         getState() {
             return this._state;
         }
         /**
          * A safe send method to send kiwi specific data to the socket.
-         * @method vga.irc.connector.kiwi.protocolwrapper.sendRawData
+         * @method vga.webchat.connector.kiwi.protocolwrapper.sendRawData
          * @param {object} data the data to send to the socket.
          * @param {number} status the kiwi status number.
          * @param {bool} blockLogging blocks logging when instructed.
          */
         sendRawData(data, status, blockLogging) {
             //We'll default to status of message if no status is provided.
-            status = (status !== undefined) ? status : vga.irc.connector.kiwi.PACKET_STATUS.MESSAGE;
+            status = (status !== undefined) ? status : vga.webchat.connector.kiwi.PACKET_STATUS.MESSAGE;
             if (this._socket) {
                 let message = (data) ? (status + (typeof(data) === 'object' ? JSON.stringify(data) : data)) : status;
                 this._socket.send(message, blockLogging);
@@ -235,7 +235,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * A safe send method that sends IRC data.
-         * @method vga.irc.connector.kiwi.protocolwrapper.sendIRCData
+         * @method vga.webchat.connector.kiwi.protocolwrapper.sendIRCData
          * @param {number} connectionId assigned to the user on login.
          * @param {string} method name of the method to pass to the IRC server.
          * @param {object} data arguments to pass to the IRC server.
@@ -245,7 +245,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * Attempts to open a connection to the kiwi IRC server.   This method is idempotent and safe as multiple calls have no side-effects.
-         * @method vga.irc.connector.kiwi.protocolwrapper.open
+         * @method vga.webchat.connector.kiwi.protocolwrapper.open
          * @param {object} authenticationParams authentication parameters to set to the server.
          */
         open(authenticationParams) {
@@ -253,11 +253,11 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             authenticationParams = authenticationParams || {};
 
             //Set the state to opening until the socket has opened.
-            this._state = vga.irc.connector.kiwi.STATES.OPENING;
+            this._state = vga.webchat.connector.kiwi.STATES.OPENING;
             
             //If the socket is already valid
             if (this._socket) {
-                vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.open]: Attempting to open.');
+                vga.util.debuglog.info('[vga.webchat.connector.kiwi.protocolwrapper.open]: Attempting to open.');
                 this._socket.open(authenticationParams);
             }
 
@@ -266,7 +266,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         /**
          * Internal method to clean up after a socket is closed.
          * This method should be idempotent and safe to call multiple times.
-         * @method vga.irc.connector.kiwi.protocolwrapper.cleanUp
+         * @method vga.webchat.connector.kiwi.protocolwrapper.cleanUp
          */    
         cleanUp() {
             //Shutdown the heartbeat.
@@ -278,7 +278,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * Closes an open connection.  This method is idempotent and safe as multiple calls have no side-effects.
-         * @method vga.irc.connector.kiwi.protocolwrapper.connect
+         * @method vga.webchat.connector.kiwi.protocolwrapper.connect
          * @param {string} message a temporary message to send when closing the socket.
          */       
         close(message) {
@@ -286,8 +286,8 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             this.cleanUp();
 
             //Only close the state if we haven't closed it yet.
-            if (this._state !== vga.irc.connector.kiwi.STATES.CLOSED && this._state !== vga.irc.connector.kiwi.STATES.CLOSING) {
-                this._state = vga.irc.connector.kiwi.STATES.CLOSING;
+            if (this._state !== vga.webchat.connector.kiwi.STATES.CLOSED && this._state !== vga.webchat.connector.kiwi.STATES.CLOSING) {
+                this._state = vga.webchat.connector.kiwi.STATES.CLOSING;
                 this._socket && this._socket.close();
             }
 
@@ -295,7 +295,7 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * Disposes of the connector, cleaning up any additional resources.
-         * @method vga.irc.connector.kiwi.protocolwrapper.dispose
+         * @method vga.webchat.connector.kiwi.protocolwrapper.dispose
          */     
         dispose() {
             this.close();
@@ -308,13 +308,13 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         //-----------------------------------------------------------------
         /**
          * This event is triggered when the proxy connection has been opened and the irc server is pending a connection.
-         * @method vga.irc.connector.kiwi.protocolwrapper.onProxyConnected
+         * @method vga.webchat.connector.kiwi.protocolwrapper.onProxyConnected
          * @param {object} proxyInfo proxy info such as sid and timeout information.
          */
         onProxyOpened(proxyInfo) {
             proxyInfo = proxyInfo || {};
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onProxyOpened]: Proxy Connection Opened (Sid: ${proxyInfo.sid}, PingInterval: ${proxyInfo.pingInterval}, PingTimeout: ${proxyInfo.pingTimeout}).`);
-            this._state = vga.irc.connector.kiwi.STATES.PROXY_OPENED;
+            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.protocolwrapper.onProxyOpened]: Proxy Connection Opened (Sid: ${proxyInfo.sid}, PingInterval: ${proxyInfo.pingInterval}, PingTimeout: ${proxyInfo.pingTimeout}).`);
+            this._state = vga.webchat.connector.kiwi.STATES.PROXY_OPENED;
             
             this._connectionInfo = {
                 sid: proxyInfo.sid,
@@ -325,18 +325,18 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * This event is triggered when the proxy connection has connected to the irc server.
-         * @method vga.irc.connector.kiwi.protocolwrapper.onProxyConnected
+         * @method vga.webchat.connector.kiwi.protocolwrapper.onProxyConnected
          * @param {object} proxyInfo proxy info such as sid and timeout information.
          */
         onProxyConnected(proxyInfo) {
             proxyInfo = proxyInfo || {};
-            this._state = vga.irc.connector.kiwi.STATES.PROXY_CONNECTED;
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onProxyConnected]: Proxy Connected.');
+            this._state = vga.webchat.connector.kiwi.STATES.PROXY_CONNECTED;
+            vga.util.debuglog.info('[vga.webchat.connector.kiwi.protocolwrapper.onProxyConnected]: Proxy Connected.');
 
             //Create the heartbeat interval.
             if (!this._heartbeatId)
             {
-                let heartBeatInterval = (this._connectionInfo.pingTimeout || vga.irc.connector.kiwi.DEFAULT_HEARTBEAT_INTERVAL);
+                let heartBeatInterval = (this._connectionInfo.pingTimeout || vga.webchat.connector.kiwi.DEFAULT_HEARTBEAT_INTERVAL);
                 let heartbeat = () => {
                     this._heartbeatId = setTimeout(() => {
                         this.sendRawData(createKiwiProxyPacket('heartbeat'));
@@ -349,10 +349,10 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
             //Create the ping interval.
             if (!this._pingId)
             {
-                let pingInterval = (this._connectionInfo.pingInterval || vga.irc.connector.kiwi.DEFAULT_PING_INTERVAL);
+                let pingInterval = (this._connectionInfo.pingInterval || vga.webchat.connector.kiwi.DEFAULT_PING_INTERVAL);
                 let ping = () => {
                     this._pingId = setTimeout(() => {
-                        this.sendRawData('', vga.irc.connector.kiwi.PACKET_STATUS.PING);
+                        this.sendRawData('', vga.webchat.connector.kiwi.PACKET_STATUS.PING);
                         ping();
                     }, pingInterval);
                 };
@@ -361,13 +361,13 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * This event is triggered when the kiwi connection to IRC has been connected.
-         * @method vga.irc.connector.kiwi.protocolwrapper.onConnect
+         * @method vga.webchat.connector.kiwi.protocolwrapper.onConnect
          * @param {object} event socket event data. 
          */
         onConnect(event) {
-            if (this._state === vga.irc.connector.kiwi.STATES.PROXY_CONNECTED) {
-                vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onConnect]: Received a PROXY_CONNECTED state, setting OPENED state.');
-                this._state = vga.irc.connector.kiwi.STATES.OPENED;
+            if (this._state === vga.webchat.connector.kiwi.STATES.PROXY_CONNECTED) {
+                vga.util.debuglog.info('[vga.webchat.connector.kiwi.protocolwrapper.onConnect]: Received a PROXY_CONNECTED state, setting OPENED state.');
+                this._state = vga.webchat.connector.kiwi.STATES.OPENED;
                 this._connectionInfo.connectionId = event.connection_id;
             }
         }
@@ -378,30 +378,30 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         //-----------------------------------------------------------------
         /**
          * An event that is triggered when the socket has been opened.
-         * @method vga.irc.connector.kiwi.protocolwrapper.onOpen
+         * @method vga.webchat.connector.kiwi.protocolwrapper.onOpen
          * @param {object} event socket event data. 
          * @param {object} authenticationParams emphemeral authentication parameters passed for authentication, not to be stored in memory.
          */
         onOpen(event, authenticationParams) {
-            this._state = vga.irc.connector.kiwi.STATES.SOCKET_OPENED;
-            vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onOpen]', event);
-            this.sendRawData('', vga.irc.connector.kiwi.PACKET_STATUS.UPGRADE);
+            this._state = vga.webchat.connector.kiwi.STATES.SOCKET_OPENED;
+            vga.util.debuglog.info('[vga.webchat.connector.kiwi.protocolwrapper.onOpen]', event);
+            this.sendRawData('', vga.webchat.connector.kiwi.PACKET_STATUS.UPGRADE);
 
             //We have to implement wait logic, as we may already have an open websocket connection, but the Kiwi proxy may still be trying to establish a connection with the IRC server.
             //Failing to implement this wait logic will result in intermittent issues where the authentication information is sent and lost since Kiwi has not established a connection to the IRC Server.
-            //this.sendRawData(createKiwiProxyPacket("client_info", [{"build_version": vga.irc.connector.kiwi.CLIENT_VERSION.toString()}]));
+            //this.sendRawData(createKiwiProxyPacket("client_info", [{"build_version": vga.webchat.connector.kiwi.CLIENT_VERSION.toString()}]));
             //this.sendRawData(createKiwiProxyPacket('connect_irc', createAuthPacket(authenticationParams)));
             let wait = () => {
                 setTimeout(() => {
                     //Wait until we are in the proxy connected state.
-                    if (this._state === vga.irc.connector.kiwi.STATES.PROXY_CONNECTED) {
-                        this.sendRawData(createKiwiProxyPacket("client_info", [{"build_version": vga.irc.connector.kiwi.CLIENT_VERSION.toString()}]));
+                    if (this._state === vga.webchat.connector.kiwi.STATES.PROXY_CONNECTED) {
+                        this.sendRawData(createKiwiProxyPacket("client_info", [{"build_version": vga.webchat.connector.kiwi.CLIENT_VERSION.toString()}]));
                         this.sendRawData(createKiwiProxyPacket('connect_irc', createAuthPacket(authenticationParams)), undefined, false);
                         return;
                     }
                     //Cancel the wait operation if the state changes to CLOSED before completing the transition to the PROXY_CONNECTED state.
-                    else if (this._state === vga.irc.connector.kiwi.STATES.CLOSED) {
-                        vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onOpen]: Received a CLOSED state before completing the transition to the PROXY_CONNECTED state.');
+                    else if (this._state === vga.webchat.connector.kiwi.STATES.CLOSED) {
+                        vga.util.debuglog.info('[vga.webchat.connector.kiwi.protocolwrapper.onOpen]: Received a CLOSED state before completing the transition to the PROXY_CONNECTED state.');
                         return;
                     }
 
@@ -414,25 +414,25 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * An event that is triggered when the socket has closed.
-         * @method vga.irc.connector.kiwi.protocolwrapper.onClose
+         * @method vga.webchat.connector.kiwi.protocolwrapper.onClose
          * @param {object} event socket event data.
          */
         onClose(event) {
-            vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onClose]: (State before close: ${this._state}).`);
+            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.protocolwrapper.onClose]: (State before close: ${this._state}).`);
             
             //Determine if the client closed the socket or the server did.
             //If the state is closing then the user initiated the close action, otherwise the server closed the connection.
             let eventData;
-            if (this._state === vga.irc.connector.kiwi.STATES.CLOSING) {
+            if (this._state === vga.webchat.connector.kiwi.STATES.CLOSING) {
                 eventData = {reason: 'User closed the connection.', closedByServer: false, existingConnection: true};
             }
             else {
-                let existingConnection = (this._state === vga.irc.connector.kiwi.STATES.OPENED);
+                let existingConnection = (this._state === vga.webchat.connector.kiwi.STATES.OPENED);
                 eventData = {reason: 'Server closed the connection.', closedByServer: true, existingConnection: existingConnection};
             }
 
             //Set the state to closed and run cleanup if it has not been done already.
-            this._state = vga.irc.connector.kiwi.STATES.CLOSED;
+            this._state = vga.webchat.connector.kiwi.STATES.CLOSED;
             this.cleanUp();
 
             //Trigger the disconnect event.
@@ -440,32 +440,32 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
         }
         /**
          * An event that is triggered whenever the socket sends a message.
-         * @method vga.irc.connector.kiwi.protocolwrapper.onMessage
+         * @method vga.webchat.connector.kiwi.protocolwrapper.onMessage
          * @param {object} event socket event data.
          */
         onMessage(event) {
             let parsedMessage = parseMessage(event.data); 
 
             if (parsedMessage.packet === undefined) {
-                vga.util.debuglog.info('[vga.irc.connector.kiwi.protocolwrapper.onMessage]: Empty message.');
+                vga.util.debuglog.info('[vga.webchat.connector.kiwi.protocolwrapper.onMessage]: Empty message.');
                 return;
             }
 
             switch(parsedMessage.status) {
-                case vga.irc.connector.kiwi.PACKET_STATUS.OPEN:
+                case vga.webchat.connector.kiwi.PACKET_STATUS.OPEN:
                     this.onProxyOpened(parsedMessage.packet);
                     break;
-                case vga.irc.connector.kiwi.PACKET_STATUS.MESSAGE:
+                case vga.webchat.connector.kiwi.PACKET_STATUS.MESSAGE:
                     {
                         let serverMessage = parsedMessage.packet;
                         let eventData = serverMessage.params[0].data || {};
                         let command = serverMessage.params[0].command.toLowerCase() || '';
-                        vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onMessage]: (EventData: ${eventData}, Command: ${command}).`, eventData);
+                        vga.util.debuglog.info(`[vga.webchat.connector.kiwi.protocolwrapper.onMessage]: (EventData: ${eventData}, Command: ${command}).`, eventData);
 
-                        if (serverMessage.method === vga.irc.connector.kiwi.PROXY_PREFIX) {
+                        if (serverMessage.method === vga.webchat.connector.kiwi.PROXY_PREFIX) {
                             this.onProxyConnected(eventData);
                         }
-                        else if (serverMessage.method === vga.irc.connector.kiwi.IRC_PREFIX) {
+                        else if (serverMessage.method === vga.webchat.connector.kiwi.IRC_PREFIX) {
                             //Special messages.
                             if (command === 'connect') {
                                 this.onConnect(eventData);
@@ -478,22 +478,22 @@ vga.irc.connector.kiwi = vga.irc.connector.kiwi || {};
                             this._listener.invokeListeners(command, eventData);
                         }
                         else {
-                            vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onMessage]: (Unknown method: ${serverMessage.method}).`);
+                            vga.util.debuglog.info(`[vga.webchat.connector.kiwi.protocolwrapper.onMessage]: (Unknown method: ${serverMessage.method}).`);
                         }
                     }
                     break;
-                case vga.irc.connector.kiwi.PACKET_STATUS.PONG:
-                    vga.util.debuglog.info("[vga.irc.connector.kiwi.protocolwrapper.onMessage]: Server Pong.");
+                case vga.webchat.connector.kiwi.PACKET_STATUS.PONG:
+                    vga.util.debuglog.info("[vga.webchat.connector.kiwi.protocolwrapper.onMessage]: Server Pong.");
                     break;
-                case vga.irc.connector.kiwi.PACKET_STATUS.PING:
-                    vga.util.debuglog.info("[vga.irc.connector.kiwi.protocolwrapper.onMessage]: Server Ping responding with Pong.");
-                    this.sendRawData(vga.irc.connector.kiwi.PACKET_STATUS.PONG);
+                case vga.webchat.connector.kiwi.PACKET_STATUS.PING:
+                    vga.util.debuglog.info("[vga.webchat.connector.kiwi.protocolwrapper.onMessage]: Server Ping responding with Pong.");
+                    this.sendRawData(vga.webchat.connector.kiwi.PACKET_STATUS.PONG);
                     break;
                 default:
-                    vga.util.debuglog.info(`[vga.irc.connector.kiwi.protocolwrapper.onMessage]: (Unhandled status: ${parsedMessage.status}).`);
+                    vga.util.debuglog.info(`[vga.webchat.connector.kiwi.protocolwrapper.onMessage]: (Unhandled status: ${parsedMessage.status}).`);
                     break;
             }
         }
     }
-    //END OF vga.irc.connector.kiwi.protocolwrapper = class {...
+    //END OF vga.webchat.connector.kiwi.protocolwrapper = class {...
 }());

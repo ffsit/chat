@@ -45,7 +45,7 @@
 
 //Namespace declaration.
 var vga = vga || {};
-vga.irc = vga.irc || {};
+vga.webchat = vga.webchat || {};
 
 ///////////////////////////////////////////////////////////
 // The main VGA chat application.
@@ -88,9 +88,9 @@ $(function(){
     // Event: onJoin ({ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool })
     // Event: onLeave ({ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool })
     // Event: onQuit ({ userKey: string, identity: string, nickname: string, isMe: bool })
-    // Event: onChannelMode ({ channelKey: string, modes: bitarray, action: vga.irc.roleModeAction })
-    // Event: onRole ({ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, roles: bitarray })
-    // Event: onStatus ({ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.irc.roleModeAction, status: bitarray })
+    // Event: onChannelMode ({ channelKey: string, modes: bitarray, action: vga.webchat.roleModeAction })
+    // Event: onRole ({ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.webchat.roleModeAction, roles: bitarray })
+    // Event: onStatus ({ channelKey: string, userKey: string, identity: string, nickname: string, isMe: bool, action: vga.webchat.roleModeAction, status: bitarray })
     // Event: onAccessDenied()
     // Event: onKicked ({ identity: string, userKey: string, channelKey: string, isMe: bool })
     // Event: onBanned ({ identity: string, userKey: string, channelKey: string })
@@ -116,19 +116,19 @@ $(function(){
      * @return {string} the CSS class assigned to the most significant role.
      */
     function getRoleName(roles) {
-        switch(vga.irc.getMostSignificantRole(roles))
+        switch(vga.webchat.getMostSignificantRole(roles))
         {
-            case vga.irc.roles.owner:
-            case vga.irc.roles.admin:
+            case vga.webchat.roles.owner:
+            case vga.webchat.roles.admin:
                 return 'crew';
            
-            case vga.irc.roles.mod:
+            case vga.webchat.roles.mod:
                 return 'mod';
 
-            case vga.irc.roles.guest:
+            case vga.webchat.roles.guest:
                 return 'guest';
 
-            case vga.irc.roles.turbo:
+            case vga.webchat.roles.turbo:
                 return 'turbo';
             
             default:
@@ -143,7 +143,7 @@ $(function(){
      * @return {string} the CSS class assigned to the most significant status.
      */
     function getStatusName(status) {
-        return (vga.irc.getMostSignificantStatus(status) === vga.irc.status.banned) ? 'banned' : '';
+        return (vga.webchat.getMostSignificantStatus(status) === vga.webchat.status.banned) ? 'banned' : '';
     };
 
     /**
@@ -153,7 +153,7 @@ $(function(){
      * @return {bool} true if the roles contain mod capabilities.
      */
     function hasModCapabilities(roles) {
-        return vga.irc.getMostSignificantRole(roles) >= vga.irc.roles.mod;
+        return vga.webchat.getMostSignificantRole(roles) >= vga.webchat.roles.mod;
     }
 
     /**
@@ -163,7 +163,7 @@ $(function(){
      * @return {bool} true if the roles contain guest capabilities.
      */
     function hasGuestCapabilities(roles) {
-        return vga.irc.getMostSignificantRole(roles) === vga.irc.roles.guest;
+        return vga.webchat.getMostSignificantRole(roles) === vga.webchat.roles.guest;
     }
 
     //-----------------------------------------------------------------
@@ -373,7 +373,7 @@ $(function(){
         let $userEntry = getChannelWindow(channelName).find(`.user-entry[data-identity=${user.identity}]`);
 
         //If the user has a banned status then remove all of his or her messages.
-        if (vga.irc.getMostSignificantStatus(user.status) === vga.irc.status.banned) {
+        if (vga.webchat.getMostSignificantStatus(user.status) === vga.webchat.status.banned) {
             $userEntry.remove();
         }
         else {
@@ -529,12 +529,12 @@ $(function(){
 
     /**
      * Main chat logic.
-     * @class vga.irc.chat
+     * @class vga.webchat.chat
      */
-    vga.irc.chat = class {
+    vga.webchat.chat = class {
         /**
          * The main constructor for the chat logic.
-         * @method vga.irc.chat.constructor
+         * @method vga.webchat.chat.constructor
          * @param {object} options Additional options for chat.
          */
         constructor (options) {
@@ -555,11 +555,11 @@ $(function(){
             //-----------------------------------------------------------------
             // Versioning
             //-----------------------------------------------------------------
-            vga.irc.chat.CLIENT_VERSION = new vga.util.version(1, 1, 1);
+            vga.webchat.chat.CLIENT_VERSION = new vga.util.version(1, 1, 2);
 
             //Internal variables.
             this._userChannels = {};
-            this._smoothScrollState = vga.irc.smoothScrollState.stopped;
+            this._smoothScrollState = vga.webchat.smoothScrollState.stopped;
 
             //Chat settings.
             this._hostname = options.hostname;
@@ -594,11 +594,11 @@ $(function(){
             this.bindEvents();
             this.onLoadSettings();
 
-            console.log(`[vga.irc.chat]: Starting chat version: ${vga.irc.chat.CLIENT_VERSION.toString()}`);
+            console.log(`[vga.webchat.chat]: Starting chat version: ${vga.webchat.chat.CLIENT_VERSION.toString()}`);
 
             //The connector.  This guy has abstracted all the specific IRC or back-end chat server logic away.
             //If we switch to another IRC type, a new connector can be written to handle this without rewriting all of chat.
-            this.connector = new vga.irc.connector.kiwi.connector(options.url, {
+            this.connector = new vga.webchat.connector.kiwi.connector(options.url, {
                 supportConcurrentChannelJoins: options.supportConcurrentChannelJoins,
                 autoJoinChannel: autoJoinChannel,
                 attemptReconnect: enableReconnect,
@@ -615,7 +615,7 @@ $(function(){
         /**
          * Performs the bulk of the logic when writing a message to the channel window.
          * The logic within this method also handles various actions based on user privilege.
-         * @method vga.irc.chat.writeMessage
+         * @method vga.webchat.chat.writeMessage
          * @param {string} channelName to write the message.
          * @param {object} effectedUser being effected by the message.
          * @param {string} message to write to the channel window.
@@ -664,7 +664,7 @@ $(function(){
             }
 
             let identity = (effectedUser !== undefined) ? effectedUser.identity.trim() : 'undefined';
-            let roleName = getRoleName((effectedUser !== undefined) ? effectedUser.roles : vga.irc.roles.shadow);
+            let roleName = getRoleName((effectedUser !== undefined) ? effectedUser.roles : vga.webchat.roles.shadow);
 
             //Generate the nickname color and change it based on the seed function, if defined.
             let nickColor = getNickColorClass(effectedUser.identity, this._nicknameColorSeedFunction && this._nicknameColorSeedFunction());
@@ -693,7 +693,7 @@ $(function(){
         }
         /**
          * This is a helper method that will show or hide a setting.
-         * @method vga.irc.chat.showToggleSetting
+         * @method vga.webchat.chat.showToggleSetting
          * @param {string} settingsName to show or hide.
          * @param {bool} visible is true to show the setting feature.
          */
@@ -702,7 +702,7 @@ $(function(){
         }
         /**
          * This is a helper method that will perform toggle the setting icon.
-         * @method vga.irc.chat.toggleSettingItem
+         * @method vga.webchat.chat.toggleSettingItem
          * @param {string} settingsName to toggle on or off.
          * @param {bool} activate or deactivate this specific setting item.
          */
@@ -711,7 +711,7 @@ $(function(){
         }
         /**
          * This is a helper method to handle all the little details of turning Frash Show Mode on and off.
-         * @method vga.irc.chat.setFrashShowMode
+         * @method vga.webchat.chat.setFrashShowMode
          * @param {bool} activate or deactivate frash show mode.
          */
         setFrashShowMode(activate) {
@@ -735,7 +735,7 @@ $(function(){
 
         /**
          * This is a helper method that starts the theme monitor.
-         * @method vga.irc.chat.startThemes
+         * @method vga.webchat.chat.startThemes
          */
         startThemes() {
             let themesWatcher = () => {
@@ -757,7 +757,7 @@ $(function(){
         }
         /**
          * This is a helper method that stops the theme monitor.
-         * @method vga.irc.chat.stopThemes
+         * @method vga.webchat.chat.stopThemes
          */
         stopThemes() {
             clearTimeout(this._themesIntervalId);
@@ -769,17 +769,17 @@ $(function(){
 
         /**
          * This is a helper method that starts and handles the Kshade smooth scroll logic.
-         * @method vga.irc.chat.startSmoothScrolling
+         * @method vga.webchat.chat.startSmoothScrolling
          */
         startSmoothScrolling() {
             let smoothScroll = () => {
                 //If scrolling is stopped prevent recursive calls to this function to continue.
-                if (this._smoothScrollState === vga.irc.smoothScrollState.stopped) {
+                if (this._smoothScrollState === vga.webchat.smoothScrollState.stopped) {
                     return;
                 }
                 this._smoothScrollIntervalId = setTimeout(() => {
                     //Prevent any scrolling if scrolling is paused.
-                    if (this._smoothScrollState === vga.irc.smoothScrollState.started) {
+                    if (this._smoothScrollState === vga.webchat.smoothScrollState.started) {
                         //Find all available windows except the template.
                         let $windows = $channelContainer.find(':not(#channel-tab-template)').find('.channel-window');
                         $.each($windows, (index, e) => {
@@ -802,25 +802,25 @@ $(function(){
                     smoothScroll();
                 }, 33);
             }
-            this._smoothScrollState = vga.irc.smoothScrollState.started;
+            this._smoothScrollState = vga.webchat.smoothScrollState.started;
             smoothScroll();
         }
         /**
          * This is a helper method that stops the smooth scrolling.
-         * @method vga.irc.chat.stopSmoothScrolling
+         * @method vga.webchat.chat.stopSmoothScrolling
          */
         stopSmoothScrolling() {
-            this._smoothScrollState = vga.irc.smoothScrollState.stopped;
+            this._smoothScrollState = vga.webchat.smoothScrollState.stopped;
             clearTimeout(this._smoothScrollIntervalId);
         }
         /**
          * This is a helper method that pauses the smooth scrolling.
-         * @method vga.irc.chat.pauseSmoothScrolling
+         * @method vga.webchat.chat.pauseSmoothScrolling
          * @param {bool} activate or deactivate the pause logic 
          */
         pauseSmoothScrolling(activate) {
-            if (this._smoothScrollState !== vga.irc.smoothScrollState.stopped) {
-                this._smoothScrollState = activate ? vga.irc.smoothScrollState.paused : vga.irc.smoothScrollState.started;
+            if (this._smoothScrollState !== vga.webchat.smoothScrollState.stopped) {
+                this._smoothScrollState = activate ? vga.webchat.smoothScrollState.paused : vga.webchat.smoothScrollState.started;
             }
         }
 
@@ -831,7 +831,7 @@ $(function(){
 
         /**
          * Attempts to connect a user to the chat server.
-         * @method vga.irc.chat.connect
+         * @method vga.webchat.chat.connect
          * @param {string} nickname the user's nickname to authenticate with.
          * @param {string} password the user's password to authenticate with.
          * @param {string} channel the channel the user is attempting to autojoin.
@@ -849,7 +849,7 @@ $(function(){
         }
         /**
          * Attempts to close the connection.
-         * @method vga.irc.chat.close
+         * @method vga.webchat.chat.close
          * @param {string} message the message to send to the server when closing (disconnecting) the chat.
          */
         close(message) {
@@ -858,7 +858,7 @@ $(function(){
         }
         /**
          * Attempts to send a command or message.
-         * @method vga.irc.chat.send
+         * @method vga.webchat.chat.send
          * @param {string} channelName to send the command or message.
          * @param {string} message or command to send to the specific channel.
          */
@@ -878,7 +878,7 @@ $(function(){
         }
         /**
          * Attempts to join a channel or will switch to it if the user has already joined the channel.
-         * @method vga.irc.chat.join
+         * @method vga.webchat.chat.join
          * @param {string} channelName to join after connecting.
          */
         join(channelName) {
@@ -894,7 +894,7 @@ $(function(){
         }
         /**
          * Attempts to leave a channel.
-         * @method vga.irc.chat.leave
+         * @method vga.webchat.chat.leave
          * @param {string} channelName to leave.
          * @param {string} message the message to send to the server when leaving a channel.
          */   
@@ -915,8 +915,8 @@ $(function(){
             return this;
         }
         /**
-         * Performs an emote on a emote channelname.
-         * @method vga.irc.chat.emote
+         * Performs an emote on a specific channel.
+         * @method vga.webchat.chat.emote
          * @param {string} channelName to send the command or message.
          * @param {string} emote to perofrm.
          */
@@ -930,7 +930,7 @@ $(function(){
         }
         /**
          * Performs a whisper to a specific user.
-         * @method vga.irc.chat.whisper
+         * @method vga.webchat.chat.whisper
          * @param {string} channelName current channel the user is speaking on.
          * @param {string} userNickname to send the whisper.
          * @param {string} message to send.
@@ -950,7 +950,7 @@ $(function(){
         }
         /**
          * Spits out help information to the invoking user.
-         * @method vga.irc.chat.help
+         * @method vga.webchat.chat.help
          * @param {string} channelName current channel the user is on.
          */
         help(channelName) {
@@ -969,7 +969,7 @@ $(function(){
         }
         /**
          * Manages the send user message.
-         * @method vga.irc.chat.handleUserMessage
+         * @method vga.webchat.chat.handleUserMessage
          * @param {string} channelName to send the message to.
          * @param {string} message the message to send to the chat with the specific channel.
          */        
@@ -984,7 +984,7 @@ $(function(){
         }
         /**
          * Manages the user commands.
-         * @method vga.irc.chat.handleUserCommand
+         * @method vga.webchat.chat.handleUserCommand
          * @param {string} channelName to send the command.
          * @param {string} command to trigger.
          * @param {string} args to send with the command.
@@ -1041,28 +1041,28 @@ $(function(){
         }
         /**
          * Attempts to set turbo mode on the channel.
-         * @method vga.irc.chat.setTurboMode
+         * @method vga.webchat.chat.setTurboMode
          * @param {string} channelName to apply turbo mode.
          * @param {bool} activate or disables the turbo mode.
          */
         setTurboMode(channelName, activate) {
             if (this.connector) {
-                this.connector.setMode(`#${channelName}`, vga.irc.channelmodes.turbo, (activate ? vga.irc.roleModeAction.add : vga.irc.roleModeAction.remove));
+                this.connector.setMode(`#${channelName}`, vga.webchat.channelmodes.turbo, (activate ? vga.webchat.roleModeAction.add : vga.webchat.roleModeAction.remove));
                 this.toggleSettingItem(turboModeId, activate);
             }
             return this;
         }
         /**
          * Attempts to set a timed ban on the user identity in the specific channel.
-         * @method vga.irc.chat.setTimedBan
+         * @method vga.webchat.chat.setTimedBan
          * @param {string} channelName the user is occupying.
          * @param {string} identity of the user to apply a status.
          * @param {bool} activate or disables the turbo mode.
          */
         setTimedBan(channelName, identity, activate) {
             if (this.connector) {
-                let status = vga.irc.bitArray.add(0, vga.irc.status.banned | vga.irc.status.timed);
-                let action = (activate ? vga.irc.roleModeAction.add : vga.irc.roleModeAction.remove);
+                let status = vga.webchat.bitArray.add(0, vga.webchat.status.banned | vga.webchat.status.timed);
+                let action = (activate ? vga.webchat.roleModeAction.add : vga.webchat.roleModeAction.remove);
                 this.connector.setUserStatus(channelName, identity, status, action, {duration: this._timedBanDurationInSeconds});
             }
             return this;
@@ -1075,7 +1075,7 @@ $(function(){
 
         /**
          * An event that is triggered on a successful connection to the chat server.
-         * @method vga.irc.chat.onConnect
+         * @method vga.webchat.chat.onConnect
          * @param {object} eventData information.
          */
         onConnect(eventData) {
@@ -1083,12 +1083,12 @@ $(function(){
             toggleLoginWindow(false);
             this.startSmoothScrolling();
             this.startThemes();
-            writeInformationalMessage(eventData.channelKey, `VGA Chat version:${vga.irc.chat.CLIENT_VERSION.toString()}`);
+            writeInformationalMessage(eventData.channelKey, `VGA Chat version:${vga.webchat.chat.CLIENT_VERSION.toString()}`);
         }
 
         /**
          * An event that is triggered when a disonnect event happens.
-         * @method vga.irc.chat.onDisconnect
+         * @method vga.webchat.chat.onDisconnect
          * @param {object} eventData information.
          */
         onDisconnect(eventData) {
@@ -1111,7 +1111,7 @@ $(function(){
 
         /**
          * An event that is triggered when a topic event occurs.
-         * @method vga.irc.chat.onReconnect
+         * @method vga.webchat.chat.onReconnect
          */
         onReconnect() {
             setStatus('The server stopped responding...retrying.', 5000);
@@ -1120,7 +1120,7 @@ $(function(){
 
         /**
          * An event that is triggered when a topic event occurs.
-         * @method vga.irc.chat.onTopic
+         * @method vga.webchat.chat.onTopic
          * @param {object} eventData information.
          */
         onTopic(eventData) {
@@ -1129,7 +1129,7 @@ $(function(){
 
         /**
          * An event that is triggered when a channel mode changes.
-         * @method vga.irc.chat.onChannelMode
+         * @method vga.webchat.chat.onChannelMode
          * @param {object} eventData
          */
         onChannelMode(eventData) {
@@ -1138,18 +1138,19 @@ $(function(){
                 let $channelTab = getChannelTab(eventData.channelKey);
 
                 //Handle the turbo mode events.
-                if (eventData.modes === vga.irc.channelmodes.turbo) {
+                if (eventData.modes === vga.webchat.channelmodes.turbo) {
                     
                     //Toggle the turbo mode setting.
-                    this.toggleSettingItem(turboModeId, eventData.action === vga.irc.roleModeAction.add);
+                    //This keeps the turbo mode button in sync for all mods/helpers.
+                    this.toggleSettingItem(turboModeId, eventData.action === vga.webchat.roleModeAction.add);
 
                     //Determine if turbo mode has been turned on or off.
-                    if (eventData.action === vga.irc.roleModeAction.add) {
+                    if (eventData.action === vga.webchat.roleModeAction.add) {
                         writeInformationalMessage(eventData.channelKey, `The room is now in TURBO only mode.`);
                         
                         //Disable the chatbox if the user is a shadow when turbo mode is on.
                         let me = channel[this.connector.getMyUserKey()];
-                        $channelTab.find('input.chatbox').prop('disabled', vga.irc.getMostSignificantRole(me.roles) === vga.irc.roles.shadow);
+                        $channelTab.find('input.chatbox').prop('disabled', vga.webchat.getMostSignificantRole(me.roles) === vga.webchat.roles.shadow);
                     }
                     else {
                         writeInformationalMessage(eventData.channelKey, `The room is now free for all chatters.`);
@@ -1160,7 +1161,7 @@ $(function(){
         }
         /**
          * This event is triggered on a nickname change.
-         * @method vga.irc.connector.kiwi.connector.onNick
+         * @method vga.webchat.connector.kiwi.connector.onNick
          * @param {object} eventData event data associated with nickname event sent by the server.
          */
         onNick(eventData) {
@@ -1187,10 +1188,11 @@ $(function(){
         }
         /**
          * An event that is triggered when receiving a message from the chat server.
-         * @method vga.irc.chat.onMessage
+         * @method vga.webchat.chat.onMessage
          * @param {string} eventData broadcasted to the channel.
          */
         onMessage(eventData) {
+            //Note: Mod shouts (walls) are not visible in chat for anyone using Frash show mode.
             if (!this._wallRegEx.test(eventData.message) || !this._frashShowMode) {
                 
                 // --- Caff (7/3/17) --- Version [1.0.2] --- Updated the formatting for private messages.
@@ -1213,7 +1215,7 @@ $(function(){
         }
         /**
          * An event that is triggered when a user list is provided.
-         * @method vga.irc.chat.onUserlist
+         * @method vga.webchat.chat.onUserlist
          * @param {object} eventData An object that contains the channel and the users associated with that channel.
          */ 
         onUserlist(eventData) {
@@ -1222,7 +1224,7 @@ $(function(){
         }
         /**
          * An event that is triggered when the a user has joined a channel.
-         * @method vga.irc.chat.onJoin
+         * @method vga.webchat.chat.onJoin
          * @param {object} eventData
          */
         onJoin(eventData) {
@@ -1240,7 +1242,7 @@ $(function(){
                     let user = channel[eventData.userKey];
                     //If the user is new then add him or her to the userlist and channel information block.
                     if (!user) {
-                        user = new vga.irc.userEntity(eventData.identity, eventData.nickname);
+                        user = new vga.webchat.userEntity(eventData.identity, eventData.nickname);
                         channel[eventData.userKey] = user;
                         if (!this._frashShowMode && this._showUserJoinLeaveMessage && !eventData.isMe) {
                             this.writeMessage(eventData.channelKey, user, `has joined.`, 'action');
@@ -1255,7 +1257,7 @@ $(function(){
         }
         /**
          * An event that is triggered when a user has left the channel.
-         * @method vga.irc.chat.onLeave
+         * @method vga.webchat.chat.onLeave
          * @param {object} eventData
          */
         onLeave(eventData){
@@ -1295,8 +1297,8 @@ $(function(){
             }
         }
         /**
-         * An event that is triggered when the authenticated user has joined a channel.
-         * @method vga.irc.chat.onQuit
+         * An event that is triggered when a user quits the chat.  Quitter
+         * @method vga.webchat.chat.onQuit
          * @param {object} eventData
          */
         onQuit(eventData) {
@@ -1312,7 +1314,7 @@ $(function(){
         }
         /**
          * An event that is triggered on a role assignment either with the authenticated user or another user in chat.
-         * @method vga.irc.chat.onRole
+         * @method vga.webchat.chat.onRole
          * @param {object} eventData contains the role information for the specific channel per user.
          */
         onRole (eventData) {
@@ -1334,7 +1336,7 @@ $(function(){
         }
         /**
          * An event that is triggered on a status assignment either with the authenticated user or another user in chat.
-         * @method vga.irc.chat.onStatus
+         * @method vga.webchat.chat.onStatus
          * @param {object} eventData contains the status information for the specific channel per user.
          */
         onStatus (eventData) {
@@ -1363,22 +1365,22 @@ $(function(){
                 if (eventData.isMe) {
 
                     //TODO: Find a way to consolidate this with the banned event that is triggered when a banned user tries to log into a channel.
-                    if (eventData.status === vga.irc.status.banned) {
-                        writeInformationalMessage(eventData.channelKey, (eventData.action === vga.irc.roleModeAction.add ? `You have been timed out.` : 'Your timeout has expired.'));
+                    if (eventData.status === vga.webchat.status.banned) {
+                        writeInformationalMessage(eventData.channelKey, (eventData.action === vga.webchat.roleModeAction.add ? `You have been timed out.` : 'Your timeout has expired.'));
                     }
                 }
             }
         }
         /**
          * An event that is triggered when the authentication information is incorrect.
-         * @method vga.irc.chat.onAccessDenied
+         * @method vga.webchat.chat.onAccessDenied
          */
         onAccessDenied() {
             setStatus('Invalid login, please try again');
         }
         /**
          * An event that is triggered when the user was kicked from the channel.
-         * @method vga.irc.chat.onKicked
+         * @method vga.webchat.chat.onKicked
          * @param {object} eventData additional kick information.
          */
         onKicked(eventData) {
@@ -1391,7 +1393,7 @@ $(function(){
         }
         /**
          * An event that is triggered when the user is banned from the channel.
-         * @method vga.irc.chat.onBanned
+         * @method vga.webchat.chat.onBanned
          * @param {object} eventData additional banned information.
          */
         onBanned(eventData) {
@@ -1402,7 +1404,7 @@ $(function(){
         }
         /**
          * An event that is triggered when the user is banned from the channel.
-         * @method vga.irc.chat.onError
+         * @method vga.webchat.chat.onError
          * @param {object} eventData additional error information.
          */
         onError(eventData) {
@@ -1419,7 +1421,7 @@ $(function(){
 
         /**
          * This method binds the presentation events.
-         * @method vga.irc.chat.bindEvents
+         * @method vga.webchat.chat.bindEvents
          */
         bindEvents() {
             $('#vgairc_loginform').off().on('submit', (e) => {
@@ -1454,7 +1456,7 @@ $(function(){
         }
         /**
          * This event is triggered when a user triggers the chat login event.
-         * @method vga.irc.chat.onLogin
+         * @method vga.webchat.chat.onLogin
          */
         onLogin() {
             let channelName = (($channel.val() || this._defaultChannel) || '').trim()
@@ -1464,7 +1466,7 @@ $(function(){
         }
         /**
          * This event is triggered when a user toggles the user list for a specific channel.
-         * @method vga.irc.chat.onUserListToggle
+         * @method vga.webchat.chat.onUserListToggle
          * @param {object} $this is a jQuery object that triggered the event.
          */
         onUserListToggle($this) {
@@ -1475,7 +1477,7 @@ $(function(){
         }
         /**
          * This event is triggered when a user toggles the global settings menu.
-         * @method vga.irc.chat.onGlobalSettingsMenu
+         * @method vga.webchat.chat.onGlobalSettingsMenu
          * @param {object} $this is a jQuery object that triggered the event.
          */
         onGlobalSettingsMenu($this) {
@@ -1484,7 +1486,7 @@ $(function(){
         }
         /**
          * This event is triggered when a the load cookie setting event is triggered.
-         * @method vga.irc.chat.onLoadSettings
+         * @method vga.webchat.chat.onLoadSettings
          */
         onLoadSettings() {
             let joinMode = (vga.util.readCookie(joinModeId, 'false') === 'true');
@@ -1498,7 +1500,7 @@ $(function(){
         }
         /**
          * This event is triggered when a user toggles a setting from the global settings menu.
-         * @method vga.irc.chat.onSettingsItemToggle
+         * @method vga.webchat.chat.onSettingsItemToggle
          * @param {object} $this is a jQuery object that triggered the event.
          */
         onSettingsItemToggle($this) {
@@ -1530,7 +1532,7 @@ $(function(){
         }
         /**
          * This event is triggered when a mod clicks on the timeout icon next to a user.
-         * @method vga.irc.chat.onChannelWindowHover
+         * @method vga.webchat.chat.onChannelWindowHover
          * @param {object} $this is a jQuery object that triggered the event.
          */        
         onTimeoutUser($this) {
@@ -1544,7 +1546,7 @@ $(function(){
         }
         /**
          * This event is triggered when a user hovers over the current channel window.
-         * @method vga.irc.chat.onChannelWindowHover
+         * @method vga.webchat.chat.onChannelWindowHover
          * @param {object} $this is a jQuery object that triggered the event.
          */
         onChannelWindowHover(isHovering) {
@@ -1552,7 +1554,7 @@ $(function(){
         }
         /**
          * This event is triggered when a user sends a command or message to the chat.
-         * @method vga.irc.chat.onSendCommandMessage
+         * @method vga.webchat.chat.onSendCommandMessage
          * @param {object} $this is a jQuery object that triggered the event.
          */
         onSendCommandMessage($this, key) {

@@ -44,7 +44,7 @@
 
 //Namespace declaration.
 var vga = vga || {};
-vga.irc = vga.irc || {};
+vga.webchat = vga.webchat || {};
 
 //-----------------------------------------------------------------
 // User Entity class
@@ -52,12 +52,12 @@ vga.irc = vga.irc || {};
 
 /**
  * Common user entity class used to maintain consistency and normalize the user entity object.
- * @class vga.irc.userEntity
+ * @class vga.webchat.userEntity
  */
-vga.irc.userEntity = class  {
+vga.webchat.userEntity = class  {
     constructor(identity, nickname, roles) {
-        this.roles = (roles !== undefined) ? roles : vga.irc.roles.shadow;
-        this.status = vga.irc.status.nominal;
+        this.roles = (roles !== undefined) ? roles : vga.webchat.roles.shadow;
+        this.status = vga.webchat.status.nominal;
         //This is the user's true identity that will be shown to everyone.
         this.identity = identity;
         //A collection of nicknames that the user may be assigned if he or she has multiple sessions.
@@ -65,33 +65,33 @@ vga.irc.userEntity = class  {
     }
     /**
      * Applies a role based on the action to the current user entity.
-     * @method vga.irc.applyRoles
-     * @param {number} roleAction type of action (vga.irc.roleModeAction) to apply.
+     * @method vga.webchat.applyRoles
+     * @param {number} roleAction type of action (vga.webchat.roleModeAction) to apply.
      * @param {number} rolesToApply bitarray of roles to apply.
      * @api public
      */
     applyRoles(roleAction, rolesToApply) {
-        this.roles = (roleAction === vga.irc.roleModeAction.add)
-            ? vga.irc.bitArray.add(this.roles, rolesToApply)
-            : vga.irc.bitArray.remove(this.roles, rolesToApply);
+        this.roles = (roleAction === vga.webchat.roleModeAction.add)
+            ? vga.webchat.bitArray.add(this.roles, rolesToApply)
+            : vga.webchat.bitArray.remove(this.roles, rolesToApply);
         return this;
     }
     /**
      * Applies a status based on the action to the current user entity.
-     * @method vga.irc.applyStatus
-     * @param {number} modeAction type of action (vga.irc.roleModeAction) to apply.
+     * @method vga.webchat.applyStatus
+     * @param {number} modeAction type of action (vga.webchat.roleModeAction) to apply.
      * @param {number} modesToApply bitarray of modes to apply.
      * @api public
      */    
     applyStatus(modeAction, modesToApply) {
-        this.status = (modeAction === vga.irc.roleModeAction.add)
-            ? vga.irc.bitArray.add(this.status, modesToApply)
-            : vga.irc.bitArray.remove(this.status, modesToApply);
+        this.status = (modeAction === vga.webchat.roleModeAction.add)
+            ? vga.webchat.bitArray.add(this.status, modesToApply)
+            : vga.webchat.bitArray.remove(this.status, modesToApply);
         return this;
     }
     /**
      * Append a nickname to the user entity.
-     * @method vga.irc.addNickname
+     * @method vga.webchat.addNickname
      * @param {string} nickname a nickname to append to the user.
      * @api public
      */
@@ -103,7 +103,7 @@ vga.irc.userEntity = class  {
     }
     /**
      * Removes a nickname from the user entity.
-     * @method vga.irc.removeNickname
+     * @method vga.webchat.removeNickname
      * @param {string} nickname a nickname to remove to the user.
      * @api public
      */

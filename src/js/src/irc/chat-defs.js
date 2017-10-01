@@ -44,9 +44,9 @@
 
 //Namespace declaration.
 var vga = vga || {};
-vga.irc = vga.irc || {};
+vga.webchat = vga.webchat || {};
 
-vga.irc.roles = {
+vga.webchat.roles = {
     owner:  32,
     admin:  16,
     mod:    8,
@@ -56,30 +56,30 @@ vga.irc.roles = {
     none: 0
 };
 
-vga.irc.status = {
+vga.webchat.status = {
     muted:  4,
     timed: 2,
     banned: 1,
     nominal: 0
 };
 
-vga.irc.roleModeAction = {
+vga.webchat.roleModeAction = {
     remove: 0,
     add: 1
 };
 
-vga.irc.channelmodes = {
+vga.webchat.channelmodes = {
     turbo: 1,
     none: 0
 };
 
-vga.irc.smoothScrollState = {
+vga.webchat.smoothScrollState = {
     stopped: 0,
     started: 1,
     paused: 2
 }
 
-vga.irc.messageType = {
+vga.webchat.messageType = {
     message: 0,
     action: 1,
     whisper: 2
@@ -90,18 +90,18 @@ vga.irc.messageType = {
 //-----------------------------------------------------------------
 
 //TODO: Make this a class.
-vga.irc.bitArray = vga.irc.bitArray || {};
+vga.webchat.bitArray = vga.webchat.bitArray || {};
 
 /**
  * Finds the most significant value based on the bit weight of the type.
- * @method vga.irc.bitArray.getMostSignificantRole
+ * @method vga.webchat.bitArray.getMostSignificantRole
  * @param {number} values bitarray of values.
  * @param {object} types defined 'enum' type.
  * @param {number} defaultValue
  * @return most significant value.
  * @api public
  */
-vga.irc.bitArray.getMostSignificantValue = function(values, types, defaultValue) {
+vga.webchat.bitArray.getMostSignificantValue = function(values, types, defaultValue) {
     let numOfValues = vga.util.propertyCount(types);
 	for(let bitNum = numOfValues - 1; bitNum >= 0; bitNum--) {
 		let bitVal = (1 << bitNum);
@@ -114,50 +114,50 @@ vga.irc.bitArray.getMostSignificantValue = function(values, types, defaultValue)
 
 /**
  * Applies a one or more values to the current bitarray.
- * @method vga.irc.bitArray.add
+ * @method vga.webchat.bitArray.add
  * @param {number} value bitarray of values.
  * @param {number} valueToApply bitarray of a value or values to apply.
  * @return updated values bitarray.
  * @api public
  */
-vga.irc.bitArray.add = function(value, valueToApply) {
+vga.webchat.bitArray.add = function(value, valueToApply) {
     return (value | valueToApply);
 };
 
 /**
  * Removes a one or more values to the current bitarray.
- * @method vga.irc.bitArray.remove
+ * @method vga.webchat.bitArray.remove
  * @param {number} value bitarray of values.
  * @param {number} valueToApply bitarray of a value or values to apply.
  * @return updated values bitarray.
  * @api public
  */
-vga.irc.bitArray.remove = function(value, valueToApply) {
+vga.webchat.bitArray.remove = function(value, valueToApply) {
     return (value ^ (value & valueToApply));
 };
 
 /**
  * Determines if valueToEvaluate is in the bitarray.
- * @method vga.irc.bitArray.contains
+ * @method vga.webchat.bitArray.contains
  * @param {number} value bitarray of values.
  * @param {number} valueToEvaluate in the bitarray.
  * @return true if the bitarray contains the valueToEvaluate.
  * @api public
  */
-vga.irc.bitArray.contains = function(value, valueToEvaluate) {
+vga.webchat.bitArray.contains = function(value, valueToEvaluate) {
     return (value & valueToEvaluate === valueToEvaluate);
 };
 
 /**
  * A helper method that will compile an array of values into a bitarray.
- * @method vga.irc.bitArray.compileBitArray
+ * @method vga.webchat.bitArray.compileBitArray
  * @param {array} valueArray array of values.
  * @param {function} transformFunction the transformation function that transforms an array into a bitarray.
  * @param {number} defaultValue that is used if nothing is transformed or the valueArray is empty.
  * @return a compiled bitarray.
  * @api public
  */
-vga.irc.bitArray.compileBitArray = function(valueArray, transformFunction, defaultValue){
+vga.webchat.bitArray.compileBitArray = function(valueArray, transformFunction, defaultValue){
     //Normalize the valueArray.
     valueArray = valueArray || [];
 
@@ -187,22 +187,22 @@ vga.irc.bitArray.compileBitArray = function(valueArray, transformFunction, defau
 
 /**
  * Finds the most significant role based on the bit weight.
- * @method vga.irc.getMostSignificantRole
+ * @method vga.webchat.getMostSignificantRole
  * @param {number} roles bitarray of roles.
  * @return most significant role.
  * @api public
  */
-vga.irc.getMostSignificantRole = function(roles) {
-    return vga.irc.bitArray.getMostSignificantValue(roles, vga.irc.roles, vga.irc.roles.shadow);
+vga.webchat.getMostSignificantRole = function(roles) {
+    return vga.webchat.bitArray.getMostSignificantValue(roles, vga.webchat.roles, vga.webchat.roles.shadow);
 };
 
 /**
  * Finds the most significant status based on the bit weight.
- * @method vga.irc.getMostSignificantStatus
+ * @method vga.webchat.getMostSignificantStatus
  * @param {number} status bitarray of status.
  * @return most significant status.
  * @api public
  */
-vga.irc.getMostSignificantStatus = function(status) {
-    return vga.irc.bitArray.getMostSignificantValue(status, vga.irc.status, vga.irc.status.nominal);
+vga.webchat.getMostSignificantStatus = function(status) {
+    return vga.webchat.bitArray.getMostSignificantValue(status, vga.webchat.status, vga.webchat.status.nominal);
 };
