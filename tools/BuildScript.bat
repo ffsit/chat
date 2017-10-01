@@ -1,4 +1,4 @@
-#A Windows Batch file that will minify the JS files to the proper location.
+REM A Windows Batch file that will minify the JS files to the proper location.
 
 cd ..
 java -jar "tools/closure-compiler-v20170626.jar" --js_output_file="src/js/util.min.js" --js="src/js/src/irc/util/*.js"
