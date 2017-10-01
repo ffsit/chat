@@ -62,7 +62,7 @@ $(function(){
     let themes = [];
     if (!vga.util.inUrl('disableThemes')) {
         //NOTE: The year in the date string has no meaning, it will be replaced with the current UTC year.
-        themes = [{ name: 'halloween', beginDate: '10/30/2010 PDT', endDate: '11/1/2010 PDT' }, { name: 'xmas', beginDate: '12/23/2010 PDT', endDate: '12/27/2010 PDT' }];
+        themes = [{ name: 'halloween', beginDate: '10/2/2010 PDT', endDate: '11/1/2010 PDT' }, { name: 'xmas', beginDate: '12/23/2010 PDT', endDate: '12/27/2010 PDT' }];
     }
 
     //Create the chat object.

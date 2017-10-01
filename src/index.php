@@ -125,6 +125,8 @@
 		<script src="js/src/util/websocket.js"></script>	
 		<script src="js/src/webchat/chat-defs.js"></script>
 		<script src="js/src/webchat/user-entity.js"></script>
+		<script src="js/src/webchat/ui/theme-manager.js"></script>
+		<script src="js/src/webchat/ui/scroll-manager.js"></script>
 		<script src="js/src/webchat/chat.js"></script>
 		<script src="js/src/webchat/connectors/kiwi/kiwi-protocol.js"></script>
 		<script src="js/src/webchat/connectors/kiwi/kiwi-connector.js"></script>

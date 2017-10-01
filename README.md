@@ -28,6 +28,11 @@ Coding and Pull Request Conventions
 Change Log
 -----------
 
+#### 1.1.3
+Moderate refactoring of the following logic:
+* Theme logic is now handled within its own class.
+* Scroll logic into its own class.
+
 #### 1.1.2
 Refactored the namespace from vga.irc to vga.webchat, because, I am...insane.
 

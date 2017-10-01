@@ -541,15 +541,15 @@ $(function(){
             options = options || {};
 
             if (!options.url) {
-                throw new vga.util.exception('irc.chat', 'The url cannot be empty.');
+                throw new vga.util.exception('webchat.chat', 'The url cannot be empty.');
             }
 
             if (!options.hostname) {
-                throw new vga.util.exception('irc.chat', 'The hostname must be set.');
+                throw new vga.util.exception('webchat.chat', 'The hostname must be set.');
             }
 
             if (!options.port) {
-                throw new vga.util.exception('irc.chat', 'The port must be set.');
+                throw new vga.util.exception('webchat.chat', 'The port must be set.');
             }
 
             //-----------------------------------------------------------------
@@ -559,7 +559,6 @@ $(function(){
 
             //Internal variables.
             this._userChannels = {};
-            this._smoothScrollState = vga.webchat.smoothScrollState.stopped;
 
             //Chat settings.
             this._hostname = options.hostname;
@@ -568,9 +567,7 @@ $(function(){
             this._debug = (options.debug == undefined ? false : options.debug);
             this._wallRegEx = options.wallRegEx || /^%! ([^\r\n]*)/;
             this._defaultChannel = options.defaultChannel;
-            this._themes = options.themes || [];
             this._showUserJoinLeaveMessage = (options.showUserJoinLeaveMessage !== undefined) ? options.showUserJoinLeaveMessage : false;
-            this._smoothScroll = (options.smoothScroll !== undefined) ? options.smoothScroll : true;
             this._timedBanDurationInSeconds = (options.timedBanDurationInSeconds !== undefined) ? options.timedBanDurationInSeconds : 300;
             this._nicknameColorSeedFunction = options.nicknameColorSeedFunction;
             this._hyperlinkRegEx = options.hyperlinkRegEx || /https?:\/\/[\w.\/?&#%=\-,+@!:\[\]\(\)\$';]+/ig;
@@ -589,6 +586,12 @@ $(function(){
             if (this._debug) {
                 vga.util.enableDebug();
             }
+
+            //-----------------------------------------------------------------
+            // UI components
+            //-----------------------------------------------------------------
+            this.themeManager = new vga.webchat.ui.thememanager({themes: options.themes});
+            this.scrollManager = new vga.webchat.ui.scrollmanager({$channelContainer, smoothScroll: options.smoothScroll});
 
             //Load additional settings from cookies if they exist.
             this.bindEvents();
@@ -727,101 +730,6 @@ $(function(){
 
             //Toggle the styles for frash show mode.
             $('html').toggleClass(frashShowModeId, activate);
-        }
-
-        //----------------------
-        // Themes methods
-        //----------------------
-
-        /**
-         * This is a helper method that starts the theme monitor.
-         * @method vga.webchat.chat.startThemes
-         */
-        startThemes() {
-            let themesWatcher = () => {
-                this._themesIntervalId = setTimeout(() => {
-                    let now = new Date();
-                    this._themes.forEach((theme)=>{
-                        let beginDate = new Date(theme.beginDate);
-                        let endDate = new Date(theme.endDate);
-                        beginDate.setFullYear(now.getFullYear());
-                        endDate.setFullYear(now.getFullYear());
-                        $('body').toggleClass(theme.name, (now >= beginDate && now <= endDate));
-                    })
-
-                    //Recursively invoke the smooth scroll logic until it is terminated.
-                    themesWatcher();
-                }, 1000);
-            }
-            themesWatcher();
-        }
-        /**
-         * This is a helper method that stops the theme monitor.
-         * @method vga.webchat.chat.stopThemes
-         */
-        stopThemes() {
-            clearTimeout(this._themesIntervalId);
-        }
-
-        //----------------------
-        // Smooth Scroll methods
-        //----------------------
-
-        /**
-         * This is a helper method that starts and handles the Kshade smooth scroll logic.
-         * @method vga.webchat.chat.startSmoothScrolling
-         */
-        startSmoothScrolling() {
-            let smoothScroll = () => {
-                //If scrolling is stopped prevent recursive calls to this function to continue.
-                if (this._smoothScrollState === vga.webchat.smoothScrollState.stopped) {
-                    return;
-                }
-                this._smoothScrollIntervalId = setTimeout(() => {
-                    //Prevent any scrolling if scrolling is paused.
-                    if (this._smoothScrollState === vga.webchat.smoothScrollState.started) {
-                        //Find all available windows except the template.
-                        let $windows = $channelContainer.find(':not(#channel-tab-template)').find('.channel-window');
-                        $.each($windows, (index, e) => {
-                            //Begin Kshade's smooth, smoooooth scrolling, awwww yeah.
-                            let scrollHeight = $(e).prop("scrollHeight");
-                            if (this._smoothScroll) {
-                                let scrollTop = $(e).prop("scrollTop");
-                                let scrollBottom =scrollTop + $(e).height();
-                                let scrollDownRate = 1;
-                                if (scrollBottom < scrollHeight - 140) {
-                                    scrollDownRate = Math.round(1 + ((scrollHeight - scrollBottom) / 50));
-                                }
-                                scrollHeight = scrollTop + scrollDownRate;
-                            }
-
-                            $(e).scrollTop(scrollHeight);
-                        });
-                    }
-                    //Recursively invoke the smooth scroll logic until it is terminated.
-                    smoothScroll();
-                }, 33);
-            }
-            this._smoothScrollState = vga.webchat.smoothScrollState.started;
-            smoothScroll();
-        }
-        /**
-         * This is a helper method that stops the smooth scrolling.
-         * @method vga.webchat.chat.stopSmoothScrolling
-         */
-        stopSmoothScrolling() {
-            this._smoothScrollState = vga.webchat.smoothScrollState.stopped;
-            clearTimeout(this._smoothScrollIntervalId);
-        }
-        /**
-         * This is a helper method that pauses the smooth scrolling.
-         * @method vga.webchat.chat.pauseSmoothScrolling
-         * @param {bool} activate or deactivate the pause logic 
-         */
-        pauseSmoothScrolling(activate) {
-            if (this._smoothScrollState !== vga.webchat.smoothScrollState.stopped) {
-                this._smoothScrollState = activate ? vga.webchat.smoothScrollState.paused : vga.webchat.smoothScrollState.started;
-            }
         }
 
         //-----------------------------------------------------------------
@@ -1081,8 +989,8 @@ $(function(){
         onConnect(eventData) {
             setStatus();
             toggleLoginWindow(false);
-            this.startSmoothScrolling();
-            this.startThemes();
+            this.scrollManager.start();
+            this.themeManager.start();
             writeInformationalMessage(eventData.channelKey, `VGA Chat version:${vga.webchat.chat.CLIENT_VERSION.toString()}`);
         }
 
@@ -1092,8 +1000,8 @@ $(function(){
          * @param {object} eventData information.
          */
         onDisconnect(eventData) {
-            this.stopSmoothScrolling();
-            this.stopThemes();
+            this.scrollManager.stop();
+            this.themeManager.stopThemes();
             toggleLoginWindow(true);
 
             if (eventData.closedByServer)
@@ -1493,7 +1401,7 @@ $(function(){
             let smoothScroll = (vga.util.readCookie(smoothScrollModeId, 'true') === 'true');
             
             this._showUserJoinLeaveMessage = joinMode;
-            this._smoothScroll = smoothScroll;
+            this.scrollManager.enableSmooth(smoothScroll);
 
             this.toggleSettingItem(joinModeId, joinMode);
             this.toggleSettingItem(smoothScrollModeId, smoothScroll);
@@ -1524,7 +1432,7 @@ $(function(){
                     break;
 
                 case smoothScrollModeId:
-                    this._smoothScroll = toggledState;
+                    this.scrollManager.enableSmooth(toggledState);
                     $toggleButton.toggleClass('fa-toggle-off', !toggledState).toggleClass('fa-toggle-on', toggledState);
                     vga.util.setCookie(smoothScrollModeId, toggledState);
                     break;
@@ -1550,7 +1458,7 @@ $(function(){
          * @param {object} $this is a jQuery object that triggered the event.
          */
         onChannelWindowHover(isHovering) {
-            this.pauseSmoothScrolling(isHovering);
+            this.scrollManager.pause(isHovering);
         }
         /**
          * This event is triggered when a user sends a command or message to the chat.
