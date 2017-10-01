@@ -107,7 +107,7 @@
 							<i class="fa fa-cog fa-inverse button" aria-hidden="true" title="Show My Settings" alt="?" role="button"></i>
 						</span>
 						<span class="button-container user-support-button hidden">
-							<i class="fa fa-exclamation-circle fa-inverse button" aria-hidden="true" title="Support - Not available currently" alt="!" role="button"></i>
+							<i class="fa fa-exclamation-circle fa-inverse button" aria-hidden="true" title="New Notification Events" alt="!" role="button"></i>
 						</span>
 					</div>
 					<!-- Input here to chat. -->
@@ -120,14 +120,14 @@
 	</div>
 	<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
 	<?php if(isset($_GET['debug'])): ?>
-		<script src="js/src/irc/util/globals.js"></script>
-		<script src="js/src/irc/util/listener.js"></script>
-		<script src="js/src/irc/util/websocket.js"></script>	
-		<script src="js/src/irc/chat-defs.js"></script>
-		<script src="js/src/irc/user-entity.js"></script>
-		<script src="js/src/irc/chat.js"></script>
-		<script src="js/src/irc/connectors/kiwi/kiwi-protocol.js"></script>
-		<script src="js/src/irc/connectors/kiwi/kiwi-connector.js"></script>
+		<script src="js/src/util/globals.js"></script>
+		<script src="js/src/util/listener.js"></script>
+		<script src="js/src/util/websocket.js"></script>	
+		<script src="js/src/webchat/chat-defs.js"></script>
+		<script src="js/src/webchat/user-entity.js"></script>
+		<script src="js/src/webchat/chat.js"></script>
+		<script src="js/src/webchat/connectors/kiwi/kiwi-protocol.js"></script>
+		<script src="js/src/webchat/connectors/kiwi/kiwi-connector.js"></script>
 		<script src="js/chat-start.js"></script>
 	<?php else : ?>
 		<script src="js/util.min.js"></script>

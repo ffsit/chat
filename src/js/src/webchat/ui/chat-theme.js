@@ -6,7 +6,6 @@
 * All rights reserved.
 * Github: https://github.com/ffsit/chat/
 * Author: Ken Anderson <caffeinatedrat at gmail dot com>
-* NOTE: Chat.js logic is based on the original logic implemented by Kshade.
 * @@@@@@@@@@@@@@@@
 * @@@@@@@@@@@@@@@@
 * @@@  @@@@@@  @@@
@@ -46,11 +45,13 @@
 //Namespace declaration.
 var vga = vga || {};
 vga.webchat = vga.webchat || {};
+vga.webchat.ui = vga.webchat.ui || {};
 
 ///////////////////////////////////////////////////////////
-// The main VGA chat application.
+// UI Component that manages themes.
 ///////////////////////////////////////////////////////////
 $(function(){
+
 
 
 }());
