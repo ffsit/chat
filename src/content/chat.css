@@ -876,7 +876,7 @@ Nickname colors
 .xmas .channel-window .user-entry.nickColor3 .role.mod .allowColor,
 .xmas .channel-window .user-entry.nickColor3 .role.crew .allowColor
 {
-    color: rgb(255,200,0);
+    color: rgb(226, 179, 1);
 }
 .xmas .channel-window .user-entry.nickColor4 .role.shadow .allowColor,
 .xmas .channel-window .user-entry.nickColor4 .role.turbo .allowColor,
@@ -900,7 +900,7 @@ Nickname colors
 .xmas .channel-window .user-entry.nickColor6 .role.mod .allowColor,
 .xmas .channel-window .user-entry.nickColor6 .role.crew .allowColor
 {
-    color: rgb(255,200,0);
+    color: rgb(226, 179, 1);
 }
 .xmas .channel-window .user-entry.nickColor7 .role.shadow .allowColor,
 .xmas .channel-window .user-entry.nickColor7 .role.turbo .allowColor,
