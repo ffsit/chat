@@ -178,11 +178,20 @@ vga.webchat.connector.kiwi = vga.webchat.connector.kiwi || {};
      * @return {string} incremented nickname.
      */
     function incrementNickname(nickname) {
+
+        // --- Caff (12/22/17) [V1.0.3 Fix] ---There is an issue with appending a suffix on invalid nicknames.
+        // This mainly happens for nicknames that contain in invalid character in the first character position such as a number.
+        // When the algorithm attempts to increment the suffix indentifier, it unfortunately tags the prepended underscore and truncates the nickname away.
+        // For example 22-Caffe ends up becoming _23.
         let suffixIndex = nickname.lastIndexOf('_');
         let appendIndex = 1;
-        if (suffixIndex > -1) {
-            appendIndex = (parseInt(nickname.substring(suffixIndex + 1)) || 0) + 1;
-            nickname = nickname.substring(0, suffixIndex);
+        if (suffixIndex > 0) {
+            // --- Caff (12/22/17) [V1.0.3 Fix] --- Preserve any underscores in the middle of the name.
+            let numericSuffixValue = parseInt(nickname.substring(suffixIndex + 1));
+            if (!isNaN(numericSuffixValue)) {
+                appendIndex = (numericSuffixValue || 0) + 1;
+                nickname = nickname.substring(0, suffixIndex);
+            }
         }
         return `${nickname}_${appendIndex}`;
     }
@@ -201,7 +210,7 @@ vga.webchat.connector.kiwi = vga.webchat.connector.kiwi || {};
         return nickname;
     }
 
-    // Caff (7/23/17) [V1.0.3 Fix] --- Handle nicknames with underscores in various places within the nickname.
+    // Caff (7/23/17) [V1.0.2 Fix] --- Handle nicknames with underscores in various places within the nickname.
     /**
      * Sanitizes the nickname by removing the numeric suffix identifier and all underscores from the nickname.
      * @method sanitizeNickname
@@ -262,7 +271,7 @@ vga.webchat.connector.kiwi = vga.webchat.connector.kiwi || {};
             //-----------------------------------------------------------------
             // Versioning
             //-----------------------------------------------------------------
-            vga.webchat.connector.kiwi.CLIENT_VERSION = new vga.util.version(1, 0, 2);
+            vga.webchat.connector.kiwi.CLIENT_VERSION = new vga.util.version(1, 0, 3);
 
             //Normalize.
             options = options || {};
@@ -1047,13 +1056,20 @@ vga.webchat.connector.kiwi = vga.webchat.connector.kiwi || {};
                     }
                     break;
 
-                // Caff (7/23/17) [V1.0.3 Fix] --- Handle erroneus nicknames by resetting the nickname to something that server supports.
+                // Caff (7/23/17) [V1.0.2 Fix] --- Handle erroneus nicknames by resetting the nickname to something that server supports.
                 case 'erroneus_nickname':
                     this.setNickname(`_${this._nickname}`);
                     return;
 
                 //Occurs when someone has been kicked from the channel and tries to commit an action afterwards.
                 case 'cannot_send_to_channel':
+                    // Caff (12/22/17) [V1.0.3 Fix] --- Handle an event where a user cannot send a message to a channel by just kicking them.
+                    this._listener.invokeListeners(`kick`,{
+                        userKey: this.generateUserKey(this._nickname),
+                        identity: this.normalizeNickname(this._nickname),
+                        nickname: this._nickname,
+                        isMe: true
+                    });
                     /*
                     this._listener.invokeListeners('kicked', {
                         userKey: this.getMyUserKey(),

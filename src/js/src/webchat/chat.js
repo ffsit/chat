@@ -415,8 +415,11 @@ $(function(){
      */    
     function sortUserListSection($userListSection) {
         $userListSection.html($userListSection.find('div[data-identity]').sort((a, b) => { 
-            let aIdentity = ($(a).data('identity') || '').toLowerCase();
-            let bIdentity = ($(b).data('identity') || '').toLowerCase();
+            
+            // --- Caff (12/22/17) --- Version [1.1.4] --- Enforces that the identity will be a string.
+            //Some how a number was slipping into our data attributes.
+            let aIdentity = ($(a).data('identity').toString() || '').toLowerCase();
+            let bIdentity = ($(b).data('identity').toString() || '').toLowerCase();
 
             if (aIdentity < bIdentity) {
                 return -1;
@@ -555,7 +558,7 @@ $(function(){
             //-----------------------------------------------------------------
             // Versioning
             //-----------------------------------------------------------------
-            vga.webchat.chat.CLIENT_VERSION = new vga.util.version(1, 1, 2);
+            vga.webchat.chat.CLIENT_VERSION = new vga.util.version(1, 1, 4);
 
             //Internal variables.
             this._userChannels = {};
@@ -813,9 +816,11 @@ $(function(){
                 this.connector && this.connector.leave(channelName, message);
                 
                 //Find another channel to toggle.
+                /*
                 vga.util.forEach(this._userChannels, (channelName, value) => {
 
                 })
+                */
 
                 toggleChannelTab(getChannelTab(channelName));
             }
@@ -1001,7 +1006,7 @@ $(function(){
          */
         onDisconnect(eventData) {
             this.scrollManager.stop();
-            this.themeManager.stopThemes();
+            this.themeManager.stop();
             toggleLoginWindow(true);
 
             if (eventData.closedByServer)
@@ -1295,6 +1300,7 @@ $(function(){
             //TODO: Close channel window.
             //For now, disconnect the user if he or she is kicked from the channel.
             if (eventData.isMe) {
+                vga.util.debuglog.info("[vga.webchat.chat.onKicked]: You've been kicked");
                 this.close();
                 setStatus('You have been kicked.');
             }

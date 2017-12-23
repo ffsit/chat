@@ -3,6 +3,7 @@
 <head>
 	<title>VGAIRC</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 	<link rel="stylesheet" type="text/css" href="/content/chat.css">
 	<link rel="icon" type="image/png"  href="/favicon.png">
 	<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
@@ -79,7 +80,7 @@
 					<!-- Users go into sections within this list. -->
 					<div class="user-list-wrapper center-floating-container hidden">
 						<h2>User List</h2>
-						<div class="user-list mid-size">
+						<div class="user-list scaled mid-size">
 							<div class="mod-section hidden">
 								<h3>Mods</h3>
 								<div class="mod-section-body"></div>
@@ -96,7 +97,7 @@
 					</div>
 				</div>
 				<!-- Chat messages and events go here. -->
-				<div class="channel-window small"></div>
+				<div class="channel-window scaled small"></div>
 				<!-- Adaptive chat buttons -->
 				<div class="lower-ui">
 					<div class="right">

@@ -387,6 +387,18 @@ Username classes
     font-size: 1.0rem;
 }
 
+.large .user-entry .message {
+    font-size: 1.8rem;
+}
+
+.mid-size .user-entry .message {
+    font-size: 1.4rem;
+}
+
+.small .user-entry .message {
+    font-size: 1.0rem;
+}
+
 /*
 Caff (7/8/17) --- Version [1.0.3] --- Fixed the gap between the username and message in Firefox. 
 Firefox Issue:
@@ -403,18 +415,51 @@ Icon classes
 */
 .role .icon {
     vertical-align: middle;
-    background-image: url(/content/img/chat_spritesheet_128.png);
+    background-image: url(/content/img/chat_spritesheet_128_scaled.png);
+    background-repeat: no-repeat;
     display: inline-block;
 }
 
 /*
 Large Icons
 */
-
 .large .user-entry .role .icon {
     width: 32px;
     height: 32px;
+    image-rendering: pixelated;
 }
+
+.mid-size .user-entry .role .icon {
+    width: 24px;
+    height: 24px;
+}
+
+.small .user-entry .role .icon {
+    width: 16px;
+    height: 16px;
+    image-rendering: pixelated;
+}
+
+/*
+Caff (12/22/17) --- Version [1.1.4] --- Added a scaling mechanism to reduce the need for custom icon sizes.
+*/
+
+/*
+---------------------------
+Scaling Icon classes
+---------------------------
+*/
+
+.scaled .role .icon {
+    background-size: 400% auto;
+}
+
+/*
+---------------------------
+Pixel Specific Icon classes
+---------------------------
+*/
+
 
 .large .user-entry .role.crew .icon {
     background-position: 0px 0px;
@@ -444,11 +489,31 @@ Large Icons
 Mid-size Icons
 */
 
-.mid-size .user-entry .role .icon {
-    width: 24px;
-    height: 24px;
+.mid-size .user-entry .role.crew .icon {
+    background-position: 0px 0px;
 }
 
+.mid-size .user-entry .role.mod .icon {
+    background-position: -24px 0px;
+}
+
+.mid-size .user-entry .role.guest .icon {
+    background-position: -48px 0px;
+}
+
+.mid-size .user-entry .role.turbo .icon {
+    background-position: -72px 0px;
+}
+
+.mid-size .user-entry .role.shadow .icon {
+    background-position: -0px -24px;
+}
+
+.mid-size .user-entry .role.banned .icon {
+    background-position: -24px -24px;
+}
+
+/*
 .mid-size .user-entry .role.crew .icon {
     background-position: 0px -64px;
 }
@@ -472,16 +537,37 @@ Mid-size Icons
 .mid-size .user-entry .role.banned .icon {
     background-position: -24px -88px;
 }
+*/
 
 /*
 Small Icons
 */
 
-.small .user-entry .role .icon {
-    width: 16px;
-    height: 16px;
+.small .user-entry .role.crew .icon {
+    background-position: 0px 0px;
 }
 
+.small .user-entry .role.mod .icon {
+    background-position: -16px 0px;
+}
+
+.small .user-entry .role.guest .icon {
+    background-position: -32px 0px;
+}
+
+.small .user-entry .role.turbo .icon {
+    background-position: -48px 0px;
+}
+
+.small .user-entry .role.shadow .icon {
+    background-position: 0px -16px;
+}
+
+.small .user-entry .role.banned .icon {
+    background-position: -16px -16px;
+}
+
+/*
 .small .user-entry .role.crew .icon {
     background-position: -64px -32px;
 }
@@ -505,7 +591,7 @@ Small Icons
 .small .user-entry .role.banned .icon {
     background-position: -80px -48px;
 }
-
+*/
 
 /*
 ---------------------------
@@ -691,7 +777,7 @@ Halloween Theme classes
 */
 
 .halloween .role .icon {
-    background-image: url(/content/img/chat_spritesheet_halloween_128.png);
+    background-image: url(/content/img/chat_spritesheet_halloween_128_scaled.png);
 }
 
 /*
@@ -762,7 +848,7 @@ Xmas Theme classes
 */
 
 .xmas .role .icon {
-    background-image: url(/content/img/chat_spritesheet_xmas_128.png);
+    background-image: url(/content/img/chat_spritesheet_xmas_128_scaled.png);
 }
 
 /*

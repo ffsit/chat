@@ -85,6 +85,7 @@ $(function(){
         //Set this value to change the tban time in seconds.
         timedBanDurationInSeconds: 900,
         debug: debug,
-        hyperlinkRegEx: /https?:\/\/[\w.\/?&#%=\-,+@!:\[\]\(\)\$';]+/ig
+        // --- Caffe (12/11/17) --- Version [1.1.4] --- Adding a tilde to the regex to fix the Dissy links.
+        hyperlinkRegEx: /https?:\/\/[\w.\/?&~#%=\-,+@!:\[\]\(\)\$';]+/ig
     });
 });

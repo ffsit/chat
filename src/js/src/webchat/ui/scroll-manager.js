@@ -98,18 +98,23 @@ vga.webchat.ui = vga.webchat.ui || {};
                         let $windows = this._$channelContainer.find(':not(#channel-tab-template)').find('.channel-window');
                         $.each($windows, (index, e) => {
                             //Begin Kshade's smooth, smoooooth scrolling, awwww yeah.
+                            // Caff (12/10/17) [V1.1.4] --- Added logic to prevent calling scrollTop unless is at least some difference in height & top.
                             let scrollHeight = $(e).prop("scrollHeight");
-                            if (this._smoothScroll) {
-                                let scrollTop = $(e).prop("scrollTop");
-                                let scrollBottom =scrollTop + $(e).height();
-                                let scrollDownRate = 1;
-                                if (scrollBottom < scrollHeight - 140) {
-                                    scrollDownRate = Math.round(1 + ((scrollHeight - scrollBottom) / 50));
+                            let scrollTop = $(e).prop("scrollTop");
+                            let scrollBottom = Math.ceil(scrollTop + $(e).height());
+                            if (scrollBottom < scrollHeight) {
+                                
+                                if (this._smoothScroll) {
+                                    let scrollDownRate = 1;
+                                    if (scrollBottom < scrollHeight - 140) {
+                                        scrollDownRate = Math.round(1 + ((scrollHeight - scrollBottom) / 50));
+                                    }
+                                    //vga.util.debuglog.info(`scrollHeight: ${scrollHeight} scrollTop: ${scrollTop} scrollDownRate: ${scrollDownRate}`);
+                                    scrollHeight = scrollTop + scrollDownRate;
                                 }
-                                scrollHeight = scrollTop + scrollDownRate;
-                            }
 
-                            $(e).scrollTop(scrollHeight);
+                                $(e).scrollTop(scrollHeight);
+                            }
                         });
                     }
                     //Recursively invoke the smooth scroll logic until it is terminated.

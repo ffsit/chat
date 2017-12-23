@@ -28,6 +28,14 @@ Coding and Pull Request Conventions
 Change Log
 -----------
 
+#### 1.1.4
+Moderate refactoring and bugs fixes of the following logic:
+* Added a viewport tag to hopefully encourage adaptive design on mobile devices.
+* Added a tilde to the default hyperlinkRegEx to handle hyperlinks with a tilde.
+* Fixed an issue where the logic that corrected an invalid nickname couldn't handle multiple sessions of the same invalid nickname.
+* Added logic to trigger a kick event if the user does not have rights to a channel yet attempts to send a message to it.
+* Added sprite scaling and cleaned up the spritesheets to only contain higher resolution images (32x32) instead of a series smaller incremental versions.  This should allow for better scaling.
+
 #### 1.1.3
 Moderate refactoring of the following logic:
 * Theme logic is now handled within its own class.
