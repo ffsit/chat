@@ -181,7 +181,7 @@ vga.webchat.connector.kiwi = vga.webchat.connector.kiwi || {};
 
         // --- Caff (12/22/17) [V1.0.3 Fix] ---There is an issue with appending a suffix on invalid nicknames.
         // This mainly happens for nicknames that contain in invalid character in the first character position such as a number.
-        // When the algorithm attempts to increment the suffix indentifier, it unfortunately tags the prepended underscore and truncates the nickname away.
+        // When the algorithm attempts to increment the suffix identifier, it unfortunately tags the prepended underscore and truncates the nickname away.
         // For example 22-Caffe ends up becoming _23.
         let suffixIndex = nickname.lastIndexOf('_');
         let appendIndex = 1;
