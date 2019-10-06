@@ -12,7 +12,7 @@ html, body {
 }
 
 html.frash-show-mode, .frash-show-mode body {
-    background-color: #E6E6E6;
+    background-color: #0F0E11;
 }
 
 html.frash-show-mode {
@@ -34,6 +34,14 @@ html.frash-show-mode {
 .frash-show-mode .channel-window {
     width: 354px;
     border-color: #E6E6E6;
+    background-color: #0F0E11;
+    color: gray;
+}
+
+/* height: 10em; */
+
+.frash-show-mode .channel-window::-webkit-scrollbar {
+    display: none; 
 }
 
 .frash-show-mode #wrapper1 {
@@ -797,7 +805,7 @@ Nickname colors
 .halloween .channel-window .user-entry.nickColor2 .role.mod .allowColor,
 .halloween .channel-window .user-entry.nickColor2 .role.crew .allowColor
 {
-    color: #000;
+    color: rgb(255, 125, 0);
 }
 .halloween .channel-window .user-entry.nickColor3 .role.shadow .allowColor,
 .halloween .channel-window .user-entry.nickColor3 .role.turbo .allowColor,
@@ -813,7 +821,7 @@ Nickname colors
 .halloween .channel-window .user-entry.nickColor4 .role.mod .allowColor,
 .halloween .channel-window .user-entry.nickColor4 .role.crew .allowColor
 {
-    color: #000;
+    color: rgb(200, 0, 0);
 }
 .halloween .channel-window .user-entry.nickColor5 .role.shadow .allowColor,
 .halloween .channel-window .user-entry.nickColor5 .role.turbo .allowColor,
