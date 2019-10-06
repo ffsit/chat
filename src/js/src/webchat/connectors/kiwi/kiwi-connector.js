@@ -202,7 +202,7 @@ vga.webchat.connector.kiwi = vga.webchat.connector.kiwi || {};
      * @param {string} nickname to sanitized.
      * @return {string} sanitized nickname.
      */
-    function oldSanitizeNickname(nickname) {
+    function veryOldSanitizeNickname(nickname) {
         let suffixIndex = nickname.lastIndexOf('_');
         if (suffixIndex > -1) {
             nickname = nickname.substring(0, suffixIndex);
@@ -212,12 +212,13 @@ vga.webchat.connector.kiwi = vga.webchat.connector.kiwi || {};
 
     // Caff (7/23/17) [V1.0.2 Fix] --- Handle nicknames with underscores in various places within the nickname.
     /**
+     * Deprecated: Nickname may contain underscores in Mastodon, so they need to be supported
      * Sanitizes the nickname by removing the numeric suffix identifier and all underscores from the nickname.
      * @method sanitizeNickname
      * @param {string} nickname to sanitized.
      * @return {string} sanitized nickname.
      */
-    function sanitizeNickname(nickname) {
+    function oldSanitizeNickname(nickname) {
         const targetChar = '_';
 
         //Find all target characters.
@@ -253,6 +254,16 @@ vga.webchat.connector.kiwi = vga.webchat.connector.kiwi || {};
         }
 
         return nickname;
+    }
+    
+     /**
+     * Sanitizes the nickname by removing the numeric suffix identifier.
+     * @method sanitizeNickname
+     * @param {string} nickname to sanitized.
+     * @return {string} sanitized nickname.
+     */
+    function sanitizeNickname(nickname) {
+        return nickname.replace(/_[0-9]$/g,'');
     }
 
     /**
